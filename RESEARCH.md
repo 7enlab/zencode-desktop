@@ -12,3 +12,8 @@
 ### 18:40 bổ sung
 - Kết quả: API thư viện say(text, &Options) (học từ ferris-says/Neo-cowsay), -W auto theo $COLUMNS (học từ charasay), CI GitHub Actions 3 hệ điều hành (chưa push). Test: unit 6/6, doctest 1/1, golden 21/21; Windows/macOS cargo check OK; binary 508 KB.
 - Ý tưởng tiếp: đo độ rộng terminal thật bằng ioctl/WinAPI (vẫn std-only qua FFI), màu ANSI tùy chọn (--rainbow như Neo-cowsay), đẩy repo private lên GitHub để CI chạy thật trên macOS/Windows.
+
+## 2026-10-16 — GitHub + CI thật
+- **Nghiên cứu**: Windows checkout mặc định `core.autocrlf=true` biến golden `.out` và cowfile thành CRLF → parity fail trên Windows (21 case). Hark GitHub App có quyền contents/workflows/actions write trên mọi repo nhưng không có administration (không tạo repo, không sửa description/topics).
+- **Ý tưởng**: `.gitattributes` ép LF cho golden/cowfiles; sau này thêm job release (tag → build binary 3 OS → GitHub Release), commit `Cargo.lock`, job clippy/fmt.
+- **Kết quả**: repo private `7enlab/zencode-desktop`, 2 commit trên `main`. CI run 38897073575: ubuntu ✅ macOS ✅ windows ✅ (lần đầu Windows fail vì CRLF, đã sửa). Artifacts binary cho 3 OS. Thêm LICENSE, CHANGELOG, .editorconfig, metadata Cargo, CI chỉ chạy push main/PR/dispatch, permissions read-only, concurrency.

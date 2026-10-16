@@ -1,0 +1,18 @@
+[package]
+name = "cowsay_bubble"
+version = "0.1.0"
+edition = "2021"
+description = "ZenCode Desktop pilot: std-only Rust rebuild of npm cowsay@1.6.0 speech bubble"
+license = "MIT"
+
+[lib]
+name = "cowsay_bubble"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cowsay"
+path = "src/main.rs"
+
+[profile.release]
+strip = true
+lto = true

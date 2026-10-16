@@ -1,7 +1,7 @@
 # Changelog
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-10-16
 ### Added
 - `-W auto` now falls back to the real terminal width (Unix `ioctl(TIOCGWINSZ)`, Windows `GetConsoleScreenBufferInfo`), std-only FFI.
 - Release workflow: tag `v*` → test + build binaries for Linux x86_64, macOS arm64, Windows x86_64 → GitHub Release.

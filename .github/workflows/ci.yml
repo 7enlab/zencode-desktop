@@ -1,7 +1,19 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  CARGO_TERM_COLOR: always
 jobs:
   test:
+    name: test (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -9,11 +21,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults: { run: { working-directory: rebuild } }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - run: cargo build --release
       - run: cargo test --release   # includes golden parity (tests/parity.rs)
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: cowsay-${{ matrix.os }}
           path: |
             rebuild/target/release/cowsay
             rebuild/target/release/cowsay.exe
+          if-no-files-found: ignore

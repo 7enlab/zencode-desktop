@@ -1,0 +1,40 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,  target: x86_64-unknown-linux-gnu, bin: cowsay }
+          - { os: macos-latest,   target: aarch64-apple-darwin,     bin: cowsay }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc,   bin: cowsay.exe }
+    runs-on: ${{ matrix.os }}
+    defaults: { run: { working-directory: rebuild, shell: bash } }
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup toolchain install stable --profile minimal --no-self-update && rustup target add ${{ matrix.target }}
+      - run: cargo test --release --target ${{ matrix.target }}
+      - run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/${{ matrix.bin }} dist/
+          cp ../LICENSE ../README.md dist/
+          cd dist && if [ "${{ runner.os }}" = Windows ]; then 7z a ../zencode-cowsay-${{ matrix.target }}.zip . >/dev/null; else tar czf ../zencode-cowsay-${{ matrix.target }}.tar.gz .; fi
+      - uses: actions/upload-artifact@v5
+        with:
+          name: zencode-cowsay-${{ matrix.target }}
+          path: rebuild/zencode-cowsay-${{ matrix.target }}.*
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with: { path: dist, merge-multiple: true }
+      - run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }

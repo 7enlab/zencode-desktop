@@ -7,6 +7,7 @@
 pub mod bubble;
 pub mod cow;
 mod cows_gen;
+pub mod term;
 pub mod width;
 pub mod wrap;
 
@@ -51,8 +52,10 @@ pub fn say(text: &str, o: &Options) -> Result<String, String> {
 }
 
 /// Wrap column for `-W auto`: terminal width from $COLUMNS minus the 4 border columns, else 40.
+/// Width for `-W auto`: `$COLUMNS - 4`, else the real terminal width - 4, else 40.
 pub fn auto_width() -> usize {
     std::env::var("COLUMNS").ok().and_then(|c| c.trim().parse::<usize>().ok())
+        .or_else(term::terminal_columns)
         .filter(|&c| c > 8).map(|c| c - 4).unwrap_or(40)
 }
 

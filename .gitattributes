@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.out -text
+*.cow -text
+spec/cases/* -text

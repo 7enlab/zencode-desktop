@@ -188,7 +188,11 @@ impl JsonlLog {
             .map_err(|e| Error::Log(format!("open {}: {e}", path.display())))?;
         if bad.is_some() {
             // Interrupted final write: cut the torn tail so later appends stay valid.
-            file.set_len(good_end as u64)
+            // Separate write handle: Windows append-only handles cannot truncate.
+            OpenOptions::new()
+                .write(true)
+                .open(path)
+                .and_then(|f| f.set_len(good_end as u64))
                 .map_err(|e| Error::Log(e.to_string()))?;
         }
         Ok(JsonlLog { file, events })

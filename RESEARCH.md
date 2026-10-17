@@ -101,3 +101,8 @@
 
 ### Kết quả
 - Lộ trình v0.3.0 → v0.5.0 đã đưa vào PLAN.md; các phiên phát triển định kỳ làm theo thứ tự này.
+
+## 2026-10-17 (phiên 12:05)
+- Nghiên cứu: không thêm.
+- Ý tưởng: log JSONL tự sửa đuôi hỏng để resume sau crash/429.
+- Kết quả: bước (b) xong; core 10 test + rebuild xanh cục bộ.

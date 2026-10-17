@@ -2,6 +2,9 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+### Added
+- core: `JsonlLog` (append-only JSONL, chịu dòng cuối bị cắt, cắt đuôi hỏng) và `dedupe_instructions` (AGENTS.md/CLAUDE.md trùng nội dung chỉ inject 1 lần).
 - New std-only crate `core/` (`zencode_core` 0.1.0): agent seams `Llm`, `Tool`, `Sandbox` (fail-closed `NoSandbox`, honest `Isolation`), `SessionLog` (append-only `MemoryLog` with `replay_context` and `fork`) and a minimal loop `run_turn`; invariant "everything the model sees is logged". 6 integration tests.
 - CI lint and test jobs now run a crate matrix (`rebuild`, `core`).
 - `PLAN.md` roadmap for the agent core.

@@ -1697,6 +1697,7 @@ name = "zencode_engine"
 version = "0.3.0-dev"
 dependencies = [
  "anyhow",
+ "async-trait",
  "insta",
  "serde",
  "serde_json",

@@ -2,6 +2,9 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
 ## [Unreleased]
+- New std-only crate `core/` (`zencode_core` 0.1.0): agent seams `Llm`, `Tool`, `Sandbox` (fail-closed `NoSandbox`, honest `Isolation`), `SessionLog` (append-only `MemoryLog` with `replay_context` and `fork`) and a minimal loop `run_turn`; invariant "everything the model sees is logged". 6 integration tests.
+- CI lint and test jobs now run a crate matrix (`rebuild`, `core`).
+- `PLAN.md` roadmap for the agent core.
 - `--cow-color aurora`: diagonal hue gradient, 24-bit when `COLORTERM=truecolor|24bit`, else xterm 256-colour.
 - `--cow-color <red|green|yellow|blue|magenta|cyan|white|gray|bold|rainbow>` and `--color=auto|always|never` (ZenCode extension). Default `auto`: colour only on a terminal, honours `NO_COLOR` and `CLICOLOR_FORCE`; piped output stays byte-identical to cowsay@1.6.0. Windows enables VT processing via `SetConsoleMode` (std-only FFI).
 - Commit `Cargo.lock`; CI builds/tests with `--locked`.

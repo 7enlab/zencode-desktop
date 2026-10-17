@@ -1,19 +1,31 @@
 //! Golden parity: run the built binary on every spec/cases/NN and compare stdout byte-for-byte.
-use std::{fs, path::Path, process::{Command, Stdio}, io::Write};
+use std::{
+    fs,
+    io::Write,
+    path::Path,
+    process::{Command, Stdio},
+};
 
 /// Minimal JSON string-array parser for NN.json (std only).
 fn parse_args(s: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut it = s.chars();
     while let Some(c) = it.next() {
-        if c != '"' { continue; }
+        if c != '"' {
+            continue;
+        }
         let mut cur = String::new();
         while let Some(c) = it.next() {
             match c {
                 '"' => break,
                 '\\' => match it.next().unwrap() {
-                    'n' => cur.push('\n'), 't' => cur.push('\t'), 'r' => cur.push('\r'),
-                    'u' => { let h: String = it.by_ref().take(4).collect(); cur.push(char::from_u32(u32::from_str_radix(&h, 16).unwrap()).unwrap()); }
+                    'n' => cur.push('\n'),
+                    't' => cur.push('\t'),
+                    'r' => cur.push('\r'),
+                    'u' => {
+                        let h: String = it.by_ref().take(4).collect();
+                        cur.push(char::from_u32(u32::from_str_radix(&h, 16).unwrap()).unwrap());
+                    }
                     o => cur.push(o),
                 },
                 o => cur.push(o),
@@ -30,15 +42,31 @@ fn golden_cases() {
     let mut n = 0;
     for e in fs::read_dir(&dir).unwrap() {
         let p = e.unwrap().path();
-        if p.extension().map_or(true, |x| x != "json") { continue; }
+        if p.extension().is_none_or(|x| x != "json") {
+            continue;
+        }
         let args = parse_args(&fs::read_to_string(&p).unwrap());
         let stdin = fs::read(p.with_extension("stdin")).ok();
-        let mut child = Command::new(env!("CARGO_BIN_EXE_cowsay")).args(&args)
-            .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
-        { let mut i = child.stdin.take().unwrap(); if let Some(b) = &stdin { i.write_all(b).unwrap(); } }
+        let mut child = Command::new(env!("CARGO_BIN_EXE_cowsay"))
+            .args(&args)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        {
+            let mut i = child.stdin.take().unwrap();
+            if let Some(b) = &stdin {
+                i.write_all(b).unwrap();
+            }
+        }
         let got = child.wait_with_output().unwrap().stdout;
         let exp = fs::read(p.with_extension("out")).unwrap();
-        assert_eq!(String::from_utf8_lossy(&got), String::from_utf8_lossy(&exp), "case {:?}", p);
+        assert_eq!(
+            String::from_utf8_lossy(&got),
+            String::from_utf8_lossy(&exp),
+            "case {:?}",
+            p
+        );
         n += 1;
     }
     assert_eq!(n, 21);

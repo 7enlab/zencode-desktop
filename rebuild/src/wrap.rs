@@ -56,7 +56,6 @@ pub fn wrap(text: &str, width: Option<usize>) -> Vec<String> {
     lines
 }
 
-
 /// Opt-in word wrap (`--word-wrap`, ZenCode extension, like Perl cowsay / Neo-cowsay):
 /// greedy fill by display columns, breaking at spaces; runs of spaces collapse to one;
 /// a word wider than `width` is hard-cut by columns. Blank lines are kept; a final newline adds none.
@@ -118,8 +117,17 @@ mod tests {
     #[test]
     fn word_wrap() {
         let t = "The quick brown fox jumps over the lazy dog and keeps running far away";
-        assert_eq!(wrap_words(t, 40), vec!["The quick brown fox jumps over the lazy", "dog and keeps running far away"]);
-        assert_eq!(wrap_words("abcdefghij xy", 4), vec!["abcd", "efgh", "ij", "xy"]);
+        assert_eq!(
+            wrap_words(t, 40),
+            vec![
+                "The quick brown fox jumps over the lazy",
+                "dog and keeps running far away"
+            ]
+        );
+        assert_eq!(
+            wrap_words("abcdefghij xy", 4),
+            vec!["abcd", "efgh", "ij", "xy"]
+        );
         assert_eq!(wrap_words("a  b\n\nc\n", 40), vec!["a b", "", "c"]);
         assert_eq!(wrap_words("你好世界 ok", 4), vec!["你好", "世界", "ok"]);
         assert!(wrap_words("", 40).is_empty());

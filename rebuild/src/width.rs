@@ -48,7 +48,13 @@ pub fn width(s: &str) -> usize {
         .chars()
         .map(|c| {
             let c = c as u32;
-            if zero(c) { 0 } else if wide(c) { 2 } else { 1 }
+            if zero(c) {
+                0
+            } else if wide(c) {
+                2
+            } else {
+                1
+            }
         })
         .sum()
 }

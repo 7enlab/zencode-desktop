@@ -12,7 +12,15 @@ pub fn bubble(lines: &[String], think: bool) -> String {
     } else {
         let n = lines.len();
         for (i, l) in lines.iter().enumerate() {
-            let (a, b) = if think { ('(', ')') } else if i == 0 { ('/', '\\') } else if i == n - 1 { ('\\', '/') } else { ('|', '|') };
+            let (a, b) = if think {
+                ('(', ')')
+            } else if i == 0 {
+                ('/', '\\')
+            } else if i == n - 1 {
+                ('\\', '/')
+            } else {
+                ('|', '|')
+            };
             out.push(format!("{} {} {}", a, pad(l), b));
         }
     }

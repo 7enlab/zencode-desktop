@@ -34,7 +34,13 @@ pub struct Options {
 
 impl Default for Options {
     fn default() -> Self {
-        Options { wrap: Wrap::Hard(40), cow: "default".into(), eyes: "oo".into(), tongue: "  ".into(), think: false }
+        Options {
+            wrap: Wrap::Hard(40),
+            cow: "default".into(),
+            eyes: "oo".into(),
+            tongue: "  ".into(),
+            think: false,
+        }
     }
 }
 
@@ -47,16 +53,28 @@ pub fn say(text: &str, o: &Options) -> Result<String, String> {
         Wrap::Words(w) => wrap::wrap_words(text, w),
     };
     let template = cow::load(&o.cow)?;
-    let face = cow::Face { eyes: o.eyes.clone(), tongue: o.tongue.clone(), thoughts: if o.think { "o" } else { "\\" } };
-    Ok(format!("{}\n{}\n", bubble::bubble(&lines, o.think), cow::render(&template, &face)))
+    let face = cow::Face {
+        eyes: o.eyes.clone(),
+        tongue: o.tongue.clone(),
+        thoughts: if o.think { "o" } else { "\\" },
+    };
+    Ok(format!(
+        "{}\n{}\n",
+        bubble::bubble(&lines, o.think),
+        cow::render(&template, &face)
+    ))
 }
 
 /// Wrap column for `-W auto`: terminal width from $COLUMNS minus the 4 border columns, else 40.
 /// Width for `-W auto`: `$COLUMNS - 4`, else the real terminal width - 4, else 40.
 pub fn auto_width() -> usize {
-    std::env::var("COLUMNS").ok().and_then(|c| c.trim().parse::<usize>().ok())
+    std::env::var("COLUMNS")
+        .ok()
+        .and_then(|c| c.trim().parse::<usize>().ok())
         .or_else(term::terminal_columns)
-        .filter(|&c| c > 8).map(|c| c - 4).unwrap_or(40)
+        .filter(|&c| c > 8)
+        .map(|c| c - 4)
+        .unwrap_or(40)
 }
 
 #[cfg(test)]
@@ -64,9 +82,19 @@ mod tests {
     use super::*;
     #[test]
     fn library_say_think() {
-        let o = Options { think: true, ..Default::default() };
+        let o = Options {
+            think: true,
+            ..Default::default()
+        };
         let s = say("hi", &o).unwrap();
         assert!(s.starts_with(" ____\n( hi )\n ----\n        o"));
-        assert!(say("x", &Options { cow: "nope".into(), ..Default::default() }).is_err());
+        assert!(say(
+            "x",
+            &Options {
+                cow: "nope".into(),
+                ..Default::default()
+            }
+        )
+        .is_err());
     }
 }

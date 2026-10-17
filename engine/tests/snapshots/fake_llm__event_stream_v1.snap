@@ -1,0 +1,7 @@
+---
+source: tests/fake_llm.rs
+expression: norm
+---
+{"v":1,"seq":0,"type":"assistant_message","text":null,"tool_calls":[{"id":"c1","name":"Read","arguments":"{\"file_path\":\"<DIR>/a.txt\"}"}],"parent_tool_use_id":null}
+{"v":1,"seq":1,"type":"tool_result","tool_use_id":"c1","content":"     1\tone\n","is_error":false,"parent_tool_use_id":null}
+{"v":1,"seq":2,"type":"assistant_message","text":"ok","tool_calls":[],"parent_tool_use_id":null}

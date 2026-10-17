@@ -4,6 +4,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 ## [Unreleased]
 
 ### Added
+- engine: `events` — versioned (v1) UI event schema, `RecordingSink`, `run_task_with_sink`, NDJSON parser rejecting unknown versions; insta contract snapshot.
+
+### Added
 - `engine/` (zencode_engine): `run_task()` chạy vòng agent của ZenCode CLI (zen-agent @3a09220) với Read/Edit/Write/Bash; 4 integration test với server OpenAI-compatible giả trên localhost (g1).
 
 ### Added

@@ -62,3 +62,15 @@
 
 ### Kết quả
 - Chưa cài dsh (cần Node + API key DeepSeek; DeepSeek API trả phí → không dùng). Có thể thử sau với endpoint OpenAI-compatible free qua relay.
+
+## 2026-10-17 — Aurora gradient (truecolor / 256 màu)
+
+### Nghiên cứu
+- Neo-cowsay `--aurora`: gradient màu theo đường chéo từng ký tự. Chuẩn phát hiện truecolor phổ biến: `COLORTERM=truecolor|24bit` (termstandard/colors); không có thì dùng bảng 256 màu xterm (cube 6x6x6, mã 16–231).
+
+### Ý tưởng
+- Mỗi ký tự khác khoảng trắng nhận màu theo hue `(dòng + cột/2) * 12°`; chỉ phát mã SGR khi màu đổi để output gọn; reset cuối mỗi dòng.
+- Fallback 256 màu bằng làm tròn RGB về cube, giữ std-only.
+
+### Kết quả
+- `--cow-color aurora` + `Depth` (`COLORTERM`), API `paint_depth`; 2 unit test + integration test (truecolor và 256 màu, strip = bản gốc). fmt/clippy sạch, toàn bộ test pass, golden không đổi.

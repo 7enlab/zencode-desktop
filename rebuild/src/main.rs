@@ -5,7 +5,7 @@ use std::io::{IsTerminal, Read, Write};
 
 /// Print usage to stderr and exit with `code`.
 fn usage(code: i32) -> ! {
-    eprintln!("Usage: cowsay [-bdgpstwy] [-e eyes] [-T tongue] [-f cowfile] [-r|--random] [-l] [-n] [-W <width>] [--think] [--word-wrap] [--cow-color <name>] [--color=auto|always|never] [message...]\n  -n  disable wrapping\n  -W  wrap column (default 40; 'auto' = terminal width from $COLUMNS)\n  --word-wrap  break at spaces instead of hard cut (ZenCode extension)\n  --cow-color  red|green|yellow|blue|magenta|cyan|white|gray|bold|rainbow (ZenCode extension)\n  --color  when to colour: auto (tty, honours NO_COLOR/CLICOLOR_FORCE), always, never");
+    eprintln!("Usage: cowsay [-bdgpstwy] [-e eyes] [-T tongue] [-f cowfile] [-r|--random] [-l] [-n] [-W <width>] [--think] [--word-wrap] [--cow-color <name>] [--color=auto|always|never] [message...]\n  -n  disable wrapping\n  -W  wrap column (default 40; 'auto' = terminal width from $COLUMNS)\n  --word-wrap  break at spaces instead of hard cut (ZenCode extension)\n  --cow-color  red|green|yellow|blue|magenta|cyan|white|gray|bold|rainbow|aurora (ZenCode extension)\n  --color  when to colour: auto (tty, honours NO_COLOR/CLICOLOR_FORCE), always, never");
     std::process::exit(code)
 }
 
@@ -143,7 +143,11 @@ fn main() {
                         env("CLICOLOR_FORCE").as_deref(),
                     ) && cowsay_bubble::color::enable_vt() =>
                 {
-                    cowsay_bubble::color::paint(&s, p)
+                    cowsay_bubble::color::paint_depth(
+                        &s,
+                        p,
+                        cowsay_bubble::color::depth(env("COLORTERM").as_deref()),
+                    )
                 }
                 _ => s,
             };

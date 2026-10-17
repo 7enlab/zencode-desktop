@@ -96,6 +96,17 @@ fn color_extension() {
         &[("CLICOLOR_FORCE", "1")],
     );
     assert!(forced.contains("\x1b[33m"));
+    let tc = run(
+        &["--cow-color=aurora", "--color=always", "hi"],
+        &[("COLORTERM", "truecolor")],
+    );
+    assert!(tc.contains("\x1b[38;2;"));
+    assert_eq!(cowsay_bubble::color::strip(&tc), plain);
+    let c256 = run(
+        &["--cow-color=aurora", "--color=always", "hi"],
+        &[("COLORTERM", "")],
+    );
+    assert!(c256.contains("\x1b[38;5;") && !c256.contains("38;2;"));
     assert_eq!(
         run(
             &["--cow-color", "red", "--color=never", "hi"],

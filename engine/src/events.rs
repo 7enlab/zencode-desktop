@@ -54,6 +54,26 @@ pub enum DesktopEvent {
         event: String,
         text: String,
     },
+    /// End of a session, with cost accounting. Mirrors Claude Code's `result`
+    /// stream-json line; feeds the RateGate quota UI (D8).
+    ///
+    /// NOTE (merge): vendored from PR #4 (`muse2-sessionend`), extended here with
+    /// the R4 claim counts. When both merge, keep PR #4's fields AND the three
+    /// `claims_*` fields below — exactly one `SessionEnd` variant must survive.
+    SessionEnd {
+        success: bool,
+        result: String,
+        num_turns: u64,
+        total_cost_usd: f64,
+        input_tokens: u64,
+        output_tokens: u64,
+        model: String,
+        duration_ms: u64,
+        /// R4 Verified Claims summary (see `crate::claims`).
+        claims_verified: u64,
+        claims_unverified: u64,
+        claims_contradicted: u64,
+    },
 }
 
 /// One line of the Desktop event log: `{"v":1, "seq":N, ...event}`.
@@ -149,6 +169,37 @@ impl RecordingSink {
             .map(|e| serde_json::to_string(e).expect("envelope serializes"))
             .collect::<Vec<_>>()
             .join("\n")
+    }
+
+    /// Record the end of a session with cost accounting (P4: feeds the RateGate UI)
+    /// plus the R4 Verified Claims summary counts.
+    ///
+    /// NOTE (merge): `emit_session_end` (without claims) lives on PR #4
+    /// (`muse2-sessionend`). When both merge, keep both methods or fold them.
+    pub fn emit_session_end_with_claims(
+        &self,
+        result: &zen_core::RunResult,
+        counts: &crate::claims::ClaimCounts,
+    ) {
+        let mut g = self.inner.lock().unwrap();
+        let seq = g.len() as u64;
+        g.push(Envelope {
+            v: SCHEMA_VERSION,
+            seq,
+            event: DesktopEvent::SessionEnd {
+                success: !result.is_error,
+                result: result.result.clone(),
+                num_turns: result.num_turns as u64,
+                total_cost_usd: result.total_cost_usd,
+                input_tokens: result.usage.input_tokens,
+                output_tokens: result.usage.output_tokens,
+                model: result.model.clone(),
+                duration_ms: result.duration_ms,
+                claims_verified: counts.verified,
+                claims_unverified: counts.unverified,
+                claims_contradicted: counts.contradicted,
+            },
+        });
     }
 }
 

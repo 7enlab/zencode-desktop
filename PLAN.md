@@ -21,7 +21,7 @@ Desktop dùng crate CLI qua git dependency ghim rev (hiện `3a09220`), cập nh
 
 | # | Bước | Trạng thái | Chứng minh |
 |---|------|-----------|------------|
-| g1 | Crate `engine/` phụ thuộc `zen-agent`, `zen-tools`, `zen-core` (git, rev ghim); chạy 1 vòng agent với LLM giả (server localhost) gọi tool Read + Edit trong tempdir | TODO | `cd engine && cargo test` xanh; CI build engine trên 3 OS |
+| g1 | Crate `engine/` phụ thuộc `zen-agent`, `zen-tools`, `zen-core` (git, rev ghim); chạy 1 vòng agent với LLM giả (server localhost) gọi tool Read + Edit trong tempdir | DONE (4 test: Read→Edit qua HTTP thật tới server giả, Bash, lỗi 500, input sai) | `cd engine && cargo test` xanh; CI build engine trên 3 OS |
 | g2 | `zencode run "<task>"` gọi engine với kênh free thật (chỉ `:free`), lưu session | TODO | chạy thật 1 task nhỏ, transcript không key vào docs/e2e/ |
 | g3 | RateGate: hạn mức ngày theo provider (OpenRouter :free 50 req/ngày, lỗi cũng tính) bọc quanh client CLI, chuyển model khi cạn | TODO | test đếm quota + chuyển model với server giả |
 | g4 | Ngân sách prompt: đo system prompt + tool defs của CLI, test CI ≤1.200 token (hoặc profile tool tối thiểu) | TODO | test in số token, fail nếu vượt |

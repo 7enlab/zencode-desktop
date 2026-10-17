@@ -106,3 +106,8 @@
 - Nghiên cứu: không thêm.
 - Ý tưởng: log JSONL tự sửa đuôi hỏng để resume sau crash/429.
 - Kết quả: bước (b) xong; core 10 test + rebuild xanh cục bộ.
+
+## 2026-10-17 12:40
+- Nghiên cứu: zen-agent có sẵn OpenAiClient + Agent::run_turn; chỉ cần ráp.
+- Ý tưởng: g2 thêm binary `zencode run` trên engine.
+- Kết quả: g1 xong, 4/4 test xanh local.

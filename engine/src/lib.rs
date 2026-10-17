@@ -1,0 +1,101 @@
+//! ZenCode Desktop engine: runs the ZenCode CLI agent loop (`zen-agent`) with the CLI's file and
+//! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
+//! here; this crate only assembles the pieces.
+
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use serde_json::Value;
+use zen_agent::{Agent, AgentConfig, OpenAiClient};
+use zen_core::{
+    HookRunner, NoHooks, NullSink, PermissionChecker, PermissionDecision, RunResult, ToolContext,
+    ToolRegistry,
+};
+
+/// Options for one headless agent run.
+#[derive(Clone, Debug)]
+pub struct RunOptions {
+    /// OpenAI-compatible base URL (without `/chat/completions`).
+    pub base_url: String,
+    /// Bearer key; `None` for local gateways / relays that attach it themselves.
+    pub api_key: Option<String>,
+    pub model: String,
+    pub fallback_models: Vec<String>,
+    /// Working directory the tools operate in.
+    pub cwd: PathBuf,
+    pub max_turns: usize,
+    pub system_prompt: String,
+}
+
+impl RunOptions {
+    pub fn new(
+        base_url: impl Into<String>,
+        model: impl Into<String>,
+        cwd: impl Into<PathBuf>,
+    ) -> Self {
+        Self {
+            base_url: base_url.into(),
+            api_key: None,
+            model: model.into(),
+            fallback_models: vec![],
+            cwd: cwd.into(),
+            max_turns: 12,
+            system_prompt: "You are ZenCode, a concise coding agent. Use the tools to complete the task, then reply with a short summary.".into(),
+        }
+    }
+}
+
+/// Headless run: tools are pre-approved (the caller decides the sandbox, e.g. a tempdir).
+struct AllowAll;
+impl PermissionChecker for AllowAll {
+    fn check(&self, _: &str, _: &Value, _: bool, _: &ToolContext) -> PermissionDecision {
+        PermissionDecision::Allow
+    }
+}
+
+/// Registry with the CLI's Read, Edit, Write and Bash tools.
+pub fn default_tools() -> ToolRegistry {
+    let mut t = ToolRegistry::new();
+    t.register(Arc::new(zen_tools::ReadTool));
+    t.register(Arc::new(zen_tools::EditTool));
+    t.register(Arc::new(zen_tools::WriteTool));
+    t.register(Arc::new(zen_tools::BashTool));
+    t
+}
+
+/// Run one task to completion and return the agent's result.
+pub async fn run_task(opts: &RunOptions, task: &str) -> anyhow::Result<RunResult> {
+    if task.trim().is_empty() {
+        anyhow::bail!("empty task");
+    }
+    if !opts.cwd.is_dir() {
+        anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
+    }
+    let sink = Arc::new(NullSink);
+    let llm = Arc::new(OpenAiClient::new(
+        opts.base_url.clone(),
+        opts.api_key.clone(),
+        sink.clone(),
+    ));
+    let config = AgentConfig {
+        model: opts.model.clone(),
+        fallback_models: opts.fallback_models.clone(),
+        system_prompt: opts.system_prompt.clone(),
+        max_turns: opts.max_turns,
+        auto_compact_threshold: None,
+        ..Default::default()
+    };
+    let hooks: Arc<dyn HookRunner> = Arc::new(NoHooks);
+    let ctx = ToolContext::new(opts.cwd.clone(), "engine");
+    let mut agent = Agent::new(
+        llm,
+        default_tools(),
+        Arc::new(AllowAll),
+        None,
+        hooks,
+        sink,
+        ctx,
+        config,
+    );
+    Ok(agent.run_turn(task).await)
+}

@@ -1,0 +1,19 @@
+[package]
+name = "zencode_engine"
+version = "0.3.0-dev"
+edition = "2021"
+description = "ZenCode Desktop engine: thin wrapper over ZenCode CLI crates (zen-agent/zen-tools/zen-core)"
+
+[dependencies]
+zen-core = { git = "https://github.com/atzenn/zencode", rev = "3a09220" }
+zen-agent = { git = "https://github.com/atzenn/zencode", rev = "3a09220" }
+zen-tools = { git = "https://github.com/atzenn/zencode", rev = "3a09220" }
+anyhow = "1"
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+
+[profile.dev]
+debug = 0
+
+[profile.dev.package."*"]
+debug = 0

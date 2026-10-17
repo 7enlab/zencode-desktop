@@ -40,3 +40,25 @@
 ### Kết quả
 - CI thêm job lint: `cargo fmt --check` + `cargo clippy -D warnings` cho Linux, Windows, macOS; build/test dùng `--locked`; commit `Cargo.lock`.
 - Module `color.rs` (std-only, có FFI Windows), cờ `--cow-color`, `--color=WHEN`; 2 unit test + 1 integration test mới; golden 21/21 không đổi (mặc định không màu khi pipe).
+
+## 2026-10-17 — Đối thủ: DeepSeek Harness (dsh)
+
+### Nghiên cứu
+- dsh: agent harness mã nguồn mở MIT của DeepSeek (ra 13/08/2026, developer preview, bản nguồn 0.1.5-alpha.1), TypeScript monorepo trên Cordis (khung plugin). Chạy `npx @deepseek-ai/dsh web` (Web UI 127.0.0.1:3080), có Desktop app, profile `headless` cho tác vụ one-shot, SDK Python qua JSON-RPC trên stdio.
+- "Everything is a plugin": model adapter (`ctx.llm`), tool registry, sandbox, session log, UI và cả agent loop đều là plugin; loop phát sự kiện công khai (`turn/start`, `system-prompt/assemble`, `tools/pre-execute`, `tools/post-execute`...).
+- Cordis: hiệu ứng có thể đảo ngược (LIFO, gỡ plugin trả hệ về đúng trạng thái cũ) + coeffect phản ứng (dependency khai báo, tự kích hoạt lại).
+- Session log append-only, bất biến "model-visible means logged" → resume/fork/replay/Trajectory view.
+- 4 mode: Standard, Code (`run_code`: model viết TS gọi nhiều tool một lần), Minimal (shell + str_replace_editor, dùng cho benchmark), Creator.
+- Sandbox: Linux bwrap + Landlock (launcher C fail-closed), macOS Seatbelt, Windows restricted ACL token; tự báo "partial" khi kernel cũ.
+- Subagent có thể là Claude Code / Codex; MCP, skills, goals/jobs, schedule, webhook, LSP.
+- Điểm yếu (ArceApps/Justin3Go): tốn token gấp ~10 lần Pi trên cùng model (4.5K vs 47.6K), bug inject CLAUDE.md + AGENTS.md hai lần, plugin chạy trong process (không sandbox), hệ plugin cộng đồng chưa ổn (41 tương thích / 219 cần xem lại), API đổi liên tục.
+
+### Ý tưởng cho ZenCode Desktop
+- Kiến trúc "seam": tách trait `Llm`, `Tool`, `Sandbox`, `SessionLog` trong Rust; plugin = crate/feature hoặc tiến trình con qua JSON-RPC stdio (an toàn hơn dsh vì plugin ngoài process).
+- Session log append-only JSONL + replay/fork; bất biến "cái gì model thấy đều được log".
+- Sandbox đa nền tảng std-first: Landlock syscalls (Linux), sandbox-exec profile (macOS), Job Object/restricted token (Windows) — fail-closed, báo partial trung thực.
+- Mode Minimal (shell + str_replace) làm baseline đánh giá model free; tránh nhân đôi CLAUDE.md/AGENTS.md (hash nội dung, dedupe).
+- Tiết kiệm token là lợi thế cạnh tranh vì ta chỉ dùng model free.
+
+### Kết quả
+- Chưa cài dsh (cần Node + API key DeepSeek; DeepSeek API trả phí → không dùng). Có thể thử sau với endpoint OpenAI-compatible free qua relay.

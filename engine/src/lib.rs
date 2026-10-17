@@ -2,6 +2,7 @@
 //! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
 //! here; this crate only assembles the pieces.
 
+pub mod config_import;
 pub mod events;
 
 use std::path::PathBuf;

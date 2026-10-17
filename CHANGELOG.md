@@ -4,6 +4,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 ## [Unreleased]
 
 ### Added
+- `engine/` (zencode_engine): `run_task()` chạy vòng agent của ZenCode CLI (zen-agent @3a09220) với Read/Edit/Write/Bash; 4 integration test với server OpenAI-compatible giả trên localhost (g1).
+
+### Added
 - core: `JsonlLog` (append-only JSONL, chịu dòng cuối bị cắt, cắt đuôi hỏng) và `dedupe_instructions` (AGENTS.md/CLAUDE.md trùng nội dung chỉ inject 1 lần).
 - New std-only crate `core/` (`zencode_core` 0.1.0): agent seams `Llm`, `Tool`, `Sandbox` (fail-closed `NoSandbox`, honest `Isolation`), `SessionLog` (append-only `MemoryLog` with `replay_context` and `fork`) and a minimal loop `run_turn`; invariant "everything the model sees is logged". 6 integration tests.
 - CI lint and test jobs now run a crate matrix (`rebuild`, `core`).

@@ -74,3 +74,17 @@
 
 ### Kết quả
 - `--cow-color aurora` + `Depth` (`COLORTERM`), API `paint_depth`; 2 unit test + integration test (truecolor và 256 màu, strip = bản gốc). fmt/clippy sạch, toàn bộ test pass, golden không đổi.
+
+## 2026-10-17 — Lõi agent: crate `core/` (seam traits)
+
+### Nghiên cứu
+- Từ dsh: mọi thứ (model, tool, sandbox, session log, loop) là plugin nối qua seam; session log append-only với bất biến "model-visible means logged" cho phép resume/fork/replay. Pi giữ loop tối giản, tốn ít token.
+
+### Ý tưởng
+- Bốn trait Rust thay cho plugin in-process: `Llm`, `Tool`, `Sandbox`, `SessionLog`; loop `run_turn` chỉ phụ thuộc trait → thay backend (fake trong test, kênh free OpenAI-compatible sau) không đụng loop.
+- Bất biến log giữ "theo cấu trúc": chỉ một hàm `see()` vừa log vừa đẩy message vào context; context luôn khởi tạo từ `replay_context()`.
+- Sandbox fail-closed mặc định (`NoSandbox` từ chối mọi thứ và báo `Isolation::None`), không bao giờ khai khống mức cô lập.
+
+### Kết quả
+- Crate `zencode_core` 0.1.0 std-only, 6 test tích hợp pass; fmt/clippy `-D warnings` sạch; `rebuild/` không đổi (golden parity pass). CI chạy matrix crate `rebuild` + `core`.
+- Bước tiếp: `JsonlLog` (append-only JSONL trên đĩa, JSON encode/decode std-only) + dedupe AGENTS.md/CLAUDE.md theo hash.

@@ -3,6 +3,7 @@
 //! here; this crate only assembles the pieces.
 
 pub mod claims;
+pub mod convergence;
 pub mod cost_firewall;
 pub mod events;
 

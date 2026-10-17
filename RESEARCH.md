@@ -111,3 +111,8 @@
 - Nghiên cứu: zen-agent có sẵn OpenAiClient + Agent::run_turn; chỉ cần ráp.
 - Ý tưởng: g2 thêm binary `zencode run` trên engine.
 - Kết quả: g1 xong, 4/4 test xanh local.
+
+## 2026-10-17 (phiên 13:00)
+- Nghiên cứu: AgentEvent của CLI có 7 biến thể; PermissionDenied mang tool_input (có thể chứa secret).
+- Ý tưởng: bridge Tauri phát Envelope NDJSON thẳng ra UI.
+- Kết quả: schema v1 + snapshot; bỏ tool_input khỏi sự kiện Desktop.

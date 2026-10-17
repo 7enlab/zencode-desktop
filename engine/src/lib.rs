@@ -2,14 +2,16 @@
 //! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
 //! here; this crate only assembles the pieces.
 
+pub mod events;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde_json::Value;
 use zen_agent::{Agent, AgentConfig, OpenAiClient};
 use zen_core::{
-    HookRunner, NoHooks, NullSink, PermissionChecker, PermissionDecision, RunResult, ToolContext,
-    ToolRegistry,
+    EventSink, HookRunner, NoHooks, NullSink, PermissionChecker, PermissionDecision, RunResult,
+    ToolContext, ToolRegistry,
 };
 
 /// Options for one headless agent run.
@@ -65,13 +67,21 @@ pub fn default_tools() -> ToolRegistry {
 
 /// Run one task to completion and return the agent's result.
 pub async fn run_task(opts: &RunOptions, task: &str) -> anyhow::Result<RunResult> {
+    run_task_with_sink(opts, task, Arc::new(NullSink)).await
+}
+
+/// Like [`run_task`], streaming every agent event to `sink` (e.g. `events::RecordingSink`).
+pub async fn run_task_with_sink(
+    opts: &RunOptions,
+    task: &str,
+    sink: Arc<dyn EventSink>,
+) -> anyhow::Result<RunResult> {
     if task.trim().is_empty() {
         anyhow::bail!("empty task");
     }
     if !opts.cwd.is_dir() {
         anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
     }
-    let sink = Arc::new(NullSink);
     let llm = Arc::new(OpenAiClient::new(
         opts.base_url.clone(),
         opts.api_key.clone(),

@@ -174,3 +174,48 @@ async fn server_error_surfaces_as_error_result() {
     assert!(res.is_error, "500s must not look like success");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// Step 1 contract: the versioned event stream of a real Read→Edit run. The snapshot pins the
+// schema; any CLI bump that changes what the UI would see fails here first.
+#[tokio::test]
+async fn event_stream_contract_v1() {
+    use zencode_engine::events::{parse_ndjson, RecordingSink, SCHEMA_VERSION};
+    let dir = tmpdir("events");
+    let f = dir.join("a.txt");
+    std::fs::write(&f, "one\n").unwrap();
+    let fp = "a.txt".to_string();
+    let (url, _) = serve(vec![
+        tool_reply("c1", "Read", json!({"file_path": f.to_string_lossy()})),
+        text_reply("ok"),
+    ])
+    .await;
+    let _ = fp;
+    let sink = std::sync::Arc::new(RecordingSink::new());
+    let opts = RunOptions::new(url, "fake/model:free", &dir);
+    let res = zencode_engine::run_task_with_sink(&opts, "read a.txt", sink.clone())
+        .await
+        .unwrap();
+    assert!(!res.is_error, "{}", res.result);
+    let nd = sink.to_ndjson();
+    let evs = parse_ndjson(&nd).unwrap();
+    assert!(evs.iter().all(|e| e.v == SCHEMA_VERSION));
+    assert!(evs.iter().enumerate().all(|(i, e)| e.seq == i as u64));
+    // normalise the tempdir path so the snapshot is machine independent
+    let norm = nd.replace(&*dir.to_string_lossy().replace('\\', "\\\\"), "<DIR>");
+    insta::assert_snapshot!("event_stream_v1", norm);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn newer_or_missing_schema_version_is_rejected() {
+    use zencode_engine::events::parse_ndjson;
+    assert!(parse_ndjson(r#"{"v":99,"seq":0,"type":"text_delta","text":"x"}"#).is_err());
+    assert!(parse_ndjson(r#"{"seq":0,"type":"text_delta","text":"x"}"#).is_err());
+    assert!(parse_ndjson("not json").is_err());
+    assert_eq!(
+        parse_ndjson(r#"{"v":1,"seq":0,"type":"text_delta","text":"x"}"#)
+            .unwrap()
+            .len(),
+        1
+    );
+}

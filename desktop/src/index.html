@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZenCode Desktop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside id="sidebar">
+        <div class="sidebar-header">
+          <span class="logo">⬢ ZenCode</span>
+          <button id="new-session" title="New session">＋</button>
+        </div>
+        <input id="session-search" type="search" placeholder="Search sessions…" />
+        <ul id="session-list"></ul>
+      </aside>
+      <main id="chat-pane">
+        <div id="gap-warning" class="hidden">
+          ⚠ Stream gap detected — missed seq <span id="gap-seqs"></span>.
+          <button id="gap-replay">Replay</button>
+        </div>
+        <div id="pane-tabs">
+          <button id="tab-chat" class="tab active">Chat</button>
+          <button id="tab-timeline" class="tab">⏪ Timeline</button>
+        </div>
+        <div id="messages"></div>
+        <div id="timeline-panel" class="hidden"></div>
+        <div id="composer">
+          <textarea id="input" rows="2" placeholder="Ask ZenCode anything…  (Enter to send)"></textarea>
+          <button id="send">Send</button>
+        </div>
+        <div id="statusbar">
+          <span id="status-model">model: —</span>
+          <span id="status-quota">quota: —</span>
+          <span id="status-conn">● mock</span>
+        </div>
+      </main>
+    </div>
+    <script src="app.js"></script>
+    <script src="timeline.js"></script>
+  </body>
+</html>

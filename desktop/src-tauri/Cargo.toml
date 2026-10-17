@@ -1,0 +1,53 @@
+[package]
+name = "zencode-desktop"
+version = "0.1.0"
+description = "ZenCode Desktop — Tauri 2 shell (g6 scaffold, engine not yet wired)"
+authors = ["7enlab"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Day-one plugins (D3 design: docs/research/d3-plugins-updater-2026-10-17.md).
+# The 11 from D3, plus autostart/os/clipboard-manager/positioner required by the
+# g6 scaffold spec (union of both lists; Hark 2 may trim).
+tauri-plugin-updater = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-process = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-store = "2"
+tauri-plugin-log = "2"
+tauri-plugin-window-state = "2"
+# NOTE: tauri-plugin-deep-link is intentionally EXCLUDED for now.
+# deep-link 2.6.2 (latest 2.x) does not compile: it requires rust-ini 0.21
+# but its own code constructs `ini::ParseOption` without the fields added
+# in 0.21 (E0063). Re-add when upstream releases a fixed 2.x.
+# The `plugins.deep-link` section stays in tauri.conf.json for when it returns.
+tauri-plugin-single-instance = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-os = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-positioner = "2"
+
+# Pin rust-ini to 0.20: tauri-plugin-deep-link 2.6.2 constructs
+# `ini::ParseOption` without the fields added in rust-ini 0.21.
+rust-ini = "0.20"
+
+# Engine wiring (g6): the desktop runs zencode_engine as a library.
+# zen-core is needed directly for the EventSink trait (ForwardingSink).
+zencode_engine = { path = "../../engine" }
+zen-core = { git = "https://github.com/atzenn/zencode", rev = "3a09220" }
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

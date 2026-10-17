@@ -3,6 +3,7 @@
 //! here; this crate only assembles the pieces.
 
 pub mod events;
+pub mod scope;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -27,6 +28,8 @@ pub struct RunOptions {
     pub cwd: PathBuf,
     pub max_turns: usize,
     pub system_prompt: String,
+    /// Declared scope (R3). `None` = pre-approved headless run (previous behavior).
+    pub scope: Option<scope::ScopeDecl>,
 }
 
 impl RunOptions {
@@ -43,6 +46,7 @@ impl RunOptions {
             cwd: cwd.into(),
             max_turns: 12,
             system_prompt: "You are ZenCode, a concise coding agent. Use the tools to complete the task, then reply with a short summary.".into(),
+            scope: None,
         }
     }
 }
@@ -97,10 +101,31 @@ pub async fn run_task_with_sink(
     };
     let hooks: Arc<dyn HookRunner> = Arc::new(NoHooks);
     let ctx = ToolContext::new(opts.cwd.clone(), "engine");
+    // R3 scope guard: when a scope is declared, ambiguous declarations are
+    // rejected up front and every mutating tool call is checked against it.
+    let permissions: Arc<dyn PermissionChecker> = match &opts.scope {
+        Some(decl) => {
+            let reasons = scope::needs_approval(decl, &opts.cwd);
+            if !reasons.is_empty() {
+                let why: Vec<String> = reasons.iter().map(|r| r.message()).collect();
+                anyhow::bail!(
+                    "scope declaration needs explicit approval before starting:\n- {}",
+                    why.join("\n- ")
+                );
+            }
+            scope::emit_scope_declared(&sink, decl);
+            Arc::new(scope::ScopeGuard::new(
+                opts.cwd.clone(),
+                decl.clone(),
+                sink.clone(),
+            ))
+        }
+        None => Arc::new(AllowAll),
+    };
     let mut agent = Agent::new(
         llm,
         default_tools(),
-        Arc::new(AllowAll),
+        permissions,
         None,
         hooks,
         sink,

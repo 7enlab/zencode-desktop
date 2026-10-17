@@ -12,6 +12,18 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
 jobs:
+  lint:
+    name: lint (fmt + clippy, 3 targets)
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: rebuild } }
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy --no-self-update
+      - run: rustup target add x86_64-pc-windows-msvc aarch64-apple-darwin
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo clippy --locked --all-targets --target x86_64-pc-windows-msvc -- -D warnings
+      - run: cargo clippy --locked --all-targets --target aarch64-apple-darwin -- -D warnings
   test:
     name: test (${{ matrix.os }})
     strategy:
@@ -23,8 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: rustup toolchain install stable --profile minimal --no-self-update
-      - run: cargo build --release
-      - run: cargo test --release   # includes golden parity (tests/parity.rs)
+      - run: cargo build --release --locked
+      - run: cargo test --release --locked   # includes golden parity (tests/parity.rs)
       - uses: actions/upload-artifact@v5
         with:
           name: cowsay-${{ matrix.os }}

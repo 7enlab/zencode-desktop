@@ -1,6 +1,11 @@
 # Changelog
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
+## [Unreleased]
+- Commit `Cargo.lock`; CI builds/tests with `--locked`.
+- New CI lint job: `cargo fmt --check` + `cargo clippy -D warnings` for Linux, Windows and macOS targets.
+- Code formatted with rustfmt; clippy fixes (`is_some_and` / `is_none_or`).
+
 ## [0.2.0] - 2026-10-16
 ### Added
 - `-W auto` now falls back to the real terminal width (Unix `ioctl(TIOCGWINSZ)`, Windows `GetConsoleScreenBufferInfo`), std-only FFI.

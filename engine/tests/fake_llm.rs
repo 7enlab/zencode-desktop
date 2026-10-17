@@ -201,7 +201,9 @@ async fn event_stream_contract_v1() {
     assert!(evs.iter().all(|e| e.v == SCHEMA_VERSION));
     assert!(evs.iter().enumerate().all(|(i, e)| e.seq == i as u64));
     // normalise the tempdir path so the snapshot is machine independent
-    let norm = nd.replace(&*dir.to_string_lossy().replace('\\', "\\\\"), "<DIR>");
+    let norm = nd
+        .replace(&*dir.to_string_lossy().replace('\\', "\\\\"), "<DIR>")
+        .replace("<DIR>\\\\", "<DIR>/");
     insta::assert_snapshot!("event_stream_v1", norm);
     let _ = std::fs::remove_dir_all(&dir);
 }

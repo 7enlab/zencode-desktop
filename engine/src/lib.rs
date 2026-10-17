@@ -14,6 +14,7 @@ pub mod release_signing;
 pub mod scope;
 pub mod session_store;
 pub mod smart_router;
+pub mod sovereign;
 pub mod telemetry;
 pub mod timeline;
 

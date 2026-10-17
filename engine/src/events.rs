@@ -5,7 +5,7 @@
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use zen_core::{AgentEvent, EventSink};
+use zen_core::{AgentEvent, EventSink, RunResult};
 
 /// Bump on any breaking change to [`DesktopEvent`] (and re-review the snapshots).
 pub const SCHEMA_VERSION: u32 = 1;
@@ -59,6 +59,18 @@ pub enum DesktopEvent {
     /// they surface here with their variant name instead of being dropped.
     Unknown {
         variant: String,
+    },
+    /// End of a session, with cost accounting. Mirrors Claude Code's `result`
+    /// stream-json line; feeds the RateGate quota UI (D8).
+    SessionEnd {
+        success: bool,
+        result: String,
+        num_turns: u64,
+        total_cost_usd: f64,
+        input_tokens: u64,
+        output_tokens: u64,
+        model: String,
+        duration_ms: u64,
     },
 }
 
@@ -163,6 +175,25 @@ impl RecordingSink {
             .map(|e| serde_json::to_string(e).expect("envelope serializes"))
             .collect::<Vec<_>>()
             .join("\n")
+    }
+    /// Record the end of a session with cost accounting (P4: feeds the RateGate UI).
+    pub fn emit_session_end(&self, result: &RunResult) {
+        let mut g = self.inner.lock().unwrap();
+        let seq = g.len() as u64;
+        g.push(Envelope {
+            v: SCHEMA_VERSION,
+            seq,
+            event: DesktopEvent::SessionEnd {
+                success: !result.is_error,
+                result: result.result.clone(),
+                num_turns: result.num_turns as u64,
+                total_cost_usd: result.total_cost_usd,
+                input_tokens: result.usage.input_tokens,
+                output_tokens: result.usage.output_tokens,
+                model: result.model.clone(),
+                duration_ms: result.duration_ms,
+            },
+        });
     }
 }
 

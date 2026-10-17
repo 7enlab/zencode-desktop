@@ -2,6 +2,7 @@
 name = "zencode_engine"
 version = "0.3.0-dev"
 edition = "2021"
+license = "MIT"
 description = "ZenCode Desktop engine: thin wrapper over ZenCode CLI crates (zen-agent/zen-tools/zen-core)"
 
 [dependencies]

@@ -3,11 +3,15 @@
 //! here; this crate only assembles the pieces.
 
 pub mod budget;
+pub mod checkpoints;
 pub mod claims;
 pub mod convergence;
 pub mod cost_firewall;
 pub mod events;
+pub mod ipc_bridge;
 pub mod scope;
+pub mod session_store;
+pub mod timeline;
 
 use std::path::PathBuf;
 use std::sync::Arc;

@@ -134,7 +134,7 @@ impl From<AgentEvent> for DesktopEvent {
             // `AgentEvent` is #[non_exhaustive]: a future variant must surface, never vanish.
             unhandled => DesktopEvent::Unknown {
                 variant: format!("{:?}", unhandled)
-                    .split(|c| c == ' ' || c == '(')
+                    .split([' ', '('])
                     .next()
                     .unwrap_or("Unknown")
                     .to_string(),

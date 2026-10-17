@@ -88,3 +88,16 @@
 ### Kết quả
 - Crate `zencode_core` 0.1.0 std-only, 6 test tích hợp pass; fmt/clippy `-D warnings` sạch; `rebuild/` không đổi (golden parity pass). CI chạy matrix crate `rebuild` + `core`.
 - Bước tiếp: `JsonlLog` (append-only JSONL trên đĩa, JSON encode/decode std-only) + dedupe AGENTS.md/CLAUDE.md theo hash.
+
+## 2026-10-17 — Nghiên cứu 13 đối thủ (chi tiết: docs/research/competitors-2026-10-17.md)
+
+### Nghiên cứu
+- Claude Code, Codex CLI, OpenCode, Crush, Aider, Gemini CLI, Pi, Goose, Cline/Kilo, Zed, Amp, Cursor CLI + Terminal-Bench/SWE-bench.
+- OpenRouter :free: giới hạn 50 request/ngày, request lỗi cũng bị tính; gói Free không có prompt caching.
+- Aider: tắt so khớp linh hoạt → lỗi edit tăng ~9 lần; mini-SWE-agent chỉ dùng bash vẫn >74% SWE-bench Verified; system prompt của Pi ~1.138 token.
+
+### Ý tưởng
+- 12 tính năng xếp theo giá trị cho người dùng model free; ưu tiên RateGate/ModelChain, parser nghiêm + text-mode fallback, str_replace dễ dãi, ngân sách prompt ≤1.200 token, nhiều tool call/lượt.
+
+### Kết quả
+- Lộ trình v0.3.0 → v0.5.0 đã đưa vào PLAN.md; các phiên phát triển định kỳ làm theo thứ tự này.

@@ -7,6 +7,7 @@ pub mod claims;
 pub mod convergence;
 pub mod cost_firewall;
 pub mod events;
+pub mod scope;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -37,6 +38,8 @@ pub struct RunOptions {
     /// `Some` wraps the LLM backend and permission checker so the task stops
     /// as soon as any limit is exceeded.
     pub budget: Option<TaskBudget>,
+    /// Declared scope (R3). `None` = pre-approved headless run (previous behavior).
+    pub scope: Option<scope::ScopeDecl>,
 }
 
 impl RunOptions {
@@ -54,6 +57,7 @@ impl RunOptions {
             max_turns: 12,
             system_prompt: "You are ZenCode, a concise coding agent. Use the tools to complete the task, then reply with a short summary.".into(),
             budget: None,
+            scope: None,
         }
     }
 }
@@ -96,6 +100,27 @@ pub async fn run_task_with_sink(
     if !opts.cwd.is_dir() {
         anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
     }
+    // R3 scope guard: when a scope is declared, ambiguous declarations are
+    // rejected up front and every mutating tool call is checked against it.
+    let base_permissions: Arc<dyn PermissionChecker> = match &opts.scope {
+        Some(decl) => {
+            let reasons = scope::needs_approval(decl, &opts.cwd);
+            if !reasons.is_empty() {
+                let why: Vec<String> = reasons.iter().map(|r| r.message()).collect();
+                anyhow::bail!(
+                    "scope declaration needs explicit approval before starting:\n- {}",
+                    why.join("\n- ")
+                );
+            }
+            scope::emit_scope_declared(&sink, decl);
+            Arc::new(scope::ScopeGuard::new(
+                opts.cwd.clone(),
+                decl.clone(),
+                sink.clone(),
+            ))
+        }
+        None => Arc::new(AllowAll),
+    };
     let llm_inner: Arc<dyn LlmBackend> = Arc::new(OpenAiClient::new(
         opts.base_url.clone(),
         opts.api_key.clone(),
@@ -103,15 +128,16 @@ pub async fn run_task_with_sink(
     ));
     // R12: when a budget is set, enforce it around the model backend (token +
     // duration hard stop) and the permission checker (per-tool-call hard stop).
+    // The budget wraps the R3 scope guard (if any), so both limits apply.
     let (llm, permissions): (Arc<dyn LlmBackend>, Arc<dyn PermissionChecker>) = match &opts.budget {
         Some(budget) => {
             let enforcer = BudgetEnforcer::new(budget.clone(), sink.clone());
             (
                 Arc::new(BudgetedBackend::new(llm_inner, enforcer.clone())),
-                Arc::new(BudgetedPermissions::new(Arc::new(AllowAll), enforcer)),
+                Arc::new(BudgetedPermissions::new(base_permissions, enforcer)),
             )
         }
-        None => (llm_inner, Arc::new(AllowAll)),
+        None => (llm_inner, base_permissions),
     };
     let config = AgentConfig {
         model: opts.model.clone(),

@@ -2,6 +2,7 @@
 //! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
 //! here; this crate only assembles the pieces.
 
+pub mod cost_firewall;
 pub mod events;
 
 use std::path::PathBuf;
@@ -79,6 +80,9 @@ pub async fn run_task_with_sink(
     if task.trim().is_empty() {
         anyhow::bail!("empty task");
     }
+    // Structural cost firewall: reject non-free models BEFORE any network
+    // call (HTTP client construction, agent loop, fallbacks).
+    cost_firewall::FreeOnlyPolicy::default().validate_all(&opts.model, &opts.fallback_models)?;
     if !opts.cwd.is_dir() {
         anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
     }

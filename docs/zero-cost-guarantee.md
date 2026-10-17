@@ -1,0 +1,43 @@
+# Zero-Cost Guarantee
+
+**ZenCode Desktop cannot bill you. Ever.** This is not a pricing tier, a
+promotion, or a setting you can misconfigure. It is structural.
+
+## How the guarantee works
+
+1. **No payment rails exist.** There is no checkout, no credit-card field, no
+   billing API, and no place to store a paid-model API key. There is simply
+   nothing to charge.
+2. **The engine firewall rejects paid models.** `engine/src/cost_firewall.rs`
+   validates every model id before any network call is made:
+   - Allowed: ids ending in `:free` (the OpenAI-compatible zero-cost
+     convention), or ids on an explicit allowlist of models verified to cost
+     $0.00 per call.
+   - Blocked: everything else — with a loud error, not a silent fallback:
+
+   > ZenCode blocked model 'gpt-4': only :free models are allowed.
+   > ZenCode cannot bill you — this is structural, not a setting.
+
+3. **Three enforcement points.** The check runs at engine startup/config load,
+   at per-task model selection, and across every model-chain fallback id — so
+   a non-free model can never be reached, even by a fallback path.
+4. **The spend meter proves it.** `SpendMeter` reports `$0.00` across every
+   task, with a per-task cost preview that always reads "$0.00". The UI shows
+   the number; the architecture guarantees it.
+
+## What we will never do
+
+- We will never add a "free tier" with paid billing behind it. (The community
+  has learned to distrust that pattern — and rightly so.)
+- We will never silently swap your `:free` model for a paid one.
+- We will never send telemetry about your usage. See
+  `docs/zero-telemetry.md` (R14) for the auditable network log.
+
+## For developers
+
+- `FreeOnlyPolicy::validate_all(primary, fallbacks)` — call this on any new
+  model-selection path you add (e.g. the RateGate/ModelChain integration).
+- `FREE_ALLOWLIST` — add an id here only after a real API call returns
+  `usage.cost == 0.0`. Documentation claims are not enough.
+- `cargo test -p zencode_engine cost_firewall` runs the firewall's test suite,
+  including the proof that validation performs no I/O.

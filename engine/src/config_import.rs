@@ -1501,7 +1501,7 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
                     "_note": "Suggestions from competitor config import. Activate one in ZenCode Settings → Providers; paste your own API key there — keys are never imported.",
                     "suggestions": suggestions,
                 }))
-                .unwrap(),
+                .expect("json! macro values always serialize"),
             )?;
             report.imported.push(ImportedItem {
                 id: "imported-providers".to_string(),
@@ -1564,7 +1564,7 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
     // mutable borrows of `root` never overlap.
     let mut staged: Vec<(String, Value, Value)> = Vec::new();
     {
-        let obj = root.as_object_mut().unwrap();
+        let obj = root.as_object_mut().expect("root verified as object above");
         let mcp = obj
             .entry("mcpServers")
             .or_insert_with(|| serde_json::json!({}));
@@ -1594,7 +1594,7 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
     let mut added = Vec::new();
     let mut trust_entries: Vec<(String, Value)> = Vec::new();
     {
-        let obj = root.as_object_mut().unwrap();
+        let obj = root.as_object_mut().expect("root verified as object above");
         let mcp_obj = obj
             .get_mut("mcpServers")
             .and_then(|m| m.as_object_mut())
@@ -1606,7 +1606,7 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
         }
     }
     {
-        let obj = root.as_object_mut().unwrap();
+        let obj = root.as_object_mut().expect("root verified as object above");
         let trust_obj = obj
             .entry("_zencode")
             .or_insert_with(|| serde_json::json!({}))
@@ -1623,8 +1623,11 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
     if let Some(parent) = dest.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(dest, serde_json::to_string_pretty(&root).unwrap())
-        .with_context(|| format!("writing {}", dest.display()))?;
+    fs::write(
+        dest,
+        serde_json::to_string_pretty(&root).expect("JSON Value always serializes"),
+    )
+    .with_context(|| format!("writing {}", dest.display()))?;
     Ok(added)
 }
 

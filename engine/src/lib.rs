@@ -2,7 +2,11 @@
 //! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
 //! here; this crate only assembles the pieces.
 
+pub mod checkpoints;
 pub mod events;
+pub mod ipc_bridge;
+pub mod session_store;
+pub mod timeline;
 
 use std::path::PathBuf;
 use std::sync::Arc;

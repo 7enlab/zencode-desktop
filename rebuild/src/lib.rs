@@ -5,6 +5,7 @@
 //! assert!(out.starts_with(" _______\n< Hello >\n"));
 //! ```
 pub mod bubble;
+pub mod color;
 pub mod cow;
 mod cows_gen;
 pub mod term;

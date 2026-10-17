@@ -22,3 +22,21 @@
 - **Nghiên cứu**: `TIOCGWINSZ` khác nhau theo OS (Linux 0x5413, macOS/BSD 0x40087468); Windows lấy `srWindow.Right-Left+1` từ `GetConsoleScreenBufferInfo`. Làm bằng `extern "C"/"system"` của std, không cần crate `libc`/`windows-sys`.
 - **Ý tưởng**: thứ tự `$COLUMNS` → terminal thật → 40 để giữ golden test ổn định; release theo tag `v*` cho Linux x86_64, macOS arm64, Windows x86_64.
 - **Kết quả**: commit cc20b2b, CI run 38897812171 xanh trên Ubuntu/macOS/Windows. Workflow release sẵn sàng, chưa gắn tag.
+
+
+## 2026-10-17 — Lint gate + ANSI colour
+
+### Nghiên cứu
+- Neo-cowsay (Go) có `--rainbow`/`--aurora`/`--bold`; charasay (Rust) tô màu bằng crate ngoài. Chuẩn cộng đồng: NO_COLOR (no-color.org: biến khác rỗng = tắt màu) và CLICOLOR_FORCE (bixense.com/clicolors: khác `0` = ép màu).
+- Windows 10+ chỉ hiểu ANSI khi bật `ENABLE_VIRTUAL_TERMINAL_PROCESSING` (0x0004) qua `SetConsoleMode`; console cũ từ chối → bỏ màu.
+- `std::io::IsTerminal` (std, Rust 1.70) thay crate `atty`/`is-terminal`.
+- clippy có thể chạy cross-target (`--target x86_64-pc-windows-msvc`) mà không cần linker → bắt lỗi code `cfg(windows)` ngay trên Ubuntu.
+
+### Ý tưởng
+- Mặc định tắt màu để giữ parity byte-for-byte; màu là extension có cờ riêng.
+- Reset `ESC[0m` cuối mỗi dòng để màu không tràn; `strip()` để test vòng lặp paint→strip = bản gốc.
+- Sau này: 256-màu/truecolor (`COLORTERM=truecolor`), gradient aurora, tô bubble và cow khác màu.
+
+### Kết quả
+- CI thêm job lint: `cargo fmt --check` + `cargo clippy -D warnings` cho Linux, Windows, macOS; build/test dùng `--locked`; commit `Cargo.lock`.
+- Module `color.rs` (std-only, có FFI Windows), cờ `--cow-color`, `--color=WHEN`; 2 unit test + 1 integration test mới; golden 21/21 không đổi (mặc định không màu khi pipe).

@@ -10,9 +10,11 @@ use std::sync::Arc;
 use serde_json::Value;
 use zen_agent::{Agent, AgentConfig, OpenAiClient};
 use zen_core::{
-    EventSink, HookRunner, NoHooks, NullSink, PermissionChecker, PermissionDecision, RunResult,
-    ToolContext, ToolRegistry,
+    HookRunner, NoHooks, PermissionChecker, PermissionDecision, RunResult, ToolContext,
+    ToolRegistry,
 };
+
+use crate::events::RecordingSink;
 
 /// Options for one headless agent run.
 #[derive(Clone, Debug)]
@@ -67,14 +69,15 @@ pub fn default_tools() -> ToolRegistry {
 
 /// Run one task to completion and return the agent's result.
 pub async fn run_task(opts: &RunOptions, task: &str) -> anyhow::Result<RunResult> {
-    run_task_with_sink(opts, task, Arc::new(NullSink)).await
+    run_task_with_sink(opts, task, Arc::new(RecordingSink::new())).await
 }
 
-/// Like [`run_task`], streaming every agent event to `sink` (e.g. `events::RecordingSink`).
+/// Like [`run_task`], recording every agent event into `sink` and appending a
+/// [`DesktopEvent::SessionEnd`] with cost accounting when the turn finishes.
 pub async fn run_task_with_sink(
     opts: &RunOptions,
     task: &str,
-    sink: Arc<dyn EventSink>,
+    sink: Arc<RecordingSink>,
 ) -> anyhow::Result<RunResult> {
     if task.trim().is_empty() {
         anyhow::bail!("empty task");
@@ -103,9 +106,11 @@ pub async fn run_task_with_sink(
         Arc::new(AllowAll),
         None,
         hooks,
-        sink,
+        sink.clone(),
         ctx,
         config,
     );
-    Ok(agent.run_turn(task).await)
+    let result = agent.run_turn(task).await;
+    sink.emit_session_end(&result);
+    Ok(result)
 }

@@ -1,8 +1,10 @@
 //! `zencode run "<task>"` — headless agent run against a `:free` model channel,
 //! saving the session as NDJSON. PLAN step g2.
+//! `zencode eval` — run 10 small tasks, print a metrics table. PLAN step g5.
 //!
 //! Usage:
 //!   zencode run "<task>" [--model M] [--cwd DIR] [--max-turns N] [--session-dir DIR]
+//!   zencode eval [--model M] [--max-turns N]
 //!
 //! Env (all optional):
 //!   ZENCODE_BASE_URL  OpenAI-compatible base URL (default: Kilo anonymous free tier)
@@ -22,9 +24,11 @@ const DEFAULT_BASE_URL: &str = "https://ai-gateway.kilo.ai/api/v1";
 const DEFAULT_MODEL: &str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free";
 
 fn usage() -> ! {
+    eprintln!("usage:");
     eprintln!(
-        "usage: zencode run \"<task>\" [--model M] [--cwd DIR] [--max-turns N] [--session-dir DIR]"
+        "  zencode run \"<task>\" [--model M] [--cwd DIR] [--max-turns N] [--session-dir DIR]"
     );
+    eprintln!("  zencode eval [--model M] [--max-turns N]");
     std::process::exit(2);
 }
 
@@ -32,13 +36,32 @@ fn env_or(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| default.to_string())
 }
 
+fn base_opts(model: &str, cwd: PathBuf, max_turns: usize) -> RunOptions {
+    let mut opts = RunOptions::new(env_or("ZENCODE_BASE_URL", DEFAULT_BASE_URL), model, cwd);
+    opts.api_key = std::env::var("ZENCODE_API_KEY").ok();
+    opts.max_turns = max_turns;
+    opts
+}
+
+fn check_free(model: &str) -> anyhow::Result<()> {
+    if !model.ends_with(":free") {
+        anyhow::bail!("refusing non-free model '{model}': only `:free` models are allowed");
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let mut args = std::env::args().skip(1);
     let cmd = args.next().unwrap_or_default();
-    if cmd != "run" {
-        usage();
+    match cmd.as_str() {
+        "run" => cmd_run(args).await,
+        "eval" => cmd_eval(args).await,
+        _ => usage(),
     }
+}
+
+async fn cmd_run(mut args: std::iter::Skip<std::env::Args>) -> anyhow::Result<()> {
     let task = args.next().unwrap_or_default();
     if task.is_empty() || task.starts_with("--") {
         usage();
@@ -67,13 +90,8 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    if !model.ends_with(":free") {
-        anyhow::bail!("refusing non-free model '{model}': only `:free` models are allowed");
-    }
-
-    let mut opts = RunOptions::new(env_or("ZENCODE_BASE_URL", DEFAULT_BASE_URL), &model, &cwd);
-    opts.api_key = std::env::var("ZENCODE_API_KEY").ok();
-    opts.max_turns = max_turns;
+    check_free(&model)?;
+    let opts = base_opts(&model, cwd.clone(), max_turns);
 
     let sink = Arc::new(RecordingSink::new());
     let result = run_task_with_sink(&opts, &task, sink.clone()).await?;
@@ -96,5 +114,171 @@ async fn main() -> anyhow::Result<()> {
     if result.is_error {
         std::process::exit(1);
     }
+    Ok(())
+}
+
+/// One eval case: files to pre-create, a task prompt, and how to verify.
+struct EvalTask {
+    name: &'static str,
+    setup: &'static [(&'static str, &'static str)],
+    prompt: &'static str,
+    /// (relative path, exact expected content)
+    expect: &'static [(&'static str, &'static str)],
+}
+
+const EVAL_TASKS: &[EvalTask] = &[
+    EvalTask {
+        name: "create-file",
+        setup: &[],
+        prompt: "Create a file named a.txt containing exactly: alpha",
+        expect: &[("a.txt", "alpha")],
+    },
+    EvalTask {
+        name: "create-nested",
+        setup: &[],
+        prompt: "Create sub/b.txt containing exactly: beta",
+        expect: &[("sub/b.txt", "beta")],
+    },
+    EvalTask {
+        name: "read-then-edit",
+        setup: &[("e.txt", "hello world")],
+        prompt: "In e.txt, replace the word 'world' with 'zen' (read it first if needed)",
+        expect: &[("e.txt", "hello zen")],
+    },
+    EvalTask {
+        name: "overwrite",
+        setup: &[("w.txt", "old content")],
+        prompt: "Replace the entire content of w.txt with exactly: new content",
+        expect: &[("w.txt", "new content")],
+    },
+    EvalTask {
+        name: "two-files",
+        setup: &[],
+        prompt: "Create x.txt containing exactly 'ex' and y.txt containing exactly 'why'",
+        expect: &[("x.txt", "ex"), ("y.txt", "why")],
+    },
+    EvalTask {
+        name: "fix-typo",
+        setup: &[("t.txt", "teh quick brown fox")],
+        prompt: "Fix the typo in t.txt: 'teh' should be 'the'",
+        expect: &[("t.txt", "the quick brown fox")],
+    },
+    EvalTask {
+        name: "append-line",
+        setup: &[("l.txt", "line1")],
+        prompt: "Append a second line 'line2' to l.txt",
+        expect: &[("l.txt", "line1\nline2")],
+    },
+    EvalTask {
+        name: "bash-rename",
+        setup: &[("old.txt", "rename me")],
+        prompt: "Using a shell command, rename old.txt to new.txt",
+        expect: &[("new.txt", "rename me")],
+    },
+    EvalTask {
+        name: "read-report",
+        setup: &[("r.txt", "the secret is 42")],
+        prompt: "Read r.txt and tell me what it says (do not modify anything)",
+        expect: &[("r.txt", "the secret is 42")],
+    },
+    EvalTask {
+        name: "mkdir-and-write",
+        setup: &[],
+        prompt:
+            "Create a directory named docs and write notes.txt inside it containing exactly: hi",
+        expect: &[("docs/notes.txt", "hi")],
+    },
+];
+
+async fn cmd_eval(mut args: std::iter::Skip<std::env::Args>) -> anyhow::Result<()> {
+    let mut model = env_or("ZENCODE_MODEL", DEFAULT_MODEL);
+    let mut max_turns = 12usize;
+    while let Some(a) = args.next() {
+        match a.as_str() {
+            "--model" => model = args.next().unwrap_or_else(|| usage()),
+            "--max-turns" => {
+                max_turns = args
+                    .next()
+                    .unwrap_or_else(|| usage())
+                    .parse()
+                    .unwrap_or_else(|_| usage())
+            }
+            _ => usage(),
+        }
+    }
+    check_free(&model)?;
+
+    println!(
+        "{:<16} {:>6} {:>6} {:>9} {:>9} {:>6}",
+        "task", "turns", "pass", "tok_in", "tok_out", "429s"
+    );
+    let mut passed = 0;
+    let mut total_in = 0u64;
+    let mut total_out = 0u64;
+    let mut total_turns = 0usize;
+
+    for t in EVAL_TASKS {
+        let dir = std::env::temp_dir().join(format!(
+            "zencode-eval-{}-{}",
+            t.name,
+            SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
+        ));
+        std::fs::create_dir_all(&dir)?;
+        for (rel, content) in t.setup {
+            let p = dir.join(rel);
+            if let Some(parent) = p.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            std::fs::write(&p, content)?;
+        }
+
+        let opts = base_opts(&model, dir.clone(), max_turns);
+        let sink = Arc::new(RecordingSink::new());
+        let res = run_task_with_sink(&opts, t.prompt, sink).await;
+
+        let mut ok = false;
+        let (turns, tok_in, tok_out) = match &res {
+            Ok(r) => {
+                ok = !r.is_error
+                    && t.expect.iter().all(|(rel, want)| {
+                        std::fs::read_to_string(dir.join(rel))
+                            .map(|got| got.trim() == *want)
+                            .unwrap_or(false)
+                    });
+                // A renamed-away file must really be gone.
+                if ok && t.name == "bash-rename" {
+                    ok = !dir.join("old.txt").exists();
+                }
+                (r.num_turns, r.usage.input_tokens, r.usage.output_tokens)
+            }
+            Err(_) => (0, 0, 0),
+        };
+        if ok {
+            passed += 1;
+        }
+        total_turns += turns;
+        total_in += tok_in;
+        total_out += tok_out;
+        // 429s are counted from ApiRetry events in a fuller runner; 0 here.
+        println!(
+            "{:<16} {:>6} {:>6} {:>9} {:>9} {:>6}",
+            t.name,
+            turns,
+            if ok { "PASS" } else { "FAIL" },
+            tok_in,
+            tok_out,
+            0
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    println!(
+        "----\n{}/{} passed, {} turns, {} in / {} out tokens",
+        passed,
+        EVAL_TASKS.len(),
+        total_turns,
+        total_in,
+        total_out
+    );
     Ok(())
 }

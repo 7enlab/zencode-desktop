@@ -54,6 +54,12 @@ pub enum DesktopEvent {
         event: String,
         text: String,
     },
+    /// A future `AgentEvent` variant this engine does not know yet. `AgentEvent` is
+    /// `#[non_exhaustive]`, so new variants must never silently change what the UI sees:
+    /// they surface here with their variant name instead of being dropped.
+    Unknown {
+        variant: String,
+    },
 }
 
 /// One line of the Desktop event log: `{"v":1, "seq":N, ...event}`.
@@ -125,6 +131,14 @@ impl From<AgentEvent> for DesktopEvent {
             AgentEvent::SystemMessage { event, text } => {
                 DesktopEvent::SystemMessage { event, text }
             }
+            // `AgentEvent` is #[non_exhaustive]: a future variant must surface, never vanish.
+            unhandled => DesktopEvent::Unknown {
+                variant: format!("{:?}", unhandled)
+                    .split(|c| c == ' ' || c == '(')
+                    .next()
+                    .unwrap_or("Unknown")
+                    .to_string(),
+            },
         }
     }
 }

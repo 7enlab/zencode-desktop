@@ -9,6 +9,23 @@ use tokio::net::TcpListener;
 use zencode_engine::{run_task, RunOptions};
 
 /// Serves `replies` in order as chat completions; records request bodies.
+/// Redacts the nondeterministic `"duration_ms"` value in the event stream so the
+/// contract snapshot is stable across machines and runs (CI was red on all three
+/// OSes because the stored snapshot pinned one machine's wall-clock duration).
+fn scrub_duration_ms(s: &str) -> String {
+    let key = "\"duration_ms\":";
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(i) = rest.find(key) {
+        out.push_str(&rest[..i + key.len()]);
+        rest = &rest[i + key.len()..];
+        let n = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+        out.push('0');
+        rest = &rest[n..];
+    }
+    out.push_str(rest);
+    out
+}
 async fn serve(replies: Vec<Value>) -> (String, Arc<Mutex<Vec<Value>>>) {
     let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let url = format!("http://{}/v1", l.local_addr().unwrap());
@@ -206,7 +223,8 @@ async fn event_stream_contract_v1() {
     let raw = dir.to_string_lossy().to_string();
     let esc1 = raw.replace('\\', "\\\\");
     let esc2 = esc1.replace('\\', "\\\\");
-    let norm = nd
+    let norm = scrub_duration_ms(&nd);
+    let norm = norm
         .replace(&esc2, "<DIR>")
         .replace(&esc1, "<DIR>")
         .replace(&raw, "<DIR>")

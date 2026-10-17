@@ -2,6 +2,7 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
 ## [Unreleased]
+- `--cow-color <red|green|yellow|blue|magenta|cyan|white|gray|bold|rainbow>` and `--color=auto|always|never` (ZenCode extension). Default `auto`: colour only on a terminal, honours `NO_COLOR` and `CLICOLOR_FORCE`; piped output stays byte-identical to cowsay@1.6.0. Windows enables VT processing via `SetConsoleMode` (std-only FFI).
 - Commit `Cargo.lock`; CI builds/tests with `--locked`.
 - New CI lint job: `cargo fmt --check` + `cargo clippy -D warnings` for Linux, Windows and macOS targets.
 - Code formatted with rustfmt; clippy fixes (`is_some_and` / `is_none_or`).

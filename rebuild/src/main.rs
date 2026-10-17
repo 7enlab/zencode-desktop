@@ -1,11 +1,11 @@
 //! ZenCode Desktop pilot: `cowsay` CLI, byte-compatible with npm cowsay@1.6.0; thin wrapper over the library.
 use cowsay_bubble::{cow, Options, Wrap};
 
-use std::io::{Read, Write};
+use std::io::{IsTerminal, Read, Write};
 
 /// Print usage to stderr and exit with `code`.
 fn usage(code: i32) -> ! {
-    eprintln!("Usage: cowsay [-bdgpstwy] [-e eyes] [-T tongue] [-f cowfile] [-r|--random] [-l] [-n] [-W <width>] [--think] [--word-wrap] [message...]\n  -n  disable wrapping\n  -W  wrap column (default 40; 'auto' = terminal width from $COLUMNS)\n  --word-wrap  break at spaces instead of hard cut (ZenCode extension)");
+    eprintln!("Usage: cowsay [-bdgpstwy] [-e eyes] [-T tongue] [-f cowfile] [-r|--random] [-l] [-n] [-W <width>] [--think] [--word-wrap] [--cow-color <name>] [--color=auto|always|never] [message...]\n  -n  disable wrapping\n  -W  wrap column (default 40; 'auto' = terminal width from $COLUMNS)\n  --word-wrap  break at spaces instead of hard cut (ZenCode extension)\n  --cow-color  red|green|yellow|blue|magenta|cyan|white|gray|bold|rainbow (ZenCode extension)\n  --color  when to colour: auto (tty, honours NO_COLOR/CLICOLOR_FORCE), always, never");
     std::process::exit(code)
 }
 
@@ -19,6 +19,8 @@ fn main() {
     let (mut eyes, mut tongue, mut file) =
         ("oo".to_string(), "  ".to_string(), "default".to_string());
     let mut mode: Option<char> = None;
+    let mut paint: Option<cowsay_bubble::color::Paint> = None;
+    let mut when = cowsay_bubble::color::When::Auto;
     let mut words: Vec<String> = Vec::new();
     let mut args = std::env::args().skip(1);
     let val = |s: &str, args: &mut dyn Iterator<Item = String>| {
@@ -36,6 +38,17 @@ fn main() {
             "--random" => random = true,
             "--list" => list = true,
             "--" => words.extend(args.by_ref()),
+            "--cow-color" => {
+                let v = args.next().unwrap_or_else(|| usage(2));
+                paint = Some(cowsay_bubble::color::parse(&v).unwrap_or_else(|| usage(2)));
+            }
+            s if s.starts_with("--cow-color=") => {
+                paint = Some(cowsay_bubble::color::parse(&s[12..]).unwrap_or_else(|| usage(2)));
+            }
+            "--color" => when = cowsay_bubble::color::When::Always,
+            s if s.starts_with("--color=") => {
+                when = cowsay_bubble::color::parse_when(&s[8..]).unwrap_or_else(|| usage(2));
+            }
             s if s.starts_with("-W") => {
                 let v = val(s, &mut args);
                 w = if v.trim() == "auto" {
@@ -120,6 +133,20 @@ fn main() {
     match cowsay_bubble::say(&text, &opts) {
         // Always "\n", also on Windows, for byte parity.
         Ok(s) => {
+            let env = |k: &str| std::env::var(k).ok();
+            let s = match paint {
+                Some(p)
+                    if cowsay_bubble::color::enabled(
+                        when,
+                        std::io::stdout().is_terminal(),
+                        env("NO_COLOR").as_deref(),
+                        env("CLICOLOR_FORCE").as_deref(),
+                    ) && cowsay_bubble::color::enable_vt() =>
+                {
+                    cowsay_bubble::color::paint(&s, p)
+                }
+                _ => s,
+            };
             out.write_all(s.as_bytes()).ok();
         }
         Err(e) => {

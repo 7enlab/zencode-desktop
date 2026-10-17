@@ -71,3 +71,36 @@ fn golden_cases() {
     }
     assert_eq!(n, 21);
 }
+
+/// ZenCode colour extension: off when piped (byte parity), on with --color=always,
+/// and stripping the escapes gives back the plain output.
+#[test]
+fn color_extension() {
+    let run = |args: &[&str], env: &[(&str, &str)]| {
+        let mut c = Command::new(env!("CARGO_BIN_EXE_cowsay"));
+        c.args(args)
+            .env_remove("NO_COLOR")
+            .env_remove("CLICOLOR_FORCE");
+        for (k, v) in env {
+            c.env(k, v);
+        }
+        String::from_utf8(c.output().unwrap().stdout).unwrap()
+    };
+    let plain = run(&["hi"], &[]);
+    assert_eq!(run(&["--cow-color", "red", "hi"], &[]), plain);
+    let red = run(&["--cow-color=red", "--color=always", "hi"], &[]);
+    assert!(red.contains("\x1b[31m"));
+    assert_eq!(cowsay_bubble::color::strip(&red), plain);
+    let forced = run(
+        &["--cow-color", "rainbow", "hi"],
+        &[("CLICOLOR_FORCE", "1")],
+    );
+    assert!(forced.contains("\x1b[33m"));
+    assert_eq!(
+        run(
+            &["--cow-color", "red", "--color=never", "hi"],
+            &[("CLICOLOR_FORCE", "1")]
+        ),
+        plain
+    );
+}

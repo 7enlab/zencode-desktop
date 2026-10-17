@@ -2,6 +2,7 @@
 //! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
 //! here; this crate only assembles the pieces.
 
+pub mod claims;
 pub mod events;
 
 use std::path::PathBuf;
@@ -108,4 +109,22 @@ pub async fn run_task_with_sink(
         config,
     );
     Ok(agent.run_turn(task).await)
+}
+
+/// Run one task with R4 Verified Claims tracking.
+///
+/// The agent's assertions ("tests pass", "build succeeds", ...) are registered as
+/// claims in the returned [`claims::ClaimRegistry`]; tool results attach heuristic
+/// evidence automatically. Callers with authoritative proof (e.g. the verify loop,
+/// PR #32) should call [`claims::ClaimRegistry::attach_verify_evidence`].
+/// The registry's [`claims::ClaimRegistry::counts`] feed the `SessionEnd` summary.
+pub async fn run_task_with_claims(
+    opts: &RunOptions,
+    task: &str,
+    sink: Arc<dyn EventSink>,
+) -> anyhow::Result<(RunResult, Arc<claims::ClaimRegistry>)> {
+    let registry = Arc::new(claims::ClaimRegistry::new());
+    let claiming = Arc::new(claims::ClaimingSink::new(sink, registry.clone()));
+    let result = run_task_with_sink(opts, task, claiming).await?;
+    Ok((result, registry))
 }

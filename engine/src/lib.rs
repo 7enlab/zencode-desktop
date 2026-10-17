@@ -2,6 +2,7 @@
 //! shell tools (`zen-tools`) against any OpenAI-compatible endpoint. No agent core is rewritten
 //! here; this crate only assembles the pieces.
 
+pub mod budget;
 pub mod events;
 
 use std::path::PathBuf;
@@ -10,9 +11,11 @@ use std::sync::Arc;
 use serde_json::Value;
 use zen_agent::{Agent, AgentConfig, OpenAiClient};
 use zen_core::{
-    EventSink, HookRunner, NoHooks, NullSink, PermissionChecker, PermissionDecision, RunResult,
-    ToolContext, ToolRegistry,
+    EventSink, HookRunner, LlmBackend, NoHooks, NullSink, PermissionChecker, PermissionDecision,
+    RunResult, ToolContext, ToolRegistry,
 };
+
+use budget::{BudgetEnforcer, BudgetedBackend, BudgetedPermissions, TaskBudget};
 
 /// Options for one headless agent run.
 #[derive(Clone, Debug)]
@@ -27,6 +30,10 @@ pub struct RunOptions {
     pub cwd: PathBuf,
     pub max_turns: usize,
     pub system_prompt: String,
+    /// Hard per-task budget (R12). `None` (default) = no budget enforcement;
+    /// `Some` wraps the LLM backend and permission checker so the task stops
+    /// as soon as any limit is exceeded.
+    pub budget: Option<TaskBudget>,
 }
 
 impl RunOptions {
@@ -43,6 +50,7 @@ impl RunOptions {
             cwd: cwd.into(),
             max_turns: 12,
             system_prompt: "You are ZenCode, a concise coding agent. Use the tools to complete the task, then reply with a short summary.".into(),
+            budget: None,
         }
     }
 }
@@ -82,11 +90,23 @@ pub async fn run_task_with_sink(
     if !opts.cwd.is_dir() {
         anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
     }
-    let llm = Arc::new(OpenAiClient::new(
+    let llm_inner: Arc<dyn LlmBackend> = Arc::new(OpenAiClient::new(
         opts.base_url.clone(),
         opts.api_key.clone(),
         sink.clone(),
     ));
+    // R12: when a budget is set, enforce it around the model backend (token +
+    // duration hard stop) and the permission checker (per-tool-call hard stop).
+    let (llm, permissions): (Arc<dyn LlmBackend>, Arc<dyn PermissionChecker>) = match &opts.budget {
+        Some(budget) => {
+            let enforcer = BudgetEnforcer::new(budget.clone(), sink.clone());
+            (
+                Arc::new(BudgetedBackend::new(llm_inner, enforcer.clone())),
+                Arc::new(BudgetedPermissions::new(Arc::new(AllowAll), enforcer)),
+            )
+        }
+        None => (llm_inner, Arc::new(AllowAll)),
+    };
     let config = AgentConfig {
         model: opts.model.clone(),
         fallback_models: opts.fallback_models.clone(),
@@ -100,7 +120,7 @@ pub async fn run_task_with_sink(
     let mut agent = Agent::new(
         llm,
         default_tools(),
-        Arc::new(AllowAll),
+        permissions,
         None,
         hooks,
         sink,

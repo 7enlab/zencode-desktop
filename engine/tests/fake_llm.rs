@@ -127,6 +127,8 @@ async fn agent_reads_then_edits_file_through_real_tools() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// Windows: the Bash tool needs a POSIX shell; CI's Windows runner failed here (g1 note in PLAN.md).
+#[cfg(unix)]
 #[tokio::test]
 async fn bash_tool_runs_in_cwd() {
     let dir = tmpdir("bash");

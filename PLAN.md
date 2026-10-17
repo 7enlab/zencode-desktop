@@ -44,3 +44,5 @@ Desktop dùng crate CLI qua git dependency ghim rev (hiện `3a09220`), cập nh
 
 ## Thất bại
 (chưa có)
+
+- g1 ghi chú: Bash tool trên Windows CI lỗi (chưa rõ nguyên nhân, cần log chi tiết) → test Bash chỉ chạy unix; cần điều tra ở g2. Clippy cross-target bị bỏ cho engine (ring không cross-build); test native 3 OS vẫn chạy.

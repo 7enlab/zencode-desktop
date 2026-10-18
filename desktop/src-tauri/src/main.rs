@@ -259,10 +259,10 @@ fn restore_checkpoint(session_id: String, checkpoint_id: String) -> Result<Resto
 
 fn main() {
     tauri::Builder::default()
-        // Auto-update. WARNING: `plugins.updater.pubkey` in tauri.conf.json is
-        // still a placeholder — the real minisign keypair must be generated
-        // (`tauri signer generate -w`) and the public key committed BEFORE the
-        // first public release (D3 checklist). Never ship with the placeholder.
+        // Auto-update. `plugins.updater.pubkey` in tauri.conf.json holds the
+        // release minisign public key (docs/keys/zencode-release.pub, see
+        // docs/signed-releases.md); updates whose signature does not verify
+        // are refused by the plugin.
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

@@ -1,5 +1,10 @@
 # PLAN — ZenCode Desktop
 
+> **SUPERSEDED.** The authoritative roadmap is **ZenCode Desktop — Roadmap FINAL**
+> (Notion, ZenCode-Hub, written by Hark 2, 2026-10-18). This file is kept for history.
+> Milestones: v0.3.0 "Foundation + Trust" → v0.4.0 "Stream, Freedom & Hardening" →
+> v0.5.0 "Control Room & Proof" → v1.0.0 "Stable & Open".
+
 Quy tắc: mỗi phiên làm MỘT bước (≤ ~1 giờ), ghi cách chứng minh; lỗi 2 lần ở cùng bước → ghi vào mục "Thất bại" và dừng bước đó.
 Không được làm hỏng `rebuild/` (golden parity 21/21). Chỉ dùng model `:free`, không tiêu tiền.
 
@@ -16,7 +21,7 @@ Không được làm hỏng `rebuild/` (golden parity 21/21). Chỉ dùng model 
 Khi (b)+(c)+(d) xong → lõi agent chạy được một vòng thật → tag `v0.3.0`.
 
 ## HƯỚNG MỚI 2026-10-17: dựa trên ZenCode CLI (Zen quyết định)
-ZenCode CLI = https://github.com/atzenn/zencode (public, Rust workspace ~27k dòng: zen-core, zen-agent, zen-tools, zen-cli, zen-ext, zen-mcp). Đã có: vòng agent, client OpenAI-compatible + retry 429/5xx theo Retry-After + `fallback_models`, `edit_match.rs` sửa file linh hoạt, compaction, session event log replay byte-identical, hooks, MCP, sub-agent, background Bash, permissions, headless JSON, CI + cargo-audit. Desktop KHÔNG tự viết lại các phần này nữa; `core/` (zencode_core) đóng băng, giữ để tham khảo, không xóa.
+ZenCode CLI = https://gitlab.com/atzenn/zencode (public, Rust workspace ~27k dòng: zen-core, zen-agent, zen-tools, zen-cli, zen-ext, zen-mcp). Đã có: vòng agent, client OpenAI-compatible + retry 429/5xx theo Retry-After + `fallback_models`, `edit_match.rs` sửa file linh hoạt, compaction, session event log replay byte-identical, hooks, MCP, sub-agent, background Bash, permissions, headless JSON, CI + cargo-audit. Desktop KHÔNG tự viết lại các phần này nữa; `core/` (zencode_core) đóng băng, giữ để tham khảo, không xóa.
 Desktop dùng crate CLI qua git dependency ghim rev (hiện `3a09220`), cập nhật rev có chủ đích. Chỉ có quyền đọc repo atzenn: cải tiến cho lõi thì làm lớp bọc trong Desktop + ghi đề xuất vào docs/upstream-proposals.md (khi có quyền Write thì gửi PR).
 
 | # | Bước | Trạng thái | Chứng minh |

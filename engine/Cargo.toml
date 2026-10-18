@@ -11,6 +11,7 @@ zen-agent = { git = "https://gitlab.com/atzenn/zencode.git", rev = "04b742e" }
 zen-tools = { git = "https://gitlab.com/atzenn/zencode.git", rev = "04b742e" }
 anyhow = "1"
 async-trait = "0.1"
+minisign = "0.10"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }

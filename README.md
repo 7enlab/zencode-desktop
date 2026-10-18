@@ -44,7 +44,7 @@ The authoritative roadmap is **ZenCode Desktop — Roadmap FINAL** (Notion, ZenC
 written by Hark 2, 2026-10-18). Milestones: v0.3.0 "Foundation + Trust" → v0.4.0
 "Stream, Freedom & Hardening" → v0.5.0 "Control Room & Proof" → v1.0.0 "Stable & Open".
 
-Legacy files kept for reference: `PLAN.md` (old), `RESEARCH.md`, `RELEASE-GATE-v0.4.0.md`.
+Legacy files kept for reference: `PLAN.md` (old), `RESEARCH.md`, `RELEASE-GATE-v0.3.0.md`.
 
 ## Rules
 

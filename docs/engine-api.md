@@ -41,7 +41,11 @@ async fn main() -> anyhow::Result<()> {
         "/tmp/workdir",                      // cwd the tools operate in
     );
     // R3 scope guard: declare the dirs the agent may touch (deny-by-default).
-    opts.scope = Some(ScopeDecl::for_dir("/tmp/workdir"));
+    opts.scope = Some(ScopeDecl {
+        files: vec![],
+        dirs: vec!["/tmp/workdir".into()],
+        description: "working directory".into(),
+    });
     let sink = Arc::new(RecordingSink::new());
     let result = run_task_with_sink(&opts, "Create hello.txt with: hi", sink.clone()).await?;
     println!("success: {}", result.success);

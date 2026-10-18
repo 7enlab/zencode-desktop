@@ -45,7 +45,7 @@ rust-ini = "0.20"
 # Engine wiring (g6): the desktop runs zencode_engine as a library.
 # zen-core is needed directly for the EventSink trait (ForwardingSink).
 zencode_engine = { path = "../../engine" }
-zen-core = { git = "https://gitlab.com/atzenn/zencode.git", rev = "04b742e" }
+zen-core = { git = "https://gitlab.com/atzenn/zencode.git", rev = "250e8d4" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

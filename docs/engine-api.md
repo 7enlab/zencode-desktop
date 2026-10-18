@@ -1,9 +1,7 @@
 # Engine API guide (`zencode_engine`)
 
-> Verified against `origin/main` plus open PRs **#4** (session + `zencode` CLI +
-> `SessionEnd`), **#6** (prompt budget), **#8** (pre-tool-use hooks), **#9**
-> (read tracking), **#23** (input validation). Field and function names are taken
-> from those branches' actual source.
+> Verified against `origin/main` on GitLab. Field and function names are taken
+> from the actual source.
 
 ## Overview
 
@@ -18,22 +16,22 @@ Crate layout:
 engine/
   src/lib.rs          RunOptions, default_tools(), run_task(), run_task_with_sink()
   src/events.rs       Versioned DesktopEvent schema + RecordingSink (the UI contract)
-  src/prompt_budget.rs  (PR #6) g4 token budget: chars/4 estimate + fail-fast guard
-  src/hooks.rs          (PR #8) PreToolUseHook trait + ordered HookChain
-  src/read_tracking.rs  (PR #9) P3 read-before-write defense-in-depth
-  src/bin/zencode.rs    (PR #4) `zencode run` / `zencode eval` CLI
+  src/prompt_budget.rs  g4 token budget: chars/4 estimate + fail-fast guard
+  src/hooks.rs          PreToolUseHook trait + ordered HookChain
+  src/read_tracking.rs  P3 read-before-write defense-in-depth
+  src/bin/zencode.rs    `zencode run` / `zencode eval` CLI
   tests/fake_llm.rs            Integration tests against a scripted localhost LLM
   tests/snapshots/             insta contract snapshot for the event stream
 ```
 
 Git dependencies (`engine/Cargo.toml`): `zen-core`, `zen-agent`, `zen-tools` from
-`https://github.com/atzenn/zencode` at a pinned rev.
+`https://gitlab.com/atzenn/zencode` at a pinned rev.
 
 ## Quick start
 
 ```rust
 use std::sync::Arc;
-use zencode_engine::{events::RecordingSink, run_task_with_sink, RunOptions};
+use zencode_engine::{events::RecordingSink, run_task_with_sink, RunOptions, scope::ScopeDecl};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -42,7 +40,8 @@ async fn main() -> anyhow::Result<()> {
         "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
         "/tmp/workdir",                      // cwd the tools operate in
     );
-    opts.dangerous_allow_all = true; // opt in: caller sandboxes cwd (e.g. tempdir)
+    // R3 scope guard: declare the dirs the agent may touch (deny-by-default).
+    opts.scope = Some(ScopeDecl::for_dir("/tmp/workdir"));
     let sink = Arc::new(RecordingSink::new());
     let result = run_task_with_sink(&opts, "Create hello.txt with: hi", sink.clone()).await?;
     println!("success: {}", result.success);
@@ -53,7 +52,8 @@ async fn main() -> anyhow::Result<()> {
 
 Notes: `run_task` needs no key for keyless free tiers (`api_key: None`); pass
 `opts.api_key = Some(...)` for providers that need a bearer token. Tool approval is
-**deny-by-default** — set `dangerous_allow_all = true` only when you sandbox `cwd`.
+**deny-by-default** — declare a scope via `opts.scope` (R3); the legacy
+`dangerous_allow_all` flag is deprecated.
 
 ## Core types
 
@@ -68,29 +68,30 @@ Notes: `run_task` needs no key for keyless free tiers (`api_key: None`); pass
 | `cwd` | `PathBuf` | required — must be an existing directory |
 | `max_turns` | `usize` | `12` |
 | `system_prompt` | `String` | `"You are ZenCode, a concise coding agent. …"` |
-| `dangerous_allow_all` (PR #23) | `bool` | `false` — deny all tool calls unless `true` |
-| `pre_tool_use_hooks` (PR #8) | `Vec<Arc<dyn PreToolUseHook>>` | `vec![]` |
+| `dangerous_allow_all` (deprecated) | `bool` | `false` — deny all tool calls unless `true` |
+| `scope` (R3) | `Option<ScopeDecl>` | `None` — declare dirs the agent may touch |
+| `pre_tool_use_hooks` | `Vec<Arc<dyn PreToolUseHook>>` | `vec![]` |
 
 **`run_task(opts, task) -> anyhow::Result<RunResult>`** — run one task to completion.
 Events go to a `NullSink` (discarded). Rejects empty tasks and non-directory `cwd`.
 
-**`run_task_with_sink(opts, task, sink: Arc<RecordingSink>)`** (PR #4) — same, but
+**`run_task_with_sink(opts, task, sink: Arc<RecordingSink>)`** — same, but
 streams every agent event into the sink and appends a `DesktopEvent::SessionEnd` with
 cost accounting when the turn finishes.
 
 **`default_tools() -> ToolRegistry`** — the CLI's `Read`, `Edit`, `Write`, `Bash` tools.
 
-**`default_tracked_tools() -> (ToolRegistry, ReadTracker)`** (PR #9) — same tools
+**`default_tracked_tools() -> (ToolRegistry, ReadTracker)`** — same tools
 routed through the read-tracking layer; prefer this for agent runs.
 
 **`events::RecordingSink`** — collects events as versioned envelopes:
 `events()` returns `Vec<Envelope>`; `to_ndjson()` returns `anyhow::Result<String>`
-(PR #23: no more panics on serialization failure).
+(no panics on serialization failure).
 
 **`events::DesktopEvent`** — the UI contract, a stable projection of the CLI's
 `AgentEvent` (converted via `From<AgentEvent>`). Variants: `AssistantMessage`,
 `ToolResult`, `TextDelta`, `ApiRetry`, `CompactBoundary`, `PermissionDenied`,
-`SystemMessage`, `Unknown { variant }`, and `SessionEnd` (PR #4: `success`, `result`,
+`SystemMessage`, `Unknown { variant }`, and `SessionEnd` (`success`, `result`,
 `num_turns`, `total_cost_usd`, `input_tokens`, `output_tokens`, `model`,
 `duration_ms`). Each log line is `{"v":1,"seq":N,"type":"…",…}`.
 
@@ -101,7 +102,7 @@ change what the UI sees; the contract tests fail first.
 
 ## New modules
 
-**`prompt_budget` (PR #6, g4).** Keeps the static prompt (system prompt + tool
+**`prompt_budget` (g4).** Keeps the static prompt (system prompt + tool
 definitions) under a token budget, using the chars/4 estimate.
 
 ```rust
@@ -116,7 +117,7 @@ Key items: `estimate_tokens(&str)`, `tool_definition_tokens(&ToolDefinition)`,
 Result<usize, OverBudget>`, `OverBudget { used, budget }`. `run_task_with_sink`
 enforces this automatically — a bloated prompt fails before the first turn.
 
-**`hooks` (PR #8, P2).** Engine-native pre-tool-use interception: each tool is
+**`hooks` (P2).** Engine-native pre-tool-use interception: each tool is
 wrapped so every call first passes through your hooks.
 
 ```rust
@@ -134,7 +135,7 @@ Key items: `PreToolUseHook` (async trait, `before_tool_call(tool_name, args, ctx
 next hook), `HookedTool::{new, inner}`, `wrap_with_hooks(registry, &chain)`. The
 rate-limit policy itself is intentionally not here — it awaits atzenn/zencode#10.
 
-**`read_tracking` (PR #9, P3).** Defense-in-depth read-before-write at the engine
+**`read_tracking` (P3).** Defense-in-depth read-before-write at the engine
 layer, mirroring the CLI's `ToolContext.read_files` semantics.
 
 ```rust
@@ -149,7 +150,7 @@ canonicalized paths), `TrackingReadTool::{new, tracker}` (wraps Read), `ReadGuar
 (Write to a *new* file is allowed), `tracked_tools() -> (ToolRegistry, ReadTracker)`,
 `NOT_READ_MSG`.
 
-## `zencode` CLI (PR #4, engine/src/bin/zencode.rs)
+## `zencode` CLI (engine/src/bin/zencode.rs)
 
 ```bash
 zencode run "Create hello.txt with: hi" [--model M] [--cwd DIR] [--max-turns N] [--session-dir DIR]
@@ -165,11 +166,11 @@ small file tasks and prints a metrics table. Env overrides: `ZENCODE_BASE_URL`,
 
 | Check | Where | Behavior |
 |---|---|---|
-| Empty `base_url`, or missing `http(s)://` prefix | `run_task_with_sink` (PR #23) | bail before any network call |
-| Empty `model` | `run_task_with_sink` (PR #23) | bail |
-| Tool approval | PR #23 | `dangerous_allow_all=false` → every call denied with a message naming the opt-in flag |
-| Prompt budget (g4) | PR #6 | `ensure_within_budget` fails fast if static prompt > 1200 tokens |
-| Read-before-write | PR #9 | `ReadGuardedTool` refuses unwritten reads; `Write` to new files allowed |
+| Empty `base_url`, or missing `http(s)://` prefix | `run_task_with_sink` | bail before any network call |
+| Empty `model` | `run_task_with_sink` | bail |
+| Tool approval | R3 scope guard | no scope → every call denied; `dangerous_allow_all` deprecated |
+| Prompt budget (g4) | `prompt_budget` | `ensure_within_budget` fails fast if static prompt > 1200 tokens |
+| Read-before-write | `read_tracking` | `ReadGuardedTool` refuses unwritten reads; `Write` to new files allowed |
 
 ## Testing
 

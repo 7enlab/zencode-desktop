@@ -60,8 +60,34 @@ What the script does:
    signature covers the whole release.
 
 The signed files (`*.minisig`, `SHA256SUMS`, `SHA256SUMS.minisig`,
-`latest.json`) are uploaded to the release page. The secret key never leaves
-the maintainer's machine.
+`latest.json`) are uploaded to the release page.
+
+## Updater releases in CI (0.3-4)
+
+Updater artifacts are signed ONLY in GitLab CI. The key is stored as the
+masked, protected CI variables `TAURI_SIGNING_PRIVATE_KEY` and
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, so it is only exposed to pipelines for
+protected branches/tags. Pushing a protected tag `vX.Y.Z` (equal to the
+`version` in `tauri.conf.json`) runs `release-linux` (`tools/release-linux.sh`)
+and `release-publish` in `.gitlab-ci.yml`:
+
+1. `cargo tauri build --bundles appimage`.
+2. The AppImage is copied to `zencode-desktop_<version>_<arch>.AppImage` and
+   signed with `cargo tauri signer sign`, so the signed trusted comment is
+   `timestamp:<unix>\tfile:zencode-desktop_<version>_<arch>.AppImage`.
+3. `latest.json` (platform `linux-x86_64`) is written, both files go to the
+   generic package registry, and the GitLab release links `latest.json` as
+   `/latest.json`, which backs the only updater endpoint:
+   `https://gitlab.com/7enlab/zencode-desktop/-/releases/permalink/latest/downloads/latest.json`.
+
+**Signed-version check.** The updater plugin always verifies the artifact
+signature, but the manifest `version` is unsigned. The app therefore installs a
+`default_version_comparator` that calls
+`zencode_engine::release_signing::check_update_offer`: the offered version must
+be newer than the running one, must appear as a `_`-separated token of the
+signed file name, and the download URL must point at that same file. A replayed
+old signature or a relabeled manifest is refused before download. macOS and
+Windows CI release jobs are not set up yet.
 
 ## Verifying a download (user)
 

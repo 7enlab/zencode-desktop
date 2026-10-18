@@ -13,6 +13,10 @@ workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "push"
+    # Manual runs from the UI (Run pipeline) or the API, e.g. after a runner
+    # or account change. Still no schedules.
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "api"
 
 stages:
   - lint

@@ -44,6 +44,8 @@ allow = [
     "Unicode-3.0",
     "OpenSSL",
     "CDLA-Permissive-2.0",
+    # First-party ZenCode CLI crates only (see [[licenses.clarify]] below).
+    "LicenseRef-ZenCode-FirstParty",
 ]
 # Only accept high-confidence license detections.
 confidence-threshold = 0.8
@@ -65,3 +67,22 @@ unknown-registry = "warn"
 unknown-git = "warn"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 allow-git = ["https://gitlab.com/atzenn/zencode.git"]
+
+# First-party ZenCode CLI crates (parent project atzenn/zencode, same owner).
+# The CLI repo declares no license yet. We do NOT guess one: they are marked
+# as first-party (LicenseRef-ZenCode-FirstParty) until the CLI
+# team adds `license` to its Cargo.toml (tracked in docs/upstream-proposals.md).
+[[licenses.clarify]]
+crate = "zen-core"
+expression = "LicenseRef-ZenCode-FirstParty"
+license-files = []
+
+[[licenses.clarify]]
+crate = "zen-agent"
+expression = "LicenseRef-ZenCode-FirstParty"
+license-files = []
+
+[[licenses.clarify]]
+crate = "zen-tools"
+expression = "LicenseRef-ZenCode-FirstParty"
+license-files = []

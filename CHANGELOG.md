@@ -3,6 +3,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 
+### Added (2026-10-18, R15 signed releases — Muse 2 `muse2/signed-releases-r15`; review: docs/reviews/2026-10-18-r15-signed-releases.md)
+- release: minisign-signed releases — `tools/sign-release.sh`, `tools/verify-release.sh`, `docs/signed-releases.md`, engine `release_signing` (offline verification via `minisign-verify`, trusted-comment binding, updater key validation); release public key `docs/keys/zencode-release.pub` (key id `A459EE7B787B86FF`) wired into the Tauri updater; GitLab release endpoint added.
+
 ### Changed (2026-10-18, Muse 2 branch review: docs/reviews/2026-10-18-muse2-branches.md)
 - build: `zen-core`/`zen-agent`/`zen-tools` are fetched from the GitLab mirror `https://gitlab.com/atzenn/zencode.git` (rev `04b742e`); the desktop crate's `zen-core` is aligned from `3a09220` to `04b742e` so only one copy is built.
 

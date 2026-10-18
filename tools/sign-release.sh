@@ -27,8 +27,14 @@ if ! command -v minisign >/dev/null 2>&1; then
 fi
 
 # Never sign a release the updater cannot verify.
-TAURI_CONF="$(dirname "$0")/../desktop/src-tauri/tauri.conf.json"
-if grep -q "PLACEHOLDER" "$TAURI_CONF" 2>/dev/null; then
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+TAURI_CONF="$REPO_ROOT/desktop/src-tauri/tauri.conf.json"
+RELEASE_PUB="$REPO_ROOT/docs/keys/zencode-release.pub"
+if [ ! -f "$TAURI_CONF" ] || [ ! -f "$RELEASE_PUB" ]; then
+  echo "ERROR: missing $TAURI_CONF or $RELEASE_PUB" >&2
+  exit 1
+fi
+if grep -q "PLACEHOLDER" "$TAURI_CONF"; then
   echo "ERROR: updater pubkey in tauri.conf.json is still PLACEHOLDER." >&2
   echo "Generate the release keypair and publish the public key first" >&2
   echo "(see docs/signed-releases.md, blocker for Hark 2)." >&2
@@ -45,6 +51,9 @@ for f in "$DIST"/*; do
   minisign -S -s "$KEY" -m "$f" \
     -t "zencode-desktop $VERSION - $(basename "$f")" \
     -x "$f.minisig"
+  # Self-check: the signature must verify against the PUBLISHED key, so a
+  # wrong secret key can never produce a release the updater rejects.
+  minisign -V -q -p "$RELEASE_PUB" -m "$f" -x "$f.minisig"
   echo "  signed: $(basename "$f")"
   count=$((count + 1))
 done
@@ -57,11 +66,13 @@ fi
 # One checksum file covering the whole release, signed as well.
 (
   cd "$DIST"
-  sha256sum $(ls | grep -v '\.minisig$' | grep -v '^SHA256SUMS') > SHA256SUMS
+  find . -maxdepth 1 -type f ! -name '*.minisig' ! -name 'SHA256SUMS*' -printf '%f\0' \
+    | sort -z | xargs -0 sha256sum -- > SHA256SUMS
 )
 minisign -S -s "$KEY" -m "$DIST/SHA256SUMS" \
   -t "zencode-desktop $VERSION - SHA256SUMS" \
   -x "$DIST/SHA256SUMS.minisig"
+minisign -V -q -p "$RELEASE_PUB" -m "$DIST/SHA256SUMS" -x "$DIST/SHA256SUMS.minisig"
 
 echo "OK: signed $count artifact(s) + SHA256SUMS for $VERSION"
 echo "Upload to the release page: artifacts, *.minisig, SHA256SUMS, SHA256SUMS.minisig"

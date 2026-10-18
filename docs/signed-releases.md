@@ -8,30 +8,33 @@ with in transit.
 ## Trust model
 
 - **One release keypair** for the whole project. The **secret key** is held
-  offline by Hark 2 (project lead). The **public key** is committed in
-  `desktop/src-tauri/tauri.conf.json` (`plugins.updater.pubkey`) and mirrored
-  in `docs/signed-releases.md` below.
+  by Hark 2 (project lead) outside the repository. The **public key** is
+  committed as `docs/keys/zencode-release.pub`, embedded in
+  `desktop/src-tauri/tauri.conf.json` (`plugins.updater.pubkey`, as the base64
+  of the whole `.pub` file — the format Tauri expects) and mirrored below.
 - The Tauri auto-updater **refuses to install** any update whose signature
   does not verify against the embedded public key. There is no bypass.
 - Git tags are informational only; the signature on the artifact is what
   matters.
 
-> **BLOCKER — Hark 2 must do this before the first public release:**
-> 1. On an offline machine, run `minisign -G -p zencode-release.pub -s zencode-release.key`
->    (or `tauri signer generate -w ~/.tauri/zencode.key` — same Ed25519 format).
-> 2. Store the secret key offline (encrypted USB / hardware key). Never commit it.
-> 3. Put the public key in `desktop/src-tauri/tauri.conf.json`
->    (`plugins.updater.pubkey`) replacing the `PLACEHOLDER` value.
-> 4. Paste the public key into the "Release public key" section below.
+> **Status (2026-10-18):** the release keypair has been generated
+> (key id `A459EE7B787B86FF`) and the public key is wired. The engine test
+> `release_signing::tests::release_key_is_wired` fails the build if
+> `tauri.conf.json` and `docs/keys/zencode-release.pub` ever disagree or the
+> key is missing/placeholder. There is no separate CI job for this yet.
 >
-> Until this is done, `tools/sign-release.sh` refuses to run and the
-> `check-release-signing` CI job fails the build.
+> The secret key was generated **without a password** (`minisign -G -W`),
+> because the release machine has no interactive prompt. It is stored with
+> mode 600 outside the repo plus one backup. Encrypting it (or moving it to a
+> hardware token) before the first public release is recommended.
 
 ## Release public key
 
+Key id `A459EE7B787B86FF` (file: `docs/keys/zencode-release.pub`):
+
 ```
-UNSET — Hark 2: paste the minisign public key here after generating the keypair.
-Format: untrusted comment: ...\n<RW... base64 ...>
+untrusted comment: minisign public key A459EE7B787B86FF
+RWT/hnt4e+5ZpJXAoEvIN4/C6zd6KY21MSADXo6RXLx9eayno0OMrPfu
 ```
 
 ## Signing a release (maintainer)
@@ -47,10 +50,12 @@ MINISIGN_KEY=/secure/path/zencode-release.key tools/sign-release.sh v0.4.0 dist/
 
 What the script does:
 1. Refuses to run if `MINISIGN_KEY` is unset or the file does not exist.
-2. Refuses to run if `tauri.conf.json` still contains the `PLACEHOLDER` pubkey
-   (signing without a published public key is pointless).
+2. Refuses to run if `tauri.conf.json` or `docs/keys/zencode-release.pub` is
+   missing, or the updater pubkey is still a `PLACEHOLDER`.
 3. For each artifact file: `minisign -S -x <file>.minisig -s $MINISIGN_KEY -m <file>`
-   (trusted comment records the version and filename).
+   (trusted comment records the version and filename), then re-verifies the
+   new signature against the published `docs/keys/zencode-release.pub`, so a
+   wrong secret key fails the run instead of shipping unverifiable artifacts.
 4. Writes `SHA256SUMS` and signs that too (`SHA256SUMS.minisig`), so a single
    signature covers the whole release.
 
@@ -63,7 +68,7 @@ the maintainer's machine.
 ```bash
 # 1. Get the release public key (from this file or the website).
 # 2. Verify:
-tools/verify-release.sh zencode-release.pub ZenCode-0.4.0.AppImage
+tools/verify-release.sh docs/keys/zencode-release.pub ZenCode-0.4.0.AppImage
 ```
 
 The script checks the `.minisig` next to the file and prints
@@ -73,13 +78,14 @@ fails loudly.
 Manual equivalent:
 
 ```bash
-minisign -V -p zencode-release.pub -m ZenCode-0.4.0.AppImage
+minisign -V -p docs/keys/zencode-release.pub -m ZenCode-0.4.0.AppImage
 ```
 
 ## Updater integration
 
 - `desktop/src-tauri/tauri.conf.json` → `plugins.updater`:
-  - `pubkey`: the release public key (currently `PLACEHOLDER` — see blocker).
+  - `pubkey`: base64 of the whole `docs/keys/zencode-release.pub` file
+    (Tauri format; a bare `RW...` line is NOT accepted).
   - `endpoints`: release metadata URLs. **Must point at GitLab**
     (`https://gitlab.com/7enlab/zencode-desktop/-/releases/...`) while the
     GitHub account is suspended; GitHub endpoints are kept as fallback only.
@@ -89,7 +95,13 @@ minisign -V -p zencode-release.pub -m ZenCode-0.4.0.AppImage
   installation; a bad signature aborts the update with an error dialog.
 - `engine/src/release_signing.rs` (this crate) contains the offline
   verification logic used by tests and by any future non-Tauri install path:
-  `verify_file(public_key, file)` → `Ok(())` / `Err(VerifyError)`.
+  `verify_file(public_key, file)` → `Ok(())` / `Err(VerifyError)`;
+  `verify_bytes_with_comment` returns the verified trusted comment so a caller
+  can bind it to the expected version/file name (anti-downgrade);
+  `updater_public_key(tauri_conf)` extracts and validates the embedded key.
+  It uses `minisign-verify` (zero dependencies, verification only — the same
+  crate `tauri-plugin-updater` uses) and rejects legacy non-prehashed
+  signatures.
 
 ## Key rotation
 
@@ -111,4 +123,5 @@ If the secret key is ever suspected compromised:
 | `tools/sign-release.sh` | Maintainer: sign all artifacts for a release |
 | `tools/verify-release.sh` | User/CI: verify one artifact against a public key |
 | `engine/src/release_signing.rs` | Rust verification logic + tests (test keypair only) |
+| `docs/keys/zencode-release.pub` | Release public key (minisign) |
 | `desktop/src-tauri/tauri.conf.json` | Updater `pubkey` + `endpoints` |

@@ -41,8 +41,8 @@ impl fmt::Display for VerifyError {
 impl std::error::Error for VerifyError {}
 
 /// Minimal standard-base64 decoder (RFC 4648, padded).
-/// Test-only helper (the minisign crate handles real parsing).
-#[cfg(test)]
+/// Used to unwrap the Tauri updater `pubkey`, which is the base64 encoding of
+/// the whole minisign `.pub` file (comment line + key line).
 fn decode_base64(s: &str) -> Result<Vec<u8>, String> {
     fn val(c: u8) -> Result<u8, String> {
         match c {
@@ -88,19 +88,35 @@ fn decode_base64(s: &str) -> Result<Vec<u8>, String> {
 /// `public_key_b64` is the base64 public key (the `RW...` line of the `.pub`
 /// file). `signature_content` is the full text of the `.minisig` file.
 ///
-/// Returns `Ok(())` iff the signature is valid for the exact file bytes.
+/// Returns `Ok(())` iff the signature is valid for the exact file bytes, was
+/// made by this key, and the trusted comment is covered by the global
+/// signature. Legacy (non-prehashed) signatures are rejected.
 pub fn verify_bytes(
     public_key_b64: &str,
     file_bytes: &[u8],
     signature_content: &str,
 ) -> Result<(), VerifyError> {
-    let pk = minisign::PublicKey::from_base64(public_key_b64.trim())
+    verify_bytes_with_comment(public_key_b64, file_bytes, signature_content).map(|_| ())
+}
+
+/// Like [`verify_bytes`], but returns the *verified* trusted comment so the
+/// caller can bind the signature to an expected version / file name (for
+/// example `zencode-desktop v0.4.0 - ZenCode.AppImage`, as written by
+/// `tools/sign-release.sh`) and refuse a validly signed but different or older
+/// artifact. The comment is only returned after the signature checked out.
+pub fn verify_bytes_with_comment(
+    public_key_b64: &str,
+    file_bytes: &[u8],
+    signature_content: &str,
+) -> Result<String, VerifyError> {
+    let pk = minisign_verify::PublicKey::from_base64(public_key_b64.trim())
         .map_err(|e| VerifyError::BadPublicKey(e.to_string()))?;
-    let sigbox = minisign::SignatureBox::from_string(signature_content)
+    let sig = minisign_verify::Signature::decode(signature_content)
         .map_err(|e| VerifyError::BadSignature(e.to_string()))?;
-    let mut reader = std::io::Cursor::new(file_bytes);
-    minisign::verify(&pk, &sigbox, &mut reader, true, false, false)
-        .map_err(|_| VerifyError::InvalidSignature)
+    // allow_legacy = false: only prehashed (Ed25519 + BLAKE2b) signatures.
+    pk.verify(file_bytes, &sig, false)
+        .map_err(|_| VerifyError::InvalidSignature)?;
+    Ok(sig.trusted_comment().to_string())
 }
 
 /// Verify the file at `path` using the `.minisig` file next to it
@@ -112,11 +128,35 @@ pub fn verify_file(public_key_b64: &str, path: &Path) -> Result<(), VerifyError>
     verify_bytes(public_key_b64, &file_bytes, &sig_content)
 }
 
-/// Returns true if the Tauri updater config still carries the placeholder
-/// public key — i.e. releases CANNOT be verified yet. Used by CI to fail
-/// the build before the first public release.
+/// Extract the minisign public key (`RW...` line) from the Tauri updater
+/// config. Tauri stores `plugins.updater.pubkey` as base64 of the whole `.pub`
+/// file. Returns `None` if the key is missing, empty, a placeholder, or does
+/// not parse as a minisign public key.
+pub fn updater_public_key(tauri_conf_json: &str) -> Option<String> {
+    let conf: serde_json::Value = serde_json::from_str(tauri_conf_json).ok()?;
+    let wrapped = conf
+        .pointer("/plugins/updater/pubkey")?
+        .as_str()?
+        .trim()
+        .to_string();
+    if wrapped.is_empty() || wrapped.contains("PLACEHOLDER") {
+        return None;
+    }
+    let pub_file = String::from_utf8(decode_base64(&wrapped).ok()?).ok()?;
+    let key_line = pub_file
+        .lines()
+        .map(str::trim)
+        .find(|l| !l.is_empty() && !l.starts_with("untrusted comment:"))?
+        .to_string();
+    minisign_verify::PublicKey::from_base64(&key_line).ok()?;
+    Some(key_line)
+}
+
+/// Returns true if the Tauri updater config does NOT carry a usable public key
+/// (missing, empty, placeholder or malformed) — i.e. releases CANNOT be
+/// verified yet. The `release_key_is_wired` test fails the build in that case.
 pub fn updater_pubkey_is_placeholder(tauri_conf_json: &str) -> bool {
-    tauri_conf_json.contains("PLACEHOLDER")
+    updater_public_key(tauri_conf_json).is_none()
 }
 
 #[cfg(test)]
@@ -180,7 +220,7 @@ mod tests {
 
     #[test]
     fn verify_file_roundtrip() {
-        let dir = std::env::temp_dir().join("zencode-r15-test");
+        let dir = std::env::temp_dir().join(format!("zencode-r15-test-{}", std::process::id()));
         let _ = fs::create_dir_all(&dir);
         let path = dir.join("artifact.bin");
         let mut f = fs::File::create(&path).unwrap();
@@ -195,7 +235,8 @@ mod tests {
 
     #[test]
     fn verify_file_missing_signature_errors() {
-        let dir = std::env::temp_dir().join("zencode-r15-test-nosig");
+        let dir =
+            std::env::temp_dir().join(format!("zencode-r15-test-nosig-{}", std::process::id()));
         let _ = fs::create_dir_all(&dir);
         let path = dir.join("artifact.bin");
         fs::write(&path, TEST_FILE_BYTES).unwrap();
@@ -209,8 +250,45 @@ mod tests {
         let with_placeholder =
             r#"{"plugins":{"updater":{"pubkey":"PLACEHOLDER-D3-CHECKLIST: generate"}}}"#;
         assert!(updater_pubkey_is_placeholder(with_placeholder));
-        let with_key = r#"{"plugins":{"updater":{"pubkey":"RWQdtwrmteKxjKJr7y54fi1dyz9HDRpXUOghMxrKTduBtg3oOgrttbwi"}}}"#;
-        assert!(!updater_pubkey_is_placeholder(with_key));
+        assert!(updater_pubkey_is_placeholder(
+            r#"{"plugins":{"updater":{"pubkey":""}}}"#
+        ));
+        assert!(updater_pubkey_is_placeholder(r#"{"plugins":{}}"#));
+        assert!(updater_pubkey_is_placeholder("not json"));
+        // A bare RW... key is NOT what Tauri expects (it wants the base64 of
+        // the whole .pub file), so it must not count as wired.
+        let bare = r#"{"plugins":{"updater":{"pubkey":"RWQdtwrmteKxjKJr7y54fi1dyz9HDRpXUOghMxrKTduBtg3oOgrttbwi"}}}"#;
+        assert!(updater_pubkey_is_placeholder(bare));
+        // base64("untrusted comment: minisign public key 8CB1E2B5E60AB71D\nRWQdtw...\n")
+        let wrapped = r#"{"plugins":{"updater":{"pubkey":"dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXkgOENCMUUyQjVFNjBBQjcxRApSV1FkdHdybXRlS3hqS0pyN3k1NGZpMWR5ejlIRFJwWFVPZ2hNeHJLVGR1QnRnM29PZ3J0dGJ3aQo="}}}"#;
+        assert!(!updater_pubkey_is_placeholder(wrapped));
+        assert_eq!(updater_public_key(wrapped).as_deref(), Some(TEST_PUBKEY));
+    }
+
+    #[test]
+    fn trusted_comment_is_returned_only_after_verification() {
+        assert_eq!(
+            verify_bytes_with_comment(TEST_PUBKEY, TEST_FILE_BYTES, TEST_MINISIG).unwrap(),
+            "test artifact"
+        );
+        // Editing the trusted comment breaks the global signature.
+        let forged =
+            TEST_MINISIG.replace("trusted comment: test artifact", "trusted comment: v9.9.9");
+        assert_eq!(
+            verify_bytes_with_comment(TEST_PUBKEY, TEST_FILE_BYTES, &forged),
+            Err(VerifyError::InvalidSignature)
+        );
+    }
+
+    /// Release gate: the real updater key in tauri.conf.json must be wired and
+    /// must match the published `docs/keys/zencode-release.pub`.
+    #[test]
+    fn release_key_is_wired() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let conf = fs::read_to_string(root.join("desktop/src-tauri/tauri.conf.json")).unwrap();
+        let pub_file = fs::read_to_string(root.join("docs/keys/zencode-release.pub")).unwrap();
+        let expected = pub_file.lines().nth(1).unwrap().trim();
+        assert_eq!(updater_public_key(&conf).as_deref(), Some(expected));
     }
 
     #[test]

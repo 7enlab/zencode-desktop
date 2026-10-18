@@ -25,6 +25,8 @@ use zen_core::{
 
 use budget::{BudgetEnforcer, BudgetedBackend, BudgetedPermissions, TaskBudget};
 
+use crate::events::RecordingSink;
+
 /// Options for one headless agent run.
 #[derive(Clone, Debug)]
 pub struct RunOptions {
@@ -87,6 +89,18 @@ pub fn default_tools() -> ToolRegistry {
 /// Run one task to completion and return the agent's result.
 pub async fn run_task(opts: &RunOptions, task: &str) -> anyhow::Result<RunResult> {
     run_task_with_sink(opts, task, Arc::new(NullSink)).await
+}
+
+/// Like [`run_task`], recording every agent event into `sink` and appending a
+/// [`events::DesktopEvent::SessionEnd`] with cost accounting when the turn finishes.
+pub async fn run_task_recorded(
+    opts: &RunOptions,
+    task: &str,
+    sink: Arc<RecordingSink>,
+) -> anyhow::Result<RunResult> {
+    let result = run_task_with_sink(opts, task, sink.clone()).await?;
+    sink.emit_session_end(&result);
+    Ok(result)
 }
 
 /// Like [`run_task`], streaming every agent event to `sink` (e.g. `events::RecordingSink`).

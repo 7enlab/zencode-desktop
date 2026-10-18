@@ -5,7 +5,7 @@
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use zen_core::{AgentEvent, EventSink};
+use zen_core::{AgentEvent, EventSink, RunResult};
 
 /// Bump on any breaking change to [`DesktopEvent`] (and re-review the snapshots).
 pub const SCHEMA_VERSION: u32 = 1;
@@ -62,10 +62,6 @@ pub enum DesktopEvent {
     },
     /// End of a session, with cost accounting. Mirrors Claude Code's `result`
     /// stream-json line; feeds the RateGate quota UI (D8).
-    ///
-    /// NOTE (merge): vendored from PR #4 (`muse2-sessionend`), extended here with
-    /// the R4 claim counts. When both merge, keep PR #4's fields AND the three
-    /// `claims_*` fields below — exactly one `SessionEnd` variant must survive.
     SessionEnd {
         success: bool,
         result: String,
@@ -185,14 +181,18 @@ impl RecordingSink {
             .join("\n")
     }
 
+    /// Record the end of a session with cost accounting (P4: feeds the RateGate UI).
+    /// Claim counts are reported as zero; use [`Self::emit_session_end_with_claims`]
+    /// when an R4 claim ledger is available.
+    pub fn emit_session_end(&self, result: &RunResult) {
+        self.emit_session_end_with_claims(result, &crate::claims::ClaimCounts::default());
+    }
+
     /// Record the end of a session with cost accounting (P4: feeds the RateGate UI)
     /// plus the R4 Verified Claims summary counts.
-    ///
-    /// NOTE (merge): `emit_session_end` (without claims) lives on PR #4
-    /// (`muse2-sessionend`). When both merge, keep both methods or fold them.
     pub fn emit_session_end_with_claims(
         &self,
-        result: &zen_core::RunResult,
+        result: &RunResult,
         counts: &crate::claims::ClaimCounts,
     ) {
         let mut g = self.inner.lock().unwrap();

@@ -53,3 +53,34 @@ The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-cor
 - All Desktop-side mitigations above are implemented on `muse2/*` branches and proposed as PRs; none touch CLI code.
 - When the CLI team accepts a proposal, Desktop adopts it and drops the workaround; until then the workarounds stay.
 - New findings go here first; once filed upstream, they should become issues in atzenn/zencode with the `desktop` label.
+
+## Desktop branches parked for the CLI team (2026-10-18 review)
+
+These `muse2/*` branches on `gitlab.com/7enlab/zencode-desktop` implement agent-core behaviour.
+They are **not** merged into Desktop. Each line is a pointer for the CLI team (`gitlab.com/atzenn/zencode`):
+read the branch, port the idea into the CLI, then Desktop consumes it through a rev bump.
+Full verdict table: `docs/reviews/2026-10-18-muse2-branches.md`.
+
+| Branch | Proposal for the CLI |
+|---|---|
+| `muse2/agent-skills` | Skill discovery/loading in the agent loop (SKILL.md registry). |
+| `muse2/skills-index` | Skill index/search on top of agent-skills (depends on it). |
+| `muse2/approval-flow` | Interactive tool-approval flow in the permission checker (pairs with U3). |
+| `muse2/compaction` | Context compaction strategy in the agent loop. |
+| `muse2/g3-rategate` | RateGate / token-budget gate (see U4). |
+| `muse2/g4-prompt-budget` | Prompt budgeting (`prompt_budget.rs`); drop the bundled spec-kit scaffold. |
+| `muse2/integration-test` | Agent-loop integration tests; belong next to the loop. |
+| `muse2/linux-sandbox` | OS sandbox for Bash on Linux (zen-tools). |
+| `muse2/macos-sandbox` | OS sandbox for Bash on macOS (zen-tools). |
+| `muse2/windows-sandbox` | OS sandbox for Bash on Windows (zen-tools). |
+| `muse2/wasmtime-sandbox` | WASM sandbox for tools (zen-tools). |
+| `muse2/atomic-writes` | Atomic file writes for Write/Edit tools (zen-tools), incl. Windows readonly fix. |
+| `muse2/memory-polish` | Agent memory handling. |
+| `muse2/p2-pretooluse-hook` | PreToolUse hook (see U3). |
+| `muse2/p3-read-tracking` | Read-before-edit tracking in the tool layer. |
+| `muse2/parallel-tools` | Parallel tool execution in the agent loop. |
+| `muse2/plan-mode` | Plan mode in the agent loop. |
+| `muse2/repo-map` | Repository map for context building. |
+| `muse2/smart-router` | In-loop model routing (Desktop keeps the pure `smart_router.rs` from R10 for model choice). |
+| `muse2/user-learning` | Learning user preferences across sessions. |
+| `muse2/verify-loop`, `muse2-verify-loop` | Verify loop `--until` (re-run tests until green). |

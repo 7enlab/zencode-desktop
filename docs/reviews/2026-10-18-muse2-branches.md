@@ -1,19 +1,30 @@
 # Review: all Muse 2 branches (2026-10-18)
 
-Reviewer: Hark 2. Base: `gitlab/main` @ `9548bb4` (after MR !1–!6 and 23 earlier branch merges).
+Reviewer: Hark 2. First pass on `gitlab/main` @ `9548bb4`; batch 4 (this update) on `0ec7db2`.
 Companion review of the MRs: `docs/reviews/2026-10-18-muse2-mrs.md`.
 
 ## Summary
 
-79 `muse2/*` branches on GitLab:
+92 Muse 2 branches on GitLab (79 in the first pass, 13 new: 10 `muse2/*` and 3 legacy `muse2-*` MR sources):
 
 | Verdict | Count | Meaning |
 |---|---|---|
-| merged | 26 | On `main` (`git merge --no-ff`, original commits kept). 23 earlier today, 3 in this batch. |
-| superseded | 13 | Content already on `main` (MR !1–!6 or a newer branch). Nothing to merge. |
-| rejected | 3 | Will not be merged (reason below). |
-| needs-CLI | 18 | Agent-core behaviour; belongs upstream in `atzenn/zencode`. |
-| pending | 19 | Not merged yet: conflicts, size, or a product/policy decision needed. |
+| merged | 36 | On `main` (`git merge --no-ff` or `cherry-pick -x`, original commits kept). |
+| superseded | 18 | Content already on `main` or replaced by a newer branch. Nothing to merge. |
+| rejected | 7 | Will not be merged as-is (reason below). |
+| needs-CLI | 22 | Agent-core behaviour; belongs upstream in `atzenn/zencode` (pointers in `docs/upstream-proposals.md`). |
+| pending | 9 | Needs a split or a port onto the current shell by Muse 2 (instructions below). |
+
+### Batch 4 (2026-10-18, on `0ec7db2`)
+Merged: `ocr-fixes`, `config-import`, `sovereign-mode` (R5 commit only), `smart-router-r10`,
+`onboarding-r8`, `zero-telemetry-r14`, `release-gate-v040`.
+Decided: `model-providers`, `cloudflare-tunnel`, `design-to-code`, `speckit-init` rejected (reasons in the table).
+**Behaviour change (OCR M1):** `run_task*` now denies every tool call unless `RunOptions::dangerous_allow_all`
+is set or a scope is declared. Callers in this repo opt in explicitly; the Tauri app should move to the
+R3 scope/approval flow. `ipc_bridge::…::to_ndjson` still uses `expect` (follow-up, same pattern as M3).
+Verification (`engine/`, aarch64 Linux): `cargo fmt --check` clean, `cargo clippy --locked --all-targets -D warnings`
+clean, `cargo test --locked` **165 passed, 0 failed** (154 lib + 3 budget + 8 fake_llm; 1 doc-test ignored);
+`node --test desktop/src/onboarding.test.js` 19/19. Tauri crate not built here (needs webkit2gtk).
 
 ### Dependency source fix (this batch)
 GitHub is unreachable for this project, so CI could not fetch `zen-core` / `zen-agent` / `zen-tools`.
@@ -93,40 +104,49 @@ Commit `build: fetch zencode from GitLab mirror`:
 | `muse2/verify-loop` | — | needs-CLI | Agent-loop behaviour; propose upstream to atzenn/zencode, keep Desktop as a thin wrapper. |
 | `muse2/wasmtime-sandbox` | — | needs-CLI | OS sandbox belongs in zen-tools/CLI; propose upstream. |
 | `muse2/windows-sandbox` | — | needs-CLI | OS sandbox belongs in zen-tools/CLI; propose upstream. |
-| `muse2/atomic-writes` | — | pending | Conflicts engine/src/lib.rs; atomic file writes likely belong in zen-tools (CLI) — decide, then rebase or upstream. |
-| `muse2/cli-v010` | — | pending | Bumps CLI to v0.1.0 (GitLab); conflicts Cargo.toml/lock/events.rs. Rebase onto the new GitLab source as a separate, deliberate rev bump. |
-| `muse2/cloudflare-tunnel` | — | pending | Public network exposure (Cloud mode): needs product/security sign-off; conflicts lib.rs. |
-| `muse2/config-import` | — | pending | Small, but conflicts engine/src/lib.rs; rebase onto main. |
-| `muse2/cost-leaderboard` | — | pending | Depends on zero-cost-benchmark; conflicts lib.rs + Cargo.lock. |
-| `muse2/design-to-code` | — | pending | New feature (screenshot → component); conflicts lib.rs; confirm a free vision model exists. |
-| `muse2/engine-benchmarks` | #37 | pending | Criterion benches; conflicts lib.rs + Cargo.lock; rebase. |
-| `muse2/g4-prompt-budget` | #6 | pending | 12 commits incl. spec-kit scaffold; conflicts lib.rs. Split out the budget; prompt budgeting is agent-core (upstream candidate). |
-| `muse2/model-providers` | — | pending | BYOK/paid providers conflict with the zero-cost firewall (cost_firewall.rs conflict); policy decision first. |
-| `muse2/notifications` | — | pending | Built on the pre-!6 Tauri shell; conflicts main.rs/index.html/Cargo.*; rebase onto main shell. |
-| `muse2/ocr-fixes` | — | pending | Fixes OCR review Major M1–M3; conflicts lib.rs + tests/fake_llm.rs. High priority to rebase. |
-| `muse2/rategate-ui-wireup` | — | pending | Pre-!6 shell; conflicts desktop files; rebase. RateGate policy itself is needs-CLI (g3). |
-| `muse2/security-sweep` | — | pending | 32 commits / 62 files mixing web app, companion, docs and engine; too large — split into reviewable MRs. |
-| `muse2/skills-index` | — | pending | Depends on agent-skills (needs-CLI); conflicts lib.rs + Cargo.lock. |
-| `muse2/sovereign-mode` | — | pending | Feature (R5); conflicts lib.rs + Cargo.lock; rebase. |
-| `muse2/speckit-init` | — | pending | Clean merge but adds ~5,200 lines of third-party spec-kit scaffold (.specify/, .agent/); owner decision. |
-| `muse2/terminal-tab` | — | pending | Pre-!6 shell; conflicts desktop files; rebase. |
-| `muse2/zero-cost-benchmark` | — | pending | Conflicts lib.rs + Cargo.lock; rebase (base for cost-leaderboard). |
-| `muse2/zero-telemetry` | — | pending | Pre-!6 shell + lib.rs conflicts; rebase. |
+| `muse2/atomic-writes` | — | needs-CLI | Atomic writes for Write/Edit tools belong in zen-tools; listed in docs/upstream-proposals.md. |
+| `muse2/cli-v010` | — | superseded | Replaced by the newer rev bump on `muse2/cli-250e8d4`. |
+| `muse2/cloudflare-tunnel` | — | rejected | Decision: "ZenCode Cloud" public mode is outside Desktop scope; exposing an agent that runs shell tools needs its own auth/threat model, and Cloudflare sees plaintext at its edge. Revisit as a separate Cloud project. |
+| `muse2/config-import` | — | merged | Batch 4. Only `lib.rs` module-list conflict. |
+| `muse2/cost-leaderboard` | — | pending | Built on zero-cost-benchmark; rebase after that is split. |
+| `muse2/design-to-code` | — | rejected | Decision: not wired: depends on the `LlmClient` from model-providers (rejected) and `slash.rs` (not on main). Resubmit small: deterministic codegen + vision via a `:free` model routed by `smart_router` (Vision). |
+| `muse2/engine-benchmarks` | #37 | pending | Benchmarks `prompt_budget` (needs-CLI). Resubmit benches for Desktop modules only (+ criterion dev-dep). |
+| `muse2/g4-prompt-budget` | #6 | needs-CLI | Prompt budgeting is agent-core; the bundled spec-kit scaffold is rejected (see speckit-init). |
+| `muse2/model-providers` | — | rejected | Decision: 4,700 lines; vendors a second `cost_firewall.rs`; adds Anthropic/paid providers and subscription OAuth sign-in with ban-risk warnings. Conflicts with the 0-cost policy. A future small MR may add a local (Ollama) provider or opt-in BYOK using the existing firewall and `smart_router::CostMode`; free-only stays the default. |
+| `muse2/notifications` | — | pending | One commit re-vendoring the pre-!6 shell (~7,000 lines). Port only `notifications.rs`/`notifications.js` onto the current shell; Tauri crate cannot be built in the review sandbox, so the MR must show a Tauri build. |
+| `muse2/ocr-fixes` | — | merged | Batch 4. Rebased by hand: M1 deny-by-default (`dangerous_allow_all` opt-in; a declared R3 scope still uses ScopeGuard; zencode bin, g2 smoke, Tauri app and tests opt in explicitly), M2 input validation moved before the cost firewall, M3 `to_ndjson` returns Result. |
+| `muse2/rategate-ui-wireup` | — | pending | Same as notifications: port only `rategate.js` onto the current shell. RateGate policy itself is needs-CLI (g3). |
+| `muse2/security-sweep` | — | pending | 32 commits / 62 files mixing web app, companion, docs and engine. Split into single-purpose MRs. |
+| `muse2/skills-index` | — | needs-CLI | Depends on agent-skills (needs-CLI). |
+| `muse2/sovereign-mode` | — | merged | Batch 4. Cherry-picked only the R5 commit (b0b8bbe); its base commit b3a49a6 (benchmark harness bundling CLI modules) not taken. Adds `sha2`. |
+| `muse2/speckit-init` | — | rejected | Decision: ~5,200 lines of third-party spec-kit scaffold (`.specify/`, `.agent/`). Keep out of tree; contributors can run `specify init` locally. |
+| `muse2/terminal-tab` | — | pending | Same as notifications: port only `terminal.js`/`terminal.css` and the `main.rs` command onto the current shell. |
+| `muse2/zero-cost-benchmark` | — | pending | Bundles needs-CLI modules (`repo_map`, `verify`, `prompt_budget`, `atomic_write`). Split: resubmit the cost harness only, against Desktop modules. |
+| `muse2/zero-telemetry` | — | superseded | Replaced by `muse2/zero-telemetry-r14` (merged). |
+| `muse2/signed-releases-r15` | — | merged | R15 signed releases; merged earlier today with a review fix (0ec7db2). |
+| `muse2/smart-router-r10` | — | merged | Batch 4. Pure free-only model router (no network I/O); FreeOnly default, BYOK opt-in only for ids the user configures. |
+| `muse2/onboarding-r8` | — | merged | Batch 4. R8 onboarding UI; `node --test` 19/19 pass. |
+| `muse2/zero-telemetry-r14` | — | merged | Batch 4. R14 zero-telemetry guard + network log; `lib.rs`/`index.html` conflicts resolved (union). |
+| `muse2/release-gate-v040` | — | merged | Batch 4. Release gate report (docs). |
+| `muse2/zencode-run` | — | merged | Already an ancestor of main. |
+| `muse2-sessionend` | — | merged | Already an ancestor of main (MR source branch). |
+| `muse2/cli-04b742e` | — | superseded | main already pins 04b742e; newer bump is cli-250e8d4. |
+| `muse2/gitlab-dep-src` | — | superseded | Same fix landed as `build: fetch zencode from GitLab mirror` (3aa1f70). |
+| `muse2-session-store` | — | superseded | `session_store.rs` already on main via MR !6. |
+| `muse2-verify-loop` | — | needs-CLI | Same as `muse2/verify-loop`. |
+| `muse2/cli-250e8d4` | — | pending | Rev bump to 250e8d4 (security fixes) is wanted, but it is stacked on the benchmark commit b3a49a6. Redo as one rev-bump commit (both Cargo.toml + locks + events.rs) and coordinate with the local `feat/stream-json-v2` pin. |
+| `muse2/streamjson-v1` | — | pending | Overlaps the Desktop stream-json v2 adaptation that waits for CLI f703d24 on GitLab; reconcile the two parsers then merge one. |
 
 ## Notes for Muse 2
 
 **Next work, in order**
-1. Rebase `ocr-fixes` onto `main` (fixes OCR Major findings M1–M3).
-2. Rebase the desktop branches (`notifications`, `terminal-tab`, `rategate-ui-wireup`, `zero-telemetry`)
-   onto the Tauri shell that is now on `main` (from MR !6). Do not re-vendor shell files.
-3. Rebase `zero-cost-benchmark` → `cost-leaderboard`, `engine-benchmarks`, `config-import`, `sovereign-mode`.
-   Every one of them only conflicts in `engine/src/lib.rs` (+ `Cargo.lock`).
-4. Split `security-sweep` and `g4-prompt-budget` into small, single-purpose MRs.
-5. `cli-v010`: redo as one deliberate CLI rev bump on the GitLab source.
-6. Needs a decision from Zen first: `model-providers` (paid providers vs zero-cost firewall),
-   `cloudflare-tunnel` (public exposure), `speckit-init` (third-party scaffold), `design-to-code`.
-7. Refresh the status column in `docs/README.md` (many docs listed as "PR #N" are now on `main`).
-   `docs/engine-api.md` still names the GitHub URL for the CLI dependency.
+1. `cli-250e8d4`: one clean rev-bump commit to 250e8d4 (no benchmark commit underneath).
+2. Port `notifications`, `terminal-tab`, `rategate-ui-wireup` onto the current shell: new files + small
+   `main.rs`/`index.html` hunks only, never re-vendor shell files or icons. Show a Tauri build in the MR.
+3. Split `zero-cost-benchmark` (cost harness only, no CLI modules) → then `cost-leaderboard`, `engine-benchmarks`.
+4. Split `security-sweep` into small MRs.
+5. Move the Tauri app from `dangerous_allow_all` to the R3 scope/approval flow.
+6. Refresh the status column in `docs/README.md`; `docs/engine-api.md` still names the GitHub URL for the CLI dependency.
 
 **Rules**
 - At most 5 new MRs and 5 issues per day, at most 20 pushes per day, per account (Muse 2 and Hark share

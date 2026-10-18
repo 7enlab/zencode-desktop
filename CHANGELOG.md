@@ -3,6 +3,19 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 
+### Added (2026-10-18, Muse 2 review batch 4; review: docs/reviews/2026-10-18-muse2-branches.md)
+- engine: `smart_router` (R10) — pure free-only model router with fallback chain and health tracking; BYOK only as explicit opt-in.
+- engine: `telemetry` (R14) — zero-telemetry guard and auditable network log (`RunOptions.telemetry_log`); desktop Network tab (`desktop/src/network.js`).
+- engine: `sovereign` (R5) — loopback-only inference policy, preflight and hash-chained attestation log; `desktop/src/sovereign.js`; adds `sha2`.
+- engine: `config_import` — one-click import of competitor agent configs.
+- desktop: R8 60-second onboarding (`desktop/src/onboarding.js`, 19 node tests).
+- docs: `RELEASE-GATE-v0.4.0.md`; CLI hand-off list of parked agent-core branches in `docs/upstream-proposals.md`.
+
+### Changed (2026-10-18, OCR review M1–M3 via `muse2/ocr-fixes`)
+- engine: **tool calls are denied by default**; set `RunOptions::dangerous_allow_all` (or declare an R3 scope) to run tools. The `zencode` binary, the g2 smoke example and the Tauri app opt in explicitly.
+- engine: `base_url` / `model` are validated (non-empty, http(s) scheme) before the cost firewall runs.
+- engine: `RecordingSink::to_ndjson` returns `anyhow::Result<String>` instead of panicking.
+
 ### Added (2026-10-18, R15 signed releases — Muse 2 `muse2/signed-releases-r15`; review: docs/reviews/2026-10-18-r15-signed-releases.md)
 - release: minisign-signed releases — `tools/sign-release.sh`, `tools/verify-release.sh`, `docs/signed-releases.md`, engine `release_signing` (offline verification via `minisign-verify`, trusted-comment binding, updater key validation); release public key `docs/keys/zencode-release.pub` (key id `A459EE7B787B86FF`) wired into the Tauri updater; GitLab release endpoint added.
 

@@ -11,6 +11,7 @@ pub mod events;
 pub mod ipc_bridge;
 pub mod scope;
 pub mod session_store;
+pub mod smart_router;
 pub mod timeline;
 
 use std::path::PathBuf;

@@ -19,11 +19,11 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
 
 ## Companion / Telegram / cloud
 
-- [ ] **B2** 🟠 Companion defaults to LAN bind, but PR #89's
-  `assert_control_plane_bind()` wants loopback-only. LAN mode currently logs a
-  loud warning and proceeds (sweep fix). **Decision needed:** is LAN-without-TLS
-  an accepted product posture, or must LAN mode require the device-credential
-  + TLS?
+- [ ] **B2** 🟠 Companion defaults to LAN bind, but the
+  `assert_control_plane_bind()` helper (from the rejected tunnel work) wants
+  loopback-only. LAN mode currently logs a loud warning and proceeds (sweep
+  fix). **Decision needed:** is LAN-without-TLS an accepted product posture,
+  or must LAN mode require the device-credential + TLS?
 - [ ] **B3** 🟠 Cloud deploy docs show `0.0.0.0` with no TLS and no bind
   assertion. Sweep fix: `serve()` now requires `ZENCODE_CLOUD_PUBLIC=1` to bind
   non-loopback. **Decision needed:** bless a TLS story (reverse-proxy guide?
@@ -100,9 +100,16 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
 
 ---
 
-## What the sweep fixed (for the PR body)
+## What the sweep fixed (record — fixes land with their feature branches)
+
+The R7 sweep branch fixed the items below, each with a regression test, but the
+fixes target files that only exist on unmerged feature branches
+(`share.rs`, `sandbox_v4.rs`, `skills.rs`, …). They are recorded here and will
+land together with their respective feature branches — **this MR contains only
+this checklist document**, no code changes.
 
 A1, A2, A3, A4, A6, A7, A8, A9 · B1, B4, B5, B7, B8, B9, B10, B11, B12, B13, B14 ·
 C1, C2, C4, C5, C7, C8, C9, C10, C11, C12 · D1, D2, D3, D4, D5, D7, D10, D11, D13,
-D15, D16, D18, D20, D21, D26, D27, D28, D30 — each with a regression test.
-Supply-chain audit (OSV, 2026-10-17): no advisories on any engine dependency.
+D15, D16, D18, D20, D21, D26, D27, D28, D30.
+Supply-chain audit (OSV, 2026-10-17): no advisories on any engine dependency
+(as of that date; re-run before release).

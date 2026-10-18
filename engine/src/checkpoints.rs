@@ -63,6 +63,9 @@ impl CheckpointManager {
         )
         .context("git config user.email")?;
         git(&repo, &["config", "commit.gpgsign", "false"]).context("git config commit.gpgsign")?;
+        // Store and restore bytes verbatim: a global `core.autocrlf=true` (common on
+        // Windows) would otherwise turn CRLF files into LF on restore.
+        git(&repo, &["config", "core.autocrlf", "false"]).context("git config core.autocrlf")?;
         Ok(Self { workdir, repo })
     }
 

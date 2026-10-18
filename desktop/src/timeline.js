@@ -276,6 +276,7 @@ function showTimelineTab() {
   document.getElementById("messages").classList.add("hidden");
   document.getElementById("composer").classList.add("hidden");
   document.getElementById("timeline-panel").classList.remove("hidden");
+  if (typeof hideNetworkTab === "function") hideNetworkTab();
   document.getElementById("tab-chat").classList.remove("active");
   document.getElementById("tab-timeline").classList.add("active");
   if (TL.sessionId) loadTimeline(TL.sessionId);
@@ -283,6 +284,7 @@ function showTimelineTab() {
 
 function showChatTab() {
   document.getElementById("timeline-panel").classList.add("hidden");
+  if (typeof hideNetworkTab === "function") hideNetworkTab();
   document.getElementById("messages").classList.remove("hidden");
   document.getElementById("composer").classList.remove("hidden");
   document.getElementById("tab-timeline").classList.remove("active");

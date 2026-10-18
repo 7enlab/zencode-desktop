@@ -18,6 +18,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use zencode_engine::events::RecordingSink;
+use zencode_engine::scope::ScopeDecl;
 use zencode_engine::{run_task_recorded, RunOptions};
 
 const DEFAULT_BASE_URL: &str = "https://ai-gateway.kilo.ai/api/v1";
@@ -41,8 +42,14 @@ fn base_opts(model: &str, cwd: PathBuf, max_turns: usize) -> RunOptions {
     opts.api_key = std::env::var("ZENCODE_API_KEY").ok();
     opts.max_turns = max_turns;
     // The user starts `zencode run` in a folder they chose (and `eval` uses
-    // tempdirs), so tools are explicitly pre-approved here (OCR M1 opt-in).
-    opts.dangerous_allow_all = true;
+    // tempdirs): declare the working directory as the scope (R3 ask-first).
+    // Every mutating tool call is checked against it. Replaces
+    // dangerous_allow_all (OCR M1 default-deny).
+    opts.scope = Some(ScopeDecl {
+        files: vec![],
+        dirs: vec![opts.cwd.clone()],
+        description: "current working directory".to_owned(),
+    });
     opts
 }
 

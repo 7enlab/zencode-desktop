@@ -69,6 +69,7 @@ impl IpcEnvelope {
             DesktopEvent::PermissionDenied { .. } => "permission_denied",
             DesktopEvent::SystemMessage { .. } => "system_message",
             DesktopEvent::SessionEnd { .. } => "session_end",
+            DesktopEvent::Unknown { .. } => "unknown",
         }
         .to_owned()
     }

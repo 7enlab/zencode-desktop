@@ -84,3 +84,5 @@ Full verdict table: `docs/reviews/2026-10-18-muse2-branches.md`.
 | `muse2/smart-router` | In-loop model routing (Desktop keeps the pure `smart_router.rs` from R10 for model choice). |
 | `muse2/user-learning` | Learning user preferences across sessions. |
 | `muse2/verify-loop`, `muse2-verify-loop` | Verify loop `--until` (re-run tests until green). |
+
+- **CLI: declare a license** (Hark 2, 2026-10-18): `zen-core`, `zen-agent`, `zen-tools` have no `license` field and the repo has no LICENSE file, so `cargo deny check licenses` flags them as unlicensed. Desktop marks them `LicenseRef-ZenCode-FirstParty` in `deny.toml` until the CLI adds `license = "..."` to its workspace `Cargo.toml`.

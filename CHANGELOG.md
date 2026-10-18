@@ -3,6 +3,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 
+### Changed (2026-10-18, Muse 2 review batch 5; review: docs/reviews/2026-10-18-muse2-branches.md)
+- build: ZenCode CLI crates bumped from rev `04b742e` to `250e8d4` (CLI security fixes) in `engine/` and `desktop/src-tauri/`.
+- engine/desktop: the Tauri app and the `zencode` binary declare the working directory as the R3 scope instead of setting `dangerous_allow_all`; `zencode` canonicalizes `--cwd` so relative paths stay in scope.
+- engine: `ipc_bridge::BridgeSink::to_ndjson` returns `anyhow::Result<String>` instead of panicking.
+- docs: release gate renumbered to `RELEASE-GATE-v0.3.0.md` (v0.3.0 "Foundation + Trust"; the v0.4.0 file is removed); README rewritten for the Desktop app; `docs/engine-api.md` updated for GitLab and the R3 scope; `PLAN.md` marked superseded by the final roadmap.
+
 ### Added (2026-10-18, Muse 2 review batch 4; review: docs/reviews/2026-10-18-muse2-branches.md)
 - engine: `smart_router` (R10) — pure free-only model router with fallback chain and health tracking; BYOK only as explicit opt-in.
 - engine: `telemetry` (R14) — zero-telemetry guard and auditable network log (`RunOptions.telemetry_log`); desktop Network tab (`desktop/src/network.js`).

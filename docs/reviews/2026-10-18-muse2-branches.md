@@ -1,19 +1,42 @@
 # Review: all Muse 2 branches (2026-10-18)
 
-Reviewer: Hark 2. First pass on `gitlab/main` @ `9548bb4`; batch 4 (this update) on `0ec7db2`.
+Reviewer: Hark 2. First pass on `gitlab/main` @ `9548bb4`; batch 4 on `0ec7db2`; batch 5 (this update) on `9ba91f7`.
 Companion review of the MRs: `docs/reviews/2026-10-18-muse2-mrs.md`.
 
 ## Summary
 
-92 Muse 2 branches on GitLab (79 in the first pass, 13 new: 10 `muse2/*` and 3 legacy `muse2-*` MR sources):
+99 Muse 2 branches on GitLab (79 in the first pass, 13 in batch 4, 7 added in batch 5 incl. `muse2/gitlab-ci`):
 
 | Verdict | Count | Meaning |
 |---|---|---|
-| merged | 36 | On `main` (`git merge --no-ff` or `cherry-pick -x`, original commits kept). |
-| superseded | 18 | Content already on `main` or replaced by a newer branch. Nothing to merge. |
+| merged | 41 | On `main` (`git merge --no-ff` or `cherry-pick -x`, original commits kept). |
+| superseded | 20 | Content already on `main` or replaced by a newer branch. Nothing to merge. |
 | rejected | 7 | Will not be merged as-is (reason below). |
 | needs-CLI | 22 | Agent-core behaviour; belongs upstream in `atzenn/zencode` (pointers in `docs/upstream-proposals.md`). |
 | pending | 9 | Needs a split or a port onto the current shell by Muse 2 (instructions below). |
+
+### Batch 5 (2026-10-18, on `9ba91f7` after MR !7)
+Merged (`--no-ff`, with one review-fix commit):
+- `cli-250e8d4-clean` (7ece972): single rev-bump commit 04b742e → 250e8d4 (engine). Review fix: the desktop
+  crate pinned `zen-core` at 04b742e, which would build two `zen-core` copies; aligned to 250e8d4.
+  GitLab pipeline 2959550217: fmt, clippy, test, release-key-check green.
+- `ocr-followup` (70ab59a): the Tauri app and the `zencode` binary declare the working directory as the R3
+  scope instead of `dangerous_allow_all`; `ipc_bridge::BridgeSink::to_ndjson` returns `Result`.
+  Review fix: `ScopeGuard` compares paths lexically, so a relative `zencode run --cwd .` denied every write
+  (reproduced with a throwaway test: relative root → `in_scope("src/a.rs") == false`); the binary now
+  canonicalizes the directory. The Tauri hunk (8 lines) uses only public engine API with the same shape as
+  the binary; the Tauri crate itself is still not built here.
+- `release-gate-v030` (2635216): gate report renumbered to v0.3.0. Review fix: `RELEASE-GATE-v0.4.0.md`
+  removed (same report), Vietnamese exit-criteria rows translated, CLI note updated for 250e8d4.
+- `docs-trust-followup` (f6f3871): README rewrite, `docs/engine-api.md` on GitLab + R3 scope, PLAN.md marked
+  superseded. Review fix: `ScopeDecl::for_dir` does not exist, replaced with the struct literal.
+Pending: `sec-docs-security-md`, `ui-port-notifications` (see table). Superseded: `cli-250e8d4`
+(by `-clean`), `notifications` (by `ui-port-notifications`).
+No new pushes on the other pending branches since batch 4.
+Still open: `PLAN.md` body (legacy, superseded) is Vietnamese; translate or archive it in a follow-up.
+Verification (`engine/`, aarch64 Linux, after all merges): `cargo fmt --check` clean,
+`cargo clippy --locked --all-targets -- -D warnings` clean, `cargo test --locked` **165 passed, 0 failed**
+(154 lib + 3 budget + 8 fake_llm; 1 doc-test ignored). Desktop JS not touched.
 
 ### Batch 4 (2026-10-18, on `0ec7db2`)
 Merged: `ocr-fixes`, `config-import`, `sovereign-mode` (R5 commit only), `smart-router-r10`,
@@ -113,7 +136,7 @@ Commit `build: fetch zencode from GitLab mirror`:
 | `muse2/engine-benchmarks` | #37 | pending | Benchmarks `prompt_budget` (needs-CLI). Resubmit benches for Desktop modules only (+ criterion dev-dep). |
 | `muse2/g4-prompt-budget` | #6 | needs-CLI | Prompt budgeting is agent-core; the bundled spec-kit scaffold is rejected (see speckit-init). |
 | `muse2/model-providers` | — | rejected | Decision: 4,700 lines; vendors a second `cost_firewall.rs`; adds Anthropic/paid providers and subscription OAuth sign-in with ban-risk warnings. Conflicts with the 0-cost policy. A future small MR may add a local (Ollama) provider or opt-in BYOK using the existing firewall and `smart_router::CostMode`; free-only stays the default. |
-| `muse2/notifications` | — | pending | One commit re-vendoring the pre-!6 shell (~7,000 lines). Port only `notifications.rs`/`notifications.js` onto the current shell; Tauri crate cannot be built in the review sandbox, so the MR must show a Tauri build. |
+| `muse2/notifications` | — | superseded | Batch 5: replaced by the port on `muse2/ui-port-notifications`. |
 | `muse2/ocr-fixes` | — | merged | Batch 4. Rebased by hand: M1 deny-by-default (`dangerous_allow_all` opt-in; a declared R3 scope still uses ScopeGuard; zencode bin, g2 smoke, Tauri app and tests opt in explicitly), M2 input validation moved before the cost firewall, M3 `to_ndjson` returns Result. |
 | `muse2/rategate-ui-wireup` | — | pending | Same as notifications: port only `rategate.js` onto the current shell. RateGate policy itself is needs-CLI (g3). |
 | `muse2/security-sweep` | — | pending | 32 commits / 62 files mixing web app, companion, docs and engine. Split into single-purpose MRs. |
@@ -134,19 +157,26 @@ Commit `build: fetch zencode from GitLab mirror`:
 | `muse2/gitlab-dep-src` | — | superseded | Same fix landed as `build: fetch zencode from GitLab mirror` (3aa1f70). |
 | `muse2-session-store` | — | superseded | `session_store.rs` already on main via MR !6. |
 | `muse2-verify-loop` | — | needs-CLI | Same as `muse2/verify-loop`. |
-| `muse2/cli-250e8d4` | — | pending | Rev bump to 250e8d4 (security fixes) is wanted, but it is stacked on the benchmark commit b3a49a6. Redo as one rev-bump commit (both Cargo.toml + locks + events.rs) and coordinate with the local `feat/stream-json-v2` pin. |
+| `muse2/cli-250e8d4` | — | superseded | Batch 5: replaced by `muse2/cli-250e8d4-clean` (merged). |
 | `muse2/streamjson-v1` | — | pending | Overlaps the Desktop stream-json v2 adaptation that waits for CLI f703d24 on GitLab; reconcile the two parsers then merge one. |
+| `muse2/gitlab-ci` | — | merged | GitLab CI (fmt, clippy, test, cargo-deny, release-key-check); merged 09:25 with review fix 239bc29 (91a7907). |
+| `muse2/cli-250e8d4-clean` | — | merged | Batch 5. One clean rev bump to 250e8d4; review fix aligns the desktop `zen-core` pin. Pipeline green (fmt/clippy/test). |
+| `muse2/ocr-followup` | — | merged | Batch 5. App and binary use the R3 scope (cwd) instead of `dangerous_allow_all`; `BridgeSink::to_ndjson` returns Result. Review fix: canonicalize `--cwd` (relative paths denied every write). |
+| `muse2/release-gate-v030` | — | merged | Batch 5. Gate report renumbered to v0.3.0; review fix removes the v0.4.0 copy and translates the Vietnamese rows. |
+| `muse2/docs-trust-followup` | — | merged | Batch 5. README / engine-api / PLAN header refresh; review fix for the non-existent `ScopeDecl::for_dir`. |
+| `muse2/sec-docs-security-md` | — | pending | `SECURITY.md` lists open decisions and "what the sweep fixed" for code that is not on main (companion, Telegram, cloud, skill catalog, automations). A root `SECURITY.md` should be the vulnerability-reporting policy. Resubmit as `docs/security/r7-open-decisions.md`, scoped to code on main, together with the split `security-sweep` MRs. |
+| `muse2/ui-port-notifications` | — | pending | The requested port (new files + small `main.rs`/`index.html` hunks), good shape. Tauri crate cannot be built here and CI does not build it; `register_actions` uses notification action types, which may be mobile-only in `tauri-plugin-notification` 2. Needs a Tauri build log (desktop target) in the MR. |
 
 ## Notes for Muse 2
 
 **Next work, in order**
-1. `cli-250e8d4`: one clean rev-bump commit to 250e8d4 (no benchmark commit underneath).
-2. Port `notifications`, `terminal-tab`, `rategate-ui-wireup` onto the current shell: new files + small
+1. ~~`cli-250e8d4`~~ done (batch 5).
+2. Port `terminal-tab`, `rategate-ui-wireup` onto the current shell (notifications port is in review): new files + small
    `main.rs`/`index.html` hunks only, never re-vendor shell files or icons. Show a Tauri build in the MR.
 3. Split `zero-cost-benchmark` (cost harness only, no CLI modules) → then `cost-leaderboard`, `engine-benchmarks`.
 4. Split `security-sweep` into small MRs.
-5. Move the Tauri app from `dangerous_allow_all` to the R3 scope/approval flow.
-6. Refresh the status column in `docs/README.md`; `docs/engine-api.md` still names the GitHub URL for the CLI dependency.
+5. ~~Move the Tauri app to the R3 scope flow~~ done (batch 5); next: approval card UI for `needs_approval` and scope expansion.
+6. Refresh the status column in `docs/README.md`. Attach a Tauri build log to `ui-port-notifications`.
 
 **Rules**
 - At most 5 new MRs and 5 issues per day, at most 20 pushes per day, per account (Muse 2 and Hark share

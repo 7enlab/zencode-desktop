@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ZenCode Desktop</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="terminal.css" />
+    <!-- xterm.js v6.0.0 (@xterm/xterm) — see terminal.js header -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/lib/xterm.js"></script>
   </head>
   <body>
     <div id="app">
@@ -25,10 +29,19 @@
           <button id="tab-chat" class="tab active">Chat</button>
           <button id="tab-timeline" class="tab">⏪ Timeline</button>
           <button id="tab-network" class="tab">🛡 Network</button>
+          <button id="tab-terminal" class="tab">⌨ Terminal</button>
         </div>
         <div id="messages"></div>
         <div id="timeline-panel" class="hidden"></div>
         <div id="network-panel" class="hidden"></div>
+        <div id="terminal-view" class="hidden">
+          <div id="term-tabbar">
+            <div id="term-tabs"></div>
+            <button id="term-new-tab" title="New terminal tab">＋</button>
+          </div>
+          <div id="term-panes"></div>
+          <div class="term-note">User-driven only — the agent cannot type here. Demo shell until portable-pty is wired.</div>
+        </div>
         <div id="composer">
           <textarea id="input" rows="2" placeholder="Ask ZenCode anything…  (Enter to send)"></textarea>
           <button id="send">Send</button>
@@ -45,5 +58,6 @@
     <script src="onboarding.js"></script>
     <script src="network.js"></script>
     <script src="notifications.js"></script>
+    <script src="terminal.js"></script>
   </body>
 </html>

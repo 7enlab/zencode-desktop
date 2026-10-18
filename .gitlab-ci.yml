@@ -8,6 +8,8 @@
 # the minisign private key must NEVER enter CI.
 
 workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -23,6 +25,7 @@ variables:
 
 default:
   image: rust:1-bookworm
+  interruptible: true
   before_script:
     - rustup component add rustfmt clippy
     - rustc --version && cargo --version
@@ -51,8 +54,7 @@ test:
 cargo-deny:
   stage: security
   before_script:
-    - rustup component add rustfmt clippy
-    - cargo install cargo-deny
+    - cargo install --locked cargo-deny
     - cargo deny --version
   script:
     # deny.toml is picked up from the current directory (repo root).

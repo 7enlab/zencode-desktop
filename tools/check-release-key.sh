@@ -33,9 +33,9 @@ case "$actual" in
     echo "FAIL: updater pubkey is still a placeholder"; exit 1 ;;
 esac
 case "$actual" in
-  RWT*|untrusted\ comment:*)
-    # Real minisign public key: either the bare RWT... line or the
-    # two-line file format ("untrusted comment: ..." + "RWT...").
+  RW*|untrusted\ comment:*)
+    # Real minisign public key: either the bare RW... line or the
+    # two-line file format ("untrusted comment: ..." + "RW...").
     ;;
   *) echo "FAIL: updater pubkey is not a minisign public key"; exit 1 ;;
 esac

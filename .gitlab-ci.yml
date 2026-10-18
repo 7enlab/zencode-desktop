@@ -55,6 +55,28 @@ test:
   script:
     - cd engine && cargo test --locked
 
+# Compile-check the Tauri desktop crate. Runs only when desktop files change,
+# since it needs GTK/WebKit system packages (not in the default image).
+desktop-check:
+  stage: test
+  image: rust:latest
+  before_script:
+    - rustc --version && cargo --version
+    - apt-get update -y && apt-get install -y --no-install-recommends
+        pkg-config build-essential curl wget file
+        libwebkit2gtk-4.1-dev libxdo-dev libssl-dev
+        libayatana-appindicator3-dev librsvg2-dev
+  cache:
+    key: cargo-desktop-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cargo/
+      - desktop/src-tauri/target/
+  script:
+    - cd desktop/src-tauri && cargo check --locked
+  rules:
+    - changes:
+        - desktop/**/*
+
 cargo-deny:
   stage: security
   before_script:

@@ -24,6 +24,7 @@ async fn main() -> anyhow::Result<()> {
     let mut opts = RunOptions::new(BASE_URL, MODEL, &dir);
     opts.api_key = None; // anonymous free tier
     opts.max_turns = 8;
+    opts.dangerous_allow_all = true; // sandboxed tempdir
 
     let sink = Arc::new(RecordingSink::new());
     let task = "Create a file named hello.txt in the working directory containing exactly this text on one line: hello zencode";

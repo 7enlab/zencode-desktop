@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use serde_json::{json, Value};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
-use zencode_engine::{run_task, RunOptions};
+use zencode_engine::{events::RecordingSink, run_task, RunOptions};
 
 /// Serves `replies` in order as chat completions; records request bodies.
 /// Redacts the nondeterministic `"duration_ms"` value in the event stream so the
@@ -125,7 +125,8 @@ async fn agent_reads_then_edits_file_through_real_tools() {
         text_reply("Done: replaced world with zen."),
     ])
     .await;
-    let opts = RunOptions::new(url, "fake/model:free", &dir);
+    let mut opts = RunOptions::new(url, "fake/model:free", &dir);
+    opts.dangerous_allow_all = true;
     let res = run_task(&opts, "change world to zen in hello.txt")
         .await
         .unwrap();
@@ -163,9 +164,9 @@ async fn bash_tool_runs_in_cwd() {
         text_reply("ok"),
     ])
     .await;
-    let res = run_task(&RunOptions::new(url, "m:free", &dir), "make out.txt")
-        .await
-        .unwrap();
+    let mut bash_opts = RunOptions::new(url, "m:free", &dir);
+    bash_opts.dangerous_allow_all = true;
+    let res = run_task(&bash_opts, "make out.txt").await.unwrap();
     assert!(!res.is_error, "{}", res.result);
     assert!(std::fs::read_to_string(dir.join("out.txt"))
         .unwrap()
@@ -179,6 +180,58 @@ async fn empty_task_and_bad_cwd_are_rejected() {
     assert!(run_task(&opts, "   ").await.is_err());
     let bad = RunOptions::new("http://127.0.0.1:1/v1", "m", "/definitely/not/here");
     assert!(run_task(&bad, "x").await.is_err());
+}
+
+#[tokio::test]
+async fn empty_base_url_and_model_are_rejected() {
+    let dir = std::env::temp_dir();
+    let no_url = RunOptions::new("", "m", &dir);
+    let err = run_task(&no_url, "x").await.unwrap_err();
+    assert!(err.to_string().contains("base_url is empty"), "{err}");
+
+    let bad_scheme = RunOptions::new("ftp://example.com/v1", "m", &dir);
+    let err = run_task(&bad_scheme, "x").await.unwrap_err();
+    assert!(
+        err.to_string().contains("base_url must start with"),
+        "{err}"
+    );
+
+    let no_model = RunOptions::new("http://127.0.0.1:1/v1", "  ", &dir);
+    let err = run_task(&no_model, "x").await.unwrap_err();
+    assert!(err.to_string().contains("model is empty"), "{err}");
+}
+
+#[tokio::test]
+async fn tools_denied_without_explicit_opt_in() {
+    // Default RunOptions must deny tool calls; the fake model asks for a Read.
+    let dir = tmpdir("deny");
+    let (url, _) = serve(vec![
+        tool_reply("c1", "Read", json!({"path": "a.txt"})),
+        text_reply("done"),
+    ])
+    .await;
+    let sink = std::sync::Arc::new(RecordingSink::new());
+    let opts = RunOptions::new(url, "m:free", &dir);
+    assert!(!opts.dangerous_allow_all);
+    let _ = zencode_engine::run_task_with_sink(&opts, "read a.txt", sink.clone())
+        .await
+        .unwrap();
+    // The denial is emitted as a PermissionDenied event naming the opt-in flag.
+    let denied: Vec<_> = sink
+        .events()
+        .into_iter()
+        .filter_map(|e| match e.event {
+            zencode_engine::events::DesktopEvent::PermissionDenied {
+                tool_name,
+                tool_use_id,
+            } => Some((tool_name, tool_use_id)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(denied.len(), 1, "exactly one denial, got {denied:?}");
+    assert_eq!(denied[0].0, "Read");
+    assert_eq!(denied[0].1, "c1");
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[tokio::test]
@@ -208,12 +261,13 @@ async fn event_stream_contract_v1() {
     .await;
     let _ = fp;
     let sink = std::sync::Arc::new(RecordingSink::new());
-    let opts = RunOptions::new(url, "fake/model:free", &dir);
+    let mut opts = RunOptions::new(url, "fake/model:free", &dir);
+    opts.dangerous_allow_all = true;
     let res = zencode_engine::run_task_recorded(&opts, "read a.txt", sink.clone())
         .await
         .unwrap();
     assert!(!res.is_error, "{}", res.result);
-    let nd = sink.to_ndjson();
+    let nd = sink.to_ndjson().unwrap();
     let evs = parse_ndjson(&nd).unwrap();
     assert!(evs.iter().all(|e| e.v == SCHEMA_VERSION));
     assert!(evs.iter().enumerate().all(|(i, e)| e.seq == i as u64));

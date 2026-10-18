@@ -54,6 +54,12 @@ pub enum DesktopEvent {
         event: String,
         text: String,
     },
+    /// A future `AgentEvent` variant this engine does not know yet. `AgentEvent` is
+    /// `#[non_exhaustive]`, so new variants must never silently change what the UI sees:
+    /// they surface here with their variant name instead of being dropped.
+    Unknown {
+        variant: String,
+    },
     /// End of a session, with cost accounting. Mirrors Claude Code's `result`
     /// stream-json line; feeds the RateGate quota UI (D8).
     ///
@@ -145,6 +151,14 @@ impl From<AgentEvent> for DesktopEvent {
             AgentEvent::SystemMessage { event, text } => {
                 DesktopEvent::SystemMessage { event, text }
             }
+            // `AgentEvent` is #[non_exhaustive]: a future variant must surface, never vanish.
+            unhandled => DesktopEvent::Unknown {
+                variant: format!("{:?}", unhandled)
+                    .split([' ', '('])
+                    .next()
+                    .unwrap_or("Unknown")
+                    .to_string(),
+            },
         }
     }
 }

@@ -25,6 +25,7 @@ use zencode_engine::{
     checkpoints::CheckpointManager,
     events::parse_ndjson,
     ipc_bridge::{BridgeSink, IpcEnvelope},
+    scope::ScopeDecl,
     session_store::{SessionMeta, SessionStore},
     timeline::{self, RestoreOutcome, TimelineCheckpoint, TimelineResponse},
     RunOptions,
@@ -103,9 +104,15 @@ async fn run_task(
         channel: on_event,
     });
     let mut opts = RunOptions::new(base_url, model.clone(), cwd_path.clone());
-    // The user picked this folder and started the run, so tools are explicitly
-    // pre-approved (OCR M1 opt-in). TODO: replace with the R3 scope/approval flow.
-    opts.dangerous_allow_all = true;
+    // The user picked this folder and started the run: declare the working
+    // directory as the scope (R3 ask-first). Every mutating tool call is
+    // checked against it; anything outside is blocked. Replaces
+    // dangerous_allow_all (OCR M1 default-deny).
+    opts.scope = Some(ScopeDecl {
+        files: vec![],
+        dirs: vec![cwd_path.clone()],
+        description: "user-selected working directory".to_owned(),
+    });
     let sid = session_id.clone();
 
     // Run in the background; the UI streams envelopes over `on_event`.

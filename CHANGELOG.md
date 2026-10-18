@@ -3,6 +3,17 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 
+### Added (Muse 2 MRs !1–!6, merged 2026-10-18; review: docs/reviews/2026-10-18-muse2-mrs.md)
+- engine: `cost_firewall` (R1) — rejects non-`:free`, non-allowlisted models before any network call; `SpendMeter`.
+- engine: `claims` (R4) — Verified Claims registry, `ClaimingSink`, `run_task_with_claims`; `DesktopEvent::SessionEnd` with claim counts.
+- engine: `convergence` (R6) — loop detection and forced re-plan guard (not yet wired into runs).
+- engine: `budget` (R12) — opt-in per-task hard budget (`RunOptions.budget`); adds `async-trait`.
+- engine: `scope` (R3) — opt-in declared-scope guard (`RunOptions.scope`) + `desktop/src/scope.js` approval card.
+- desktop: R2 time-travel timeline — `checkpoints`, `session_store`, `ipc_bridge`, `timeline` modules and the Tauri 2 shell (`desktop/src-tauri`, `desktop/src`).
+
+### Fixed
+- engine: budget checker now wraps the scope guard instead of being shadowed by it; `SessionEnd` handled in IPC; CI-safe `Instant` in a budget test; checkpoint shadow repo keeps CRLF bytes (`core.autocrlf=false`).
+
 ### Added
 - engine: `events` — versioned (v1) UI event schema, `RecordingSink`, `run_task_with_sink`, NDJSON parser rejecting unknown versions; insta contract snapshot.
 

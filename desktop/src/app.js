@@ -295,4 +295,21 @@ function mockRespond(text) {
   }
   renderSessions();
   if (state.sessions.length) selectSession(state.sessions[0].id);
+
+  /* R8 60-second onboarding: show once for first-time users. */
+  try {
+    if (typeof maybeStartOnboarding === "function" && typeof localStorage !== "undefined") {
+      maybeStartOnboarding({
+        document,
+        storage: localStorage,
+        onFinish: (result) => {
+          if (result.completed && result.modelId) {
+            setStatus("model", "model: " + result.modelId);
+          }
+        },
+      });
+    }
+  } catch (e) {
+    console.warn("onboarding failed to start:", e);
+  }
 })();

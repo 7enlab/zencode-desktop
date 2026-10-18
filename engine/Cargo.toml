@@ -6,9 +6,9 @@ license = "MIT"
 description = "ZenCode Desktop engine: thin wrapper over ZenCode CLI crates (zen-agent/zen-tools/zen-core)"
 
 [dependencies]
-zen-core = { git = "https://github.com/atzenn/zencode", rev = "04b742e" }
-zen-agent = { git = "https://github.com/atzenn/zencode", rev = "04b742e" }
-zen-tools = { git = "https://github.com/atzenn/zencode", rev = "04b742e" }
+zen-core = { git = "https://gitlab.com/atzenn/zencode.git", rev = "04b742e" }
+zen-agent = { git = "https://gitlab.com/atzenn/zencode.git", rev = "04b742e" }
+zen-tools = { git = "https://gitlab.com/atzenn/zencode.git", rev = "04b742e" }
 anyhow = "1"
 async-trait = "0.1"
 serde = { version = "1", features = ["derive"] }

@@ -6455,7 +6455,7 @@ dependencies = [
 [[package]]
 name = "zen-agent"
 version = "0.1.0"
-source = "git+https://github.com/atzenn/zencode?rev=3a09220#3a092200614b1ffc7749c624bae260952d074757"
+source = "git+https://gitlab.com/atzenn/zencode.git?rev=04b742e#04b742ef7ab1934619c2ecd680b90e37074112ee"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6472,7 +6472,7 @@ dependencies = [
 [[package]]
 name = "zen-core"
 version = "0.1.0"
-source = "git+https://github.com/atzenn/zencode?rev=3a09220#3a092200614b1ffc7749c624bae260952d074757"
+source = "git+https://gitlab.com/atzenn/zencode.git?rev=04b742e#04b742ef7ab1934619c2ecd680b90e37074112ee"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6483,7 +6483,7 @@ dependencies = [
 [[package]]
 name = "zen-tools"
 version = "0.1.0"
-source = "git+https://github.com/atzenn/zencode?rev=3a09220#3a092200614b1ffc7749c624bae260952d074757"
+source = "git+https://gitlab.com/atzenn/zencode.git?rev=04b742e#04b742ef7ab1934619c2ecd680b90e37074112ee"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6530,6 +6530,7 @@ name = "zencode_engine"
 version = "0.3.0-dev"
 dependencies = [
  "anyhow",
+ "async-trait",
  "serde",
  "serde_json",
  "tokio",

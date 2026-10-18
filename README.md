@@ -1,14 +1,54 @@
-# ZenCode Desktop — Rust pilot (cowsay@1.6.0 rebuild)
+# ZenCode Desktop
 
-Std-only Rust rebuild of npm `cowsay@1.6.0` (MIT), byte-for-byte compatible by default, for Linux, macOS and Windows.
+The AI coding agent that cannot bill you — structurally free-only. A Tauri 2 desktop app
+built on the [ZenCode CLI](https://gitlab.com/atzenn/zencode) agent core via git dependencies.
 
-- `audit/` behaviour audit of the original, `spec/` spec + golden cases (`NN.json` argv, `NN.out` exact stdout).
-- `rebuild/` crate `cowsay_bubble` (library `say(text, &Options)`) and binary `cowsay`.
-- Extensions (opt-in): `--word-wrap`, `-W auto`, `-r/--random`, `-l`, `-f`, modes `-bdgpstwy`, `-e`, `-T`, `--think`, `--cow-color <name>` + `--color=auto|always|never` (honours NO_COLOR / CLICOLOR_FORCE).
-- `core/` crate `zencode_core` (std-only): agent core seams `Llm`, `Tool`, `Sandbox`, `SessionLog` + minimal loop `run_turn`. Roadmap in `PLAN.md`.
-- `RESEARCH.md` research, ideas and results log.
+## Architecture
 
+- **`engine/`** — crate `zencode_engine`: thin assembly layer over CLI crates (`zen-agent`,
+  `zen-tools`, `zen-core` from `gitlab.com/atzenn/zencode` at a pinned rev). Owns the
+  Trust stack, the versioned event schema (`DesktopEvent`), and `run_task()` / `zencode run`.
+- **`desktop/`** — Tauri 2 app (Rust backend + web UI): session control room, model picker,
+  onboarding, network log, scope/approval UI.
+- **`core/`** — frozen pilot crate (`zencode_core`); kept for reference, do not extend.
+- **`rebuild/`** — cowsay pilot (byte-for-byte rebuild); kept for reference.
+
+## Trust stack (merged on main)
+
+| ID | Module | What it does |
+|----|--------|--------------|
+| R1 | `engine/src/cost_firewall.rs` | Structural zero-cost firewall: the engine can never call a paid model |
+| R2 | `engine/src/timeline.rs` | Time-travel / undo-everything timeline model for the UI |
+| R3 | `engine/src/scope.rs` | Ask-first + scope guard: agent declares files/dirs before acting |
+| R4 | `engine/src/claims.rs` | Verified claims: agent assertions require evidence |
+| R6 | `engine/src/convergence.rs` | Convergence guard: detects repair loops, forces re-plan |
+| R12 | `engine/src/budget.rs` | Hard budget authority: per-task token/tool-call/duration budgets |
+
+Also: R15 signed releases (`engine/src/release_signing.rs`, minisign verify), R5 sovereign
+mode, R8 onboarding, R10 free-only router, R14 zero-telemetry.
+
+## Build & test
+
+```bash
+cd engine && cargo test          # engine tests (165+)
+cd engine && cargo clippy --all-targets -- -D warnings
+cd engine && cargo fmt --check
 ```
-cd rebuild && cargo test --release && ./target/release/cowsay "Hello"
-```
-Cowfiles in `rebuild/cows/` come from cowsay@1.6.0 (MIT, see LICENSE-cowsay).
+
+CI (`.gitlab-ci.yml`): fmt, clippy `-D warnings`, `cargo test --locked`, `cargo deny`,
+release-key check — runs on push/MR.
+
+## Roadmap
+
+The authoritative roadmap is **ZenCode Desktop — Roadmap FINAL** (Notion, ZenCode-Hub,
+written by Hark 2, 2026-10-18). Milestones: v0.3.0 "Foundation + Trust" → v0.4.0
+"Stream, Freedom & Hardening" → v0.5.0 "Control Room & Proof" → v1.0.0 "Stable & Open".
+
+Legacy files kept for reference: `PLAN.md` (old), `RESEARCH.md`, `RELEASE-GATE-v0.4.0.md`.
+
+## Rules
+
+- **Never use `main`.** All work on `muse2/*` branches, opened as MRs for Hark 2's review.
+- **Free-only.** Only `:free` / local models in development and testing. Never spend money.
+- **English** in repo (commits, docs, MRs); Vietnamese in reports/Notion.
+- Release gate: before tagging, run context7 → ocr → e2e → rea → bughunter; tag only when all clean.

@@ -3,6 +3,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 
+### Changed (2026-10-18, Muse 2 branch review: docs/reviews/2026-10-18-muse2-branches.md)
+- build: `zen-core`/`zen-agent`/`zen-tools` are fetched from the GitLab mirror `https://gitlab.com/atzenn/zencode.git` (rev `04b742e`); the desktop crate's `zen-core` is aligned from `3a09220` to `04b742e` so only one copy is built.
+
+### Added (Muse 2 branches merged 2026-10-18)
+- docs: `docs/e2e/` sanitized E2E transcripts, updated `docs/engine-api.md`, `docs/README.md` index.
+- docs: research D1–D11, P5 task schema, ACP research, upstream proposals, troubleshooting, release checklist, platform matrix, dependency audit; `deny.toml`; g2 smoke example; CLI rev bump to `04b742e`.
+
 ### Added (Muse 2 MRs !1–!6, merged 2026-10-18; review: docs/reviews/2026-10-18-muse2-mrs.md)
 - engine: `cost_firewall` (R1) — rejects non-`:free`, non-allowlisted models before any network call; `SpendMeter`.
 - engine: `claims` (R4) — Verified Claims registry, `ClaimingSink`, `run_task_with_claims`; `DesktopEvent::SessionEnd` with claim counts.

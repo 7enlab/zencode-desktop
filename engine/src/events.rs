@@ -173,12 +173,17 @@ impl RecordingSink {
         self.inner.lock().unwrap().clone()
     }
     /// One JSON object per line.
-    pub fn to_ndjson(&self) -> String {
-        self.events()
-            .iter()
-            .map(|e| serde_json::to_string(e).expect("envelope serializes"))
-            .collect::<Vec<_>>()
-            .join("\n")
+    pub fn to_ndjson(&self) -> anyhow::Result<String> {
+        let mut out = String::new();
+        for e in self.events().iter() {
+            let line = serde_json::to_string(e)?;
+            out.push_str(&line);
+            out.push('\n');
+        }
+        if out.ends_with('\n') {
+            out.pop();
+        }
+        Ok(out)
     }
 
     /// Record the end of a session with cost accounting (P4: feeds the RateGate UI).

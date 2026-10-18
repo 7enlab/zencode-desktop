@@ -47,6 +47,11 @@ pub struct RunOptions {
     pub budget: Option<TaskBudget>,
     /// Declared scope (R3). `None` = pre-approved headless run (previous behavior).
     pub scope: Option<scope::ScopeDecl>,
+    /// Explicit opt-in to pre-approve every tool call (Read/Edit/Write/Bash).
+    /// Default `false`: all tool calls are denied with a message telling the
+    /// caller to opt in. Set to `true` only when the caller has sandboxed `cwd`
+    /// (e.g. a tempdir) and accepts the risk.
+    pub dangerous_allow_all: bool,
 }
 
 impl RunOptions {
@@ -65,15 +70,29 @@ impl RunOptions {
             system_prompt: "You are ZenCode, a concise coding agent. Use the tools to complete the task, then reply with a short summary.".into(),
             budget: None,
             scope: None,
+            dangerous_allow_all: false,
         }
     }
 }
 
-/// Headless run: tools are pre-approved (the caller decides the sandbox, e.g. a tempdir).
+/// Pre-approves every tool call. Only used when the caller explicitly opts in via
+/// [`RunOptions::dangerous_allow_all`]; the caller is responsible for sandboxing `cwd`.
 struct AllowAll;
 impl PermissionChecker for AllowAll {
     fn check(&self, _: &str, _: &Value, _: bool, _: &ToolContext) -> PermissionDecision {
         PermissionDecision::Allow
+    }
+}
+
+/// Denies every tool call. This is the default: the caller must explicitly opt in to
+/// [`RunOptions::dangerous_allow_all`] to run tools.
+struct DenyAll;
+impl PermissionChecker for DenyAll {
+    fn check(&self, tool_name: &str, _: &Value, _: bool, _: &ToolContext) -> PermissionDecision {
+        PermissionDecision::Deny(format!(
+            "tool '{tool_name}' denied: RunOptions::dangerous_allow_all is false; \
+             set it to true to pre-approve tool calls (only do this in a sandboxed cwd)"
+        ))
     }
 }
 
@@ -113,6 +132,19 @@ pub async fn run_task_with_sink(
     if task.trim().is_empty() {
         anyhow::bail!("empty task");
     }
+    // M2 (OCR review): reject malformed options with clear errors up front.
+    if opts.base_url.trim().is_empty() {
+        anyhow::bail!("base_url is empty");
+    }
+    if !opts.base_url.starts_with("http://") && !opts.base_url.starts_with("https://") {
+        anyhow::bail!(
+            "base_url must start with http:// or https://: {}",
+            opts.base_url
+        );
+    }
+    if opts.model.trim().is_empty() {
+        anyhow::bail!("model is empty");
+    }
     // Structural cost firewall: reject non-free models BEFORE any network
     // call (HTTP client construction, agent loop, fallbacks).
     cost_firewall::FreeOnlyPolicy::default().validate_all(&opts.model, &opts.fallback_models)?;
@@ -138,7 +170,10 @@ pub async fn run_task_with_sink(
                 sink.clone(),
             ))
         }
-        None => Arc::new(AllowAll),
+        // M1 (OCR review): without a declared scope, tools run only when the
+        // caller explicitly opts in; the default denies every tool call.
+        None if opts.dangerous_allow_all => Arc::new(AllowAll),
+        None => Arc::new(DenyAll),
     };
     let llm_inner: Arc<dyn LlmBackend> = Arc::new(OpenAiClient::new(
         opts.base_url.clone(),

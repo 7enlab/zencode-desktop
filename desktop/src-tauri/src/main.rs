@@ -102,7 +102,10 @@ async fn run_task(
         bridge: bridge.clone(),
         channel: on_event,
     });
-    let opts = RunOptions::new(base_url, model.clone(), cwd_path.clone());
+    let mut opts = RunOptions::new(base_url, model.clone(), cwd_path.clone());
+    // The user picked this folder and started the run, so tools are explicitly
+    // pre-approved (OCR M1 opt-in). TODO: replace with the R3 scope/approval flow.
+    opts.dangerous_allow_all = true;
     let sid = session_id.clone();
 
     // Run in the background; the UI streams envelopes over `on_event`.

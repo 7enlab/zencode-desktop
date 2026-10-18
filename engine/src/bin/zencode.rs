@@ -40,6 +40,9 @@ fn base_opts(model: &str, cwd: PathBuf, max_turns: usize) -> RunOptions {
     let mut opts = RunOptions::new(env_or("ZENCODE_BASE_URL", DEFAULT_BASE_URL), model, cwd);
     opts.api_key = std::env::var("ZENCODE_API_KEY").ok();
     opts.max_turns = max_turns;
+    // The user starts `zencode run` in a folder they chose (and `eval` uses
+    // tempdirs), so tools are explicitly pre-approved here (OCR M1 opt-in).
+    opts.dangerous_allow_all = true;
     opts
 }
 
@@ -101,7 +104,7 @@ async fn cmd_run(mut args: std::iter::Skip<std::env::Args>) -> anyhow::Result<()
     std::fs::create_dir_all(&dir)?;
     let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let path = dir.join(format!("session-{ts}.jsonl"));
-    std::fs::write(&path, sink.to_ndjson())?;
+    std::fs::write(&path, sink.to_ndjson()?)?;
 
     println!("result: {}", result.result);
     println!("turns: {}", result.num_turns);

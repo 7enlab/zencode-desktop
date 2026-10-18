@@ -98,6 +98,7 @@ fn tmpdir(tag: &str) -> std::path::PathBuf {
 
 fn has_budget_event(sink: &RecordingSink) -> bool {
     sink.to_ndjson()
+        .unwrap()
         .lines()
         .any(|l| l.contains("\"event\":\"budget_exceeded\"") || l.contains("budget_exceeded"))
 }
@@ -109,6 +110,7 @@ async fn output_token_budget_stops_task_and_logs_event() {
     let (url, seen) = serve(vec![text_reply_with_usage("done", 30, 60_000)]).await;
     let sink = Arc::new(RecordingSink::new());
     let mut opts = RunOptions::new(url, "fake/model:free", &dir);
+    opts.dangerous_allow_all = true;
     opts.budget = Some(TaskBudget {
         max_output_tokens: 50_000,
         ..TaskBudget::unlimited()
@@ -146,6 +148,7 @@ async fn tool_call_budget_denies_and_stops_task() {
     .await;
     let sink = Arc::new(RecordingSink::new());
     let mut opts = RunOptions::new(url, "fake/model:free", &dir);
+    opts.dangerous_allow_all = true;
     opts.budget = Some(TaskBudget {
         max_tool_calls: 1,
         ..TaskBudget::unlimited()
@@ -173,6 +176,7 @@ async fn generous_budget_lets_small_task_finish_cleanly() {
     let (url, _) = serve(vec![text_reply_with_usage("hello!", 30, 5)]).await;
     let sink = Arc::new(RecordingSink::new());
     let mut opts = RunOptions::new(url, "fake/model:free", &dir);
+    opts.dangerous_allow_all = true;
     opts.budget = Some(TaskBudget::default());
     let res = run_task_with_sink(&opts, "say hi", sink.clone())
         .await

@@ -79,6 +79,8 @@ document.getElementById("tab-chat").onclick = () => showChatTab();
 document.getElementById("tab-timeline").onclick = () => showTimelineTab();
 /* R14 zero-telemetry Network tab. */
 document.getElementById("tab-network").onclick = () => showNetworkTab();
+/* D6 terminal tab. */
+document.getElementById("tab-terminal").onclick = () => showTerminalTab();
 
 /* Live-mode replay: pull the persisted log, then follow new envelopes. */
 async function replaySession(id) {

@@ -77,6 +77,8 @@ function selectSession(id) {
 /* R2 timeline tabs. */
 document.getElementById("tab-chat").onclick = () => showChatTab();
 document.getElementById("tab-timeline").onclick = () => showTimelineTab();
+/* R14 zero-telemetry Network tab. */
+document.getElementById("tab-network").onclick = () => showNetworkTab();
 
 /* Live-mode replay: pull the persisted log, then follow new envelopes. */
 async function replaySession(id) {

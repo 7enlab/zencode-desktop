@@ -11,6 +11,7 @@ pub mod events;
 pub mod ipc_bridge;
 pub mod scope;
 pub mod session_store;
+pub mod telemetry;
 pub mod timeline;
 
 use std::path::PathBuf;
@@ -46,6 +47,11 @@ pub struct RunOptions {
     pub budget: Option<TaskBudget>,
     /// Declared scope (R3). `None` = pre-approved headless run (previous behavior).
     pub scope: Option<scope::ScopeDecl>,
+    /// R14 zero-telemetry log. `None` (default) = the engine still arms the
+    /// guard and records into an internal log that is dropped with the run;
+    /// `Some` = the caller keeps the [`telemetry::NetworkLog`] afterwards
+    /// (the desktop Network tab passes one in).
+    pub telemetry_log: Option<Arc<telemetry::NetworkLog>>,
 }
 
 impl RunOptions {
@@ -64,6 +70,7 @@ impl RunOptions {
             system_prompt: "You are ZenCode, a concise coding agent. Use the tools to complete the task, then reply with a short summary.".into(),
             budget: None,
             scope: None,
+            telemetry_log: None,
         }
     }
 }
@@ -115,6 +122,13 @@ pub async fn run_task_with_sink(
     // Structural cost firewall: reject non-free models BEFORE any network
     // call (HTTP client construction, agent loop, fallbacks).
     cost_firewall::FreeOnlyPolicy::default().validate_all(&opts.model, &opts.fallback_models)?;
+    // R14 zero-telemetry guard: the ONLY host this run may contact is the
+    // user-configured model endpoint. Armed at the same enforcement point as
+    // the R1 cost firewall, before any network call is made.
+    let telemetry_guard = telemetry::TelemetryGuard::from_base_url(&opts.base_url)
+        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    telemetry::emit_telemetry_ready(&sink, &telemetry_guard);
+    let telemetry_log = opts.telemetry_log.clone().unwrap_or_default();
     if !opts.cwd.is_dir() {
         anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
     }
@@ -139,10 +153,18 @@ pub async fn run_task_with_sink(
         }
         None => Arc::new(AllowAll),
     };
-    let llm_inner: Arc<dyn LlmBackend> = Arc::new(OpenAiClient::new(
-        opts.base_url.clone(),
-        opts.api_key.clone(),
-        sink.clone(),
+    // R14: wrap the model backend so every chat call is recorded in the
+    // auditable network log. The telemetry wrap is innermost (closest to the
+    // HTTP client); the R12 budget wrap stays outside so a budget stop still
+    // prevents the call from being logged as sent.
+    let llm_inner: Arc<dyn LlmBackend> = Arc::new(telemetry::TelemetryBackend::new(
+        Arc::new(OpenAiClient::new(
+            opts.base_url.clone(),
+            opts.api_key.clone(),
+            sink.clone(),
+        )),
+        telemetry_guard,
+        telemetry_log,
     ));
     // R12: when a budget is set, enforce it around the model backend (token +
     // duration hard stop) and the permission checker (per-tool-call hard stop).

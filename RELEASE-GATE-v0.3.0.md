@@ -24,10 +24,10 @@
 
 | # | Criterion | Status |
 |---|-----------|--------|
-| 1 | CI xanh (fmt, clippy -D warnings, test --locked, cargo deny, release-key-check) | ✅ `.gitlab-ci.yml` merged (91a7907) |
+| 1 | Green CI (fmt, clippy -D warnings, test --locked, cargo deny, release-key-check) | ✅ `.gitlab-ci.yml` merged (91a7907); cargo-deny fixed in MR !7 (9ba91f7) |
 | 2 | ≥102 test pass | 🔄 91 at gate time; 165 reported on d5bee01 (re-run pending) |
-| 3 | 3 artifact ký (signed release artifacts) | ⏳ Pending — minisign keypair exists (A459EE7B787B86FF) |
-| 4 | Khóa mã hoá (private key encrypted before public release) | ⏳ Key holder's task |
+| 3 | 3 signed release artifacts | ⏳ Pending — minisign keypair exists (A459EE7B787B86FF) |
+| 4 | Private key encrypted before public release | ⏳ Key holder's task |
 | 5 | CHANGELOG | ⏳ Pending |
 
 ---
@@ -48,7 +48,7 @@
 ### Git dependencies
 - `zen-core`, `zen-agent`, `zen-tools` → `https://gitlab.com/atzenn/zencode` rev `04b742e` (migrated from GitHub per CI-risk fix)
 - ✅ Rev 04b742e exists and is fetchable on GitLab
-- ⚠️ **Note (non-blocking):** GitLab CLI main has moved to 250e8d4 with additional security fixes. Consider a follow-up bump, but not required for v0.3.0.
+- ✅ **Update (2026-10-18):** bumped to `250e8d4` (CLI security fixes) in engine and desktop (`muse2/cli-250e8d4-clean`); re-run the gate on the tagged commit.
 
 ### Rust edition
 - Edition 2021 (2024 available but optional per prior audit)

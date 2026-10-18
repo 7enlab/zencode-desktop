@@ -5,6 +5,7 @@
 pub mod budget;
 pub mod checkpoints;
 pub mod claims;
+pub mod config_import;
 pub mod convergence;
 pub mod cost_firewall;
 pub mod events;

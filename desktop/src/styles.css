@@ -129,6 +129,30 @@ body {
   display: flex; flex-direction: column; gap: 12px;
 }
 #timeline-panel.hidden { display: none; }
+
+/* R14 zero-telemetry Network tab. */
+#network-panel {
+  flex: 1; overflow-y: auto; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+#network-panel.hidden { display: none; }
+.net-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.net-verdict { font-weight: 600; font-size: 13px; color: var(--fg); }
+.net-actions { display: flex; gap: 8px; }
+.net-actions button {
+  background: var(--bg-raised); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 6px 12px; cursor: pointer;
+  color: var(--fg); font-size: 12px;
+}
+.net-actions button:hover { border-color: var(--accent); }
+.net-empty, .net-note { color: var(--fg-dim); font-style: italic; font-size: 12px; }
+.net-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.net-table th, .net-table td {
+  text-align: left; padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.net-table th { color: var(--fg-dim); font-weight: 600; }
+.net-table td { color: var(--fg); font-family: monospace; }
 .tl-head { font-weight: 700; font-size: 13px; color: var(--fg); margin-top: 4px; }
 .tl-empty { color: var(--fg-dim); font-style: italic; }
 .tl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

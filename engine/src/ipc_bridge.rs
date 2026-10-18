@@ -68,6 +68,7 @@ impl IpcEnvelope {
             DesktopEvent::CompactBoundary { .. } => "compact_boundary",
             DesktopEvent::PermissionDenied { .. } => "permission_denied",
             DesktopEvent::SystemMessage { .. } => "system_message",
+            DesktopEvent::SessionEnd { .. } => "session_end",
         }
         .to_owned()
     }

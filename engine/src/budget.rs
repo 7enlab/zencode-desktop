@@ -473,10 +473,12 @@ mod tests {
 
     #[test]
     fn duration_exceeded() {
-        let t = BudgetTracker::new_with_start(
-            small_budget(),
-            Instant::now() - Duration::from_secs(601),
-        );
+        // `Instant - Duration` panics if the monotonic clock started less than
+        // 601 s ago (fresh Windows/macOS CI VMs); skip instead of panicking.
+        let Some(start) = Instant::now().checked_sub(Duration::from_secs(601)) else {
+            return;
+        };
+        let t = BudgetTracker::new_with_start(small_budget(), start);
         let e = t.check().unwrap_err();
         assert_eq!(e.dimension, BudgetDimension::Duration);
         assert_eq!(e.limit, 600);

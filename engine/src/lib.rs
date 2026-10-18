@@ -9,6 +9,7 @@ pub mod convergence;
 pub mod cost_firewall;
 pub mod events;
 pub mod ipc_bridge;
+pub mod release_signing;
 pub mod scope;
 pub mod session_store;
 pub mod timeline;

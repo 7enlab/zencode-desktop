@@ -1,0 +1,67 @@
+#!/bin/bash
+# tools/sign-release.sh — sign all release artifacts with minisign.
+#
+# Usage: MINISIGN_KEY=/secure/path/zencode-release.key tools/sign-release.sh <version> <dist-dir>
+# Example: MINISIGN_KEY=~/.signing/zencode-release.key tools/sign-release.sh v0.4.0 dist/
+#
+# Signs every regular file in <dist-dir> (except *.minisig), then writes and
+# signs SHA256SUMS. Refuses to run without a key or while the Tauri updater
+# pubkey is still the PLACEHOLDER (see docs/signed-releases.md).
+set -euo pipefail
+
+VERSION="${1:?usage: MINISIGN_KEY=<keyfile> $0 <version> <dist-dir>}"
+DIST="${2:?usage: MINISIGN_KEY=<keyfile> $0 <version> <dist-dir>}"
+KEY="${MINISIGN_KEY:?MINISIGN_KEY env var must point at the release secret key}"
+
+if [ ! -f "$KEY" ]; then
+  echo "ERROR: secret key not found: $KEY" >&2
+  exit 1
+fi
+if [ ! -d "$DIST" ]; then
+  echo "ERROR: dist dir not found: $DIST" >&2
+  exit 1
+fi
+if ! command -v minisign >/dev/null 2>&1; then
+  echo "ERROR: minisign not installed (apt install minisign)" >&2
+  exit 1
+fi
+
+# Never sign a release the updater cannot verify.
+TAURI_CONF="$(dirname "$0")/../desktop/src-tauri/tauri.conf.json"
+if grep -q "PLACEHOLDER" "$TAURI_CONF" 2>/dev/null; then
+  echo "ERROR: updater pubkey in tauri.conf.json is still PLACEHOLDER." >&2
+  echo "Generate the release keypair and publish the public key first" >&2
+  echo "(see docs/signed-releases.md, blocker for Hark 2)." >&2
+  exit 1
+fi
+
+echo "Signing release $VERSION in $DIST ..."
+count=0
+for f in "$DIST"/*; do
+  [ -f "$f" ] || continue
+  case "$f" in
+    *.minisig|*SHA256SUMS*) continue ;;
+  esac
+  minisign -S -s "$KEY" -m "$f" \
+    -t "zencode-desktop $VERSION - $(basename "$f")" \
+    -x "$f.minisig"
+  echo "  signed: $(basename "$f")"
+  count=$((count + 1))
+done
+
+if [ "$count" -eq 0 ]; then
+  echo "ERROR: no artifacts found in $DIST" >&2
+  exit 1
+fi
+
+# One checksum file covering the whole release, signed as well.
+(
+  cd "$DIST"
+  sha256sum $(ls | grep -v '\.minisig$' | grep -v '^SHA256SUMS') > SHA256SUMS
+)
+minisign -S -s "$KEY" -m "$DIST/SHA256SUMS" \
+  -t "zencode-desktop $VERSION - SHA256SUMS" \
+  -x "$DIST/SHA256SUMS.minisig"
+
+echo "OK: signed $count artifact(s) + SHA256SUMS for $VERSION"
+echo "Upload to the release page: artifacts, *.minisig, SHA256SUMS, SHA256SUMS.minisig"

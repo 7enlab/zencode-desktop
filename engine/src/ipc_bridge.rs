@@ -138,12 +138,16 @@ impl BridgeSink {
 
     /// The whole run as NDJSON (one envelope per line) — the single source of
     /// truth the frontend persists for resume.
-    pub fn to_ndjson(&self) -> String {
+    pub fn to_ndjson(&self) -> anyhow::Result<String> {
         self.envelopes()
             .iter()
-            .map(|e| serde_json::to_string(e).expect("envelope serializes"))
-            .collect::<Vec<_>>()
-            .join("\n")
+            .map(|e| {
+                serde_json::to_string(e).map_err(|err| {
+                    anyhow::anyhow!("envelope seq {} not serializable: {err}", e.seq)
+                })
+            })
+            .collect::<anyhow::Result<Vec<_>>>()
+            .map(|lines| lines.join("\n"))
     }
 
     /// Rebuild a sink from a persisted NDJSON log; the next emitted envelope
@@ -288,7 +292,7 @@ mod tests {
         let sink = BridgeSink::new();
         sink.emit(AgentEvent::TextDelta { text: "a".into() });
         sink.emit(AgentEvent::TextDelta { text: "b".into() });
-        let ndjson = sink.to_ndjson();
+        let ndjson = sink.to_ndjson().unwrap();
         assert_eq!(ndjson.lines().count(), 2);
 
         let restored = BridgeSink::from_ndjson(&ndjson).unwrap();

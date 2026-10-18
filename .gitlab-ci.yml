@@ -1,0 +1,67 @@
+# .gitlab-ci.yml — ZenCode Desktop CI (Muse 2).
+#
+# Pipelines run on push and merge-request events only. No schedules are
+# defined here, and none denser than hourly may be added.
+#
+# The release-key-check job compares docs/keys/zencode-release.pub with the
+# updater pubkey in desktop/src-tauri/tauri.conf.json. It needs NO secret key:
+# the minisign private key must NEVER enter CI.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+stages:
+  - lint
+  - test
+  - security
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  CARGO_NET_RETRY: "10"
+
+default:
+  image: rust:1-bookworm
+  before_script:
+    - rustup component add rustfmt clippy
+    - rustc --version && cargo --version
+
+cache:
+  key: cargo-$CI_COMMIT_REF_SLUG
+  paths:
+    - .cargo/
+    - engine/target/
+
+fmt:
+  stage: lint
+  script:
+    - cd engine && cargo fmt --check
+
+clippy:
+  stage: lint
+  script:
+    - cd engine && cargo clippy --all-targets -- -D warnings
+
+test:
+  stage: test
+  script:
+    - cd engine && cargo test --locked
+
+cargo-deny:
+  stage: security
+  before_script:
+    - rustup component add rustfmt clippy
+    - cargo install cargo-deny
+    - cargo deny --version
+  script:
+    # deny.toml is picked up from the current directory (repo root).
+    - cargo deny --manifest-path engine/Cargo.toml check licenses advisories bans
+
+release-key-check:
+  stage: security
+  image: alpine:latest
+  before_script: []
+  cache: {}
+  script:
+    - sh tools/check-release-key.sh

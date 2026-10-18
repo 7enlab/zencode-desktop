@@ -15,10 +15,13 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod notifications;
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+use notifications::NotificationManager;
 use tauri::ipc::Channel;
 use tauri::Manager;
 use zencode_engine::{
@@ -297,13 +300,26 @@ fn main() {
         .manage(AppState {
             sinks: Mutex::new(HashMap::new()),
         })
+        // D10 notifications: policy state + frontend commands.
+        .manage(NotificationManager::new())
         .invoke_handler(tauri::generate_handler![
             run_task,
             list_sessions,
             get_log_since,
             get_timeline,
-            restore_checkpoint
+            restore_checkpoint,
+            notifications::cmd_notify_session_end,
+            notifications::cmd_notify_approval_needed,
+            notifications::cmd_notify_still_working,
         ])
+        .setup(|app| {
+            // Register the "View" / "Dismiss" action buttons (D10 content spec).
+            // A failure here is non-fatal — notifications still work without actions.
+            if let Err(e) = notifications::register_actions(app.handle()) {
+                eprintln!("warning: could not register notification actions: {e}");
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

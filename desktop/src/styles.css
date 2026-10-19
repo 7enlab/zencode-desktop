@@ -263,3 +263,40 @@ body {
   font-size: 13px; white-space: pre-wrap;
 }
 .hidden { display: none !important; }
+
+/* ---------- RateGate UI (D8) ---------- */
+.quota-meter { display: inline-flex; align-items: center; gap: 8px; }
+.qm-bars { display: inline-flex; gap: 4px; }
+.qbar {
+  display: inline-block; width: 46px; height: 6px; border-radius: 3px;
+  background: var(--border); overflow: hidden; vertical-align: middle;
+}
+.qbar .qfill { display: block; height: 100%; width: 0%; background: var(--green); transition: width .3s; }
+.qm-approaching .qfill { background: var(--amber); }
+.qm-at_limit .qfill, .qm-cooldown .qfill { background: var(--red); }
+.qm-at_limit .qm-label { color: var(--red); font-weight: 600; }
+.qm-approaching .qm-label { color: var(--amber); }
+.qm-cooldown .qm-label { color: var(--red); }
+#status-queue { color: var(--amber); }
+#status-queue.hidden { display: none; }
+
+.fallback-banner {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  background: #d2992222; border-bottom: 1px solid var(--amber);
+  color: var(--amber); padding: 8px 14px; font-size: 13px;
+}
+.fallback-banner.hidden { display: none; }
+.fb-dismiss {
+  background: transparent; border: 1px solid var(--amber); color: var(--amber);
+  border-radius: var(--radius); padding: 2px 10px; cursor: pointer; font-size: 12px;
+}
+.fb-dismiss:hover { background: #d2992233; }
+
+#composer { position: relative; }
+.cooldown-overlay {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(13, 17, 23, 0.85); border-radius: var(--radius);
+  color: var(--red); font-size: 13px; font-weight: 600;
+}
+.cooldown-overlay.hidden { display: none; }

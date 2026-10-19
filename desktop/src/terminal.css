@@ -1,0 +1,109 @@
+/* ZenCode Desktop — terminal tab styles (matches GitHub-dark theme) */
+
+/* View switching: chat pane vs terminal pane */
+#main-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#view-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.view-tab {
+  background: transparent;
+  color: var(--fg-dim);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.view-tab:hover { color: var(--fg); background: var(--bg-hover); }
+.view-tab.active {
+  color: var(--fg);
+  background: var(--bg-raised);
+  border-color: var(--border);
+  font-weight: 600;
+}
+#terminal-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #0d1117;
+}
+#terminal-view.hidden { display: none; }
+#chat-pane.hidden { display: none; }
+
+/* Terminal tab bar */
+#term-tabbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+}
+#term-tabs { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+.term-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px 5px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.term-tab:hover { color: var(--fg); }
+.term-tab.active {
+  color: var(--fg);
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+.term-tab-close {
+  color: var(--fg-dim);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+.term-tab-close:hover { color: var(--red); background: var(--bg-hover); }
+#term-new-tab {
+  background: var(--bg-hover);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 28px; height: 28px;
+  cursor: pointer;
+  font-size: 16px; line-height: 1;
+  flex-shrink: 0;
+}
+#term-new-tab:hover { background: var(--accent); border-color: var(--accent); }
+
+/* Terminal panes */
+#term-panes { flex: 1; position: relative; min-height: 0; }
+.term-pane {
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+}
+.term-pane.hidden { display: none; }
+.term-pane .xterm { height: 100%; }
+.term-error {
+  color: var(--red);
+  padding: 16px;
+  font-family: ui-monospace, monospace;
+}
+.term-note {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--fg-dim);
+  background: var(--bg-raised);
+  border-top: 1px solid var(--border);
+}

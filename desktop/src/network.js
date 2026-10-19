@@ -21,10 +21,14 @@ function showNetworkTab() {
   document.getElementById("composer").classList.add("hidden");
   const tp = document.getElementById("timeline-panel");
   if (tp) tp.classList.add("hidden");
+  const tv = document.getElementById("terminal-view");
+  if (tv) tv.classList.add("hidden");
   document.getElementById("network-panel").classList.remove("hidden");
   document.getElementById("tab-chat").classList.remove("active");
   const tt = document.getElementById("tab-timeline");
   if (tt) tt.classList.remove("active");
+  const term = document.getElementById("tab-terminal");
+  if (term) term.classList.remove("active");
   document.getElementById("tab-network").classList.add("active");
   loadNetworkLog();
 }

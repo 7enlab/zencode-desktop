@@ -194,6 +194,12 @@ impl LoopDetector {
         self.stagnant_rounds += 1;
     }
 
+    /// Record a tool round that made progress without changing files (a passing
+    /// verify, or tool output not seen before): stagnation ends.
+    pub fn record_progress_round(&mut self) {
+        self.stagnant_rounds = 0;
+    }
+
     /// Check for a loop. Returns the fired pattern at most once; after that the
     /// caller is expected to stop the task and re-plan, then call [`Self::reset`].
     pub fn check(&mut self) -> Option<LoopPattern> {
@@ -361,6 +367,283 @@ fn first_line(s: &str) -> &str {
     s.lines().next().unwrap_or("").trim()
 }
 
+// ─────────────────────────── run_task wiring (0.3-7) ───────────────────────────
+
+/// Name of the system event emitted when the guard stops the task for good.
+pub const CONVERGENCE_STOP_EVENT: &str = "convergence_stop";
+
+/// Live state shared by the sink / permission / backend wrappers of one run.
+struct MonitorState {
+    detector: LoopDetector,
+    /// tool_use_id -> (tool name, file path for Write/Edit)
+    calls: HashMap<String, (String, Option<String>)>,
+    round_had_tools: bool,
+    round_had_edits: bool,
+    /// The round produced progress without edits: a passing verify (Bash) or
+    /// tool output not seen before in this run.
+    round_had_progress: bool,
+    /// Hashes of (tool, is_error, output) seen in this run, to tell new tool
+    /// output from a repeat of the same probe or the same failure.
+    seen_outputs: std::collections::HashSet<u64>,
+    /// A pattern fired and the re-plan prompt has not been delivered yet.
+    pending_replan: Option<String>,
+    /// How many times the guard fired in this run.
+    fired: u32,
+    /// Set once the guard gave up: every further tool call and model call fails.
+    stopped: Option<String>,
+}
+
+/// Opt-in convergence guard for [`crate::run_task`] (`RunOptions::convergence`).
+///
+/// The agent loop lives in `zen-agent`, so the guard observes it from the
+/// outside, like the R12 budget:
+/// - [`ConvergenceSink`] reads the event stream: a `Write`/`Edit` result counts
+///   as an edit of its `file_path`, a `Bash` result is a verify step (error =
+///   failed, with its output as the error signature; success = passed).
+/// - [`ConvergenceBackend`] marks round boundaries and runs the check before
+///   every model call. A round with tool calls is stagnant only if it made no
+///   edit, no passing verify, and produced no tool output not already seen in
+///   this run (repeating the same failing command or probe is stagnant; a new
+///   failure or a passing run is progress and ends the stagnation streak).
+/// - [`ConvergencePermissions`] delivers the outcome: the first tool call after
+///   a loop is detected is refused with the forced re-plan prompt (so it lands
+///   in the conversation) and the detector restarts; if the loop fires again
+///   after `max_replans` re-plans, the task is stopped (tools denied, the next
+///   model call fails with the reason).
+pub struct ConvergenceMonitor {
+    state: std::sync::Mutex<MonitorState>,
+    sink: std::sync::Arc<dyn EventSink>,
+    max_replans: u32,
+}
+
+impl ConvergenceMonitor {
+    pub fn new(
+        policy: ConvergencePolicy,
+        max_replans: u32,
+        sink: std::sync::Arc<dyn EventSink>,
+    ) -> anyhow::Result<std::sync::Arc<Self>> {
+        Ok(std::sync::Arc::new(Self {
+            state: std::sync::Mutex::new(MonitorState {
+                detector: LoopDetector::new(policy)?,
+                calls: HashMap::new(),
+                round_had_tools: false,
+                round_had_edits: false,
+                round_had_progress: false,
+                seen_outputs: std::collections::HashSet::new(),
+                pending_replan: None,
+                fired: 0,
+                stopped: None,
+            }),
+            sink,
+            max_replans,
+        }))
+    }
+
+    /// How many times a loop pattern fired during this run.
+    pub fn times_fired(&self) -> u32 {
+        self.state.lock().unwrap().fired
+    }
+
+    /// The stop reason, if the guard ended the task.
+    pub fn stop_reason(&self) -> Option<String> {
+        self.state.lock().unwrap().stopped.clone()
+    }
+
+    fn observe(&self, ev: &AgentEvent) {
+        let mut st = self.state.lock().unwrap();
+        match ev {
+            AgentEvent::Assistant { message, .. } => {
+                for call in message.tool_calls.iter().flatten() {
+                    let path = serde_json::from_str::<serde_json::Value>(&call.function.arguments)
+                        .ok()
+                        .and_then(|v| {
+                            v.get("file_path")
+                                .or_else(|| v.get("path"))
+                                .and_then(|p| p.as_str())
+                                .map(str::to_string)
+                        });
+                    st.calls
+                        .insert(call.id.clone(), (call.function.name.clone(), path));
+                    st.round_had_tools = true;
+                }
+            }
+            AgentEvent::ToolResult {
+                tool_use_id,
+                content,
+                is_error,
+                ..
+            } => {
+                let Some((name, path)) = st.calls.remove(tool_use_id) else {
+                    return;
+                };
+                // Our own refusals (re-plan prompt / stop) are not verify results.
+                if content.starts_with("CONVERGENCE GUARD:")
+                    || content.starts_with("Task stopped by the convergence guard")
+                {
+                    return;
+                }
+                let key = {
+                    use std::hash::{Hash, Hasher};
+                    let mut h = std::collections::hash_map::DefaultHasher::new();
+                    (name.as_str(), *is_error, content.as_str()).hash(&mut h);
+                    h.finish()
+                };
+                if st.seen_outputs.insert(key) {
+                    st.round_had_progress = true;
+                }
+                match (name.as_str(), path) {
+                    ("Write" | "Edit" | "MultiEdit", Some(p)) if !*is_error => {
+                        st.detector.record_edit(&p);
+                        st.round_had_edits = true;
+                    }
+                    ("Bash", _) => {
+                        if *is_error {
+                            st.detector.record_verify(false, Some(content));
+                        } else {
+                            st.detector.record_verify(true, None);
+                            st.round_had_progress = true;
+                        }
+                    }
+                    _ => {}
+                }
+                self.check_locked(&mut st);
+            }
+            _ => {}
+        }
+    }
+
+    /// Close the current round (called before each model request).
+    fn end_round(&self) {
+        let mut st = self.state.lock().unwrap();
+        if st.round_had_tools {
+            if st.round_had_edits || st.round_had_progress {
+                st.detector.record_progress_round();
+            } else {
+                st.detector.record_stagnant_round();
+            }
+        }
+        st.round_had_tools = false;
+        st.round_had_edits = false;
+        st.round_had_progress = false;
+        self.check_locked(&mut st);
+    }
+
+    fn check_locked(&self, st: &mut MonitorState) {
+        if st.stopped.is_some() || st.pending_replan.is_some() {
+            return;
+        }
+        let Some(pattern) = st.detector.check() else {
+            return;
+        };
+        st.fired += 1;
+        if let Err(e) = st.detector.emit_loop_detected(&pattern, None, &*self.sink) {
+            eprintln!("convergence guard: could not emit loop_detected: {e}");
+        }
+        if st.fired > self.max_replans {
+            let reason = format!(
+                "Task stopped by the convergence guard: {} (after {} re-plan(s))",
+                pattern.describe(),
+                self.max_replans
+            );
+            self.sink.emit(AgentEvent::SystemMessage {
+                event: CONVERGENCE_STOP_EVENT.to_string(),
+                text: reason.clone(),
+            });
+            st.stopped = Some(reason);
+        } else {
+            st.pending_replan = Some(st.detector.replan_prompt(&pattern, None));
+            st.detector.reset();
+        }
+    }
+
+    /// Permission hook: `Some(message)` = refuse this tool call with `message`.
+    fn gate_tool_call(&self) -> Option<String> {
+        let mut st = self.state.lock().unwrap();
+        if let Some(reason) = &st.stopped {
+            return Some(reason.clone());
+        }
+        st.pending_replan.take()
+    }
+}
+
+/// Event sink wrapper feeding the [`ConvergenceMonitor`].
+pub struct ConvergenceSink {
+    inner: std::sync::Arc<dyn EventSink>,
+    monitor: std::sync::Arc<ConvergenceMonitor>,
+}
+
+impl ConvergenceSink {
+    pub fn new(
+        inner: std::sync::Arc<dyn EventSink>,
+        monitor: std::sync::Arc<ConvergenceMonitor>,
+    ) -> Self {
+        Self { inner, monitor }
+    }
+}
+
+impl EventSink for ConvergenceSink {
+    fn emit(&self, ev: AgentEvent) {
+        self.monitor.observe(&ev);
+        self.inner.emit(ev);
+    }
+}
+
+/// Model backend wrapper: round boundaries + hard stop.
+pub struct ConvergenceBackend {
+    inner: std::sync::Arc<dyn zen_core::LlmBackend>,
+    monitor: std::sync::Arc<ConvergenceMonitor>,
+}
+
+impl ConvergenceBackend {
+    pub fn new(
+        inner: std::sync::Arc<dyn zen_core::LlmBackend>,
+        monitor: std::sync::Arc<ConvergenceMonitor>,
+    ) -> Self {
+        Self { inner, monitor }
+    }
+}
+
+#[async_trait::async_trait]
+impl zen_core::LlmBackend for ConvergenceBackend {
+    async fn chat(&self, req: zen_core::ChatRequest) -> anyhow::Result<zen_core::ChatResponse> {
+        self.monitor.end_round();
+        if let Some(reason) = self.monitor.stop_reason() {
+            anyhow::bail!(reason);
+        }
+        self.inner.chat(req).await
+    }
+}
+
+/// Permission wrapper delivering the re-plan prompt / stop.
+pub struct ConvergencePermissions {
+    inner: std::sync::Arc<dyn zen_core::PermissionChecker>,
+    monitor: std::sync::Arc<ConvergenceMonitor>,
+}
+
+impl ConvergencePermissions {
+    pub fn new(
+        inner: std::sync::Arc<dyn zen_core::PermissionChecker>,
+        monitor: std::sync::Arc<ConvergenceMonitor>,
+    ) -> Self {
+        Self { inner, monitor }
+    }
+}
+
+impl zen_core::PermissionChecker for ConvergencePermissions {
+    fn check(
+        &self,
+        tool_name: &str,
+        input: &serde_json::Value,
+        read_only: bool,
+        ctx: &zen_core::ToolContext,
+    ) -> zen_core::PermissionDecision {
+        match self.monitor.gate_tool_call() {
+            Some(msg) => zen_core::PermissionDecision::Deny(msg),
+            None => self.inner.check(tool_name, input, read_only, ctx),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -434,6 +717,24 @@ mod tests {
         d.record_edit("src/main.rs");
         d.record_verify(true, None);
         assert_eq!(d.check(), None);
+    }
+
+    #[test]
+    fn progress_round_resets_stagnation() {
+        let mut d = detector();
+        for _ in 0..4 {
+            d.record_stagnant_round();
+        }
+        d.record_progress_round();
+        for _ in 0..4 {
+            d.record_stagnant_round();
+        }
+        assert_eq!(d.check(), None);
+        d.record_stagnant_round();
+        assert!(matches!(
+            d.check(),
+            Some(LoopPattern::StagnantRounds { rounds: 5 })
+        ));
     }
 
     #[test]

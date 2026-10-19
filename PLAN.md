@@ -52,3 +52,35 @@ Desktop dùng crate CLI qua git dependency ghim rev (hiện `3a09220`), cập nh
 (chưa có)
 
 - g1 ghi chú: Bash tool trên Windows CI lỗi (chưa rõ nguyên nhân, cần log chi tiết) → test Bash chỉ chạy unix; cần điều tra ở g2. Clippy cross-target bị bỏ cho engine (ring không cross-build); test native 3 OS vẫn chạy.
+
+## Status notes (English, 2026-10-19)
+
+### 0.3-7 — R6 convergence guard wired into `run_task` — DONE
+- `RunOptions::convergence: Option<ConvergencePolicy>` (default `None` = off).
+  `ConvergenceMonitor` observes the agent from outside (sink / backend /
+  permission wrappers): first loop → the next tool call is refused with the
+  forced re-plan prompt; a second loop → `convergence_stop` event, tools denied,
+  the next model call fails with the reason.
+- Stagnation fix: a tool round is stagnant only if it made no edit, no passing
+  verify (Bash), and produced no tool output not already seen in this run.
+  Progress rounds reset the streak (`LoopDetector::record_progress_round`).
+  Repeating the same failing command or the same probe is still stagnant.
+- Proof: `cd engine && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --locked`
+  → 176 passed, 0 failed, 1 ignored (InstaBox, 2026-10-19). Integration tests in
+  `engine/tests/convergence.rs`: loop → re-plan → stop; progress stays quiet;
+  repeated identical probe still fires `stagnant_rounds`.
+
+### 0.3-5 part 1 — unsigned `cargo tauri build` on Linux (InstaBox) — PASSED
+- Built 2026-10-18 in `desktop/src-tauri` (log `~/tauri-build.log` on the box):
+  release binary in 2m40s (total 3m15s), `zencode-desktop` binary 33.3 MB.
+- Bundles: `ZenCode Desktop_0.1.0_amd64.deb` 9.36 MiB,
+  `ZenCode Desktop-0.1.0-1.x86_64.rpm` 9.36 MiB,
+  `ZenCode Desktop_0.1.0_amd64.AppImage` 109.29 MiB. No compile errors or
+  warnings; only linuxdeploy "Not calling strip" notices for bundled libs.
+- No `.sig` files were produced (unsigned build). Note: since 0.3-4 set
+  `bundle.createUpdaterArtifacts: true`, a local build without
+  `TAURI_SIGNING_PRIVATE_KEY` is expected to stop at the updater signing step
+  (Tauri behaviour, not yet re-verified here); local smoke builds can pass
+  `--config '{"bundle":{"createUpdaterArtifacts":false}}'`.
+- Next (part 2): run the AppImage headless (xvfb) smoke test; macOS/Windows
+  bundles need CI runners.

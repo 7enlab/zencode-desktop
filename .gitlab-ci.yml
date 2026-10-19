@@ -61,6 +61,18 @@ test:
   script:
     - cd engine && cargo test --locked
 
+node-test-ui:
+  stage: test
+  image: node:22-bookworm
+  before_script: []
+  cache: {}
+  rules:
+    - changes:
+        - desktop/src/**/*
+  script:
+    - node --version
+    - node --test desktop/src/*.test.js
+
 # Compile-check the Tauri desktop crate. Runs only when desktop files change,
 # since it needs GTK/WebKit system packages (not in the default image).
 desktop-check:

@@ -79,6 +79,8 @@ document.getElementById("tab-chat").onclick = () => showChatTab();
 document.getElementById("tab-timeline").onclick = () => showTimelineTab();
 /* R14 zero-telemetry Network tab. */
 document.getElementById("tab-network").onclick = () => showNetworkTab();
+/* D6 terminal tab. */
+document.getElementById("tab-terminal").onclick = () => showTerminalTab();
 
 /* Live-mode replay: pull the persisted log, then follow new envelopes. */
 async function replaySession(id) {
@@ -182,6 +184,9 @@ function applyEnvelope(env) {
     case "compact_boundary":
       box.append(wrapMsg("system", "", "— context compacted —"));
       break;
+    case "quota_state":
+      if (typeof RateGateUI !== "undefined") RateGateUI.onEnvelope(env);
+      break;
     default:
       console.warn("unknown envelope type", env.type);
   }
@@ -255,10 +260,23 @@ function setStatus(part, text) {
 
 /* ---------- mock backend: demo.ndjson player ---------- */
 let demoTimers = [];
+/* RateGate demo: cycle the quota meter through the 4 warning states. */
+let quotaDemoTimers = [];
+function demoQuotaCycle() {
+  quotaDemoTimers.forEach(clearTimeout); quotaDemoTimers = [];
+  if (typeof RateGateUI === "undefined" || !RateGateUI.init(document)) return;
+  const order = ["healthy", "approaching", "at_limit", "cooldown", "healthy"];
+  order.forEach((name, i) => {
+    quotaDemoTimers.push(setTimeout(() => {
+      RateGateUI.update(RateGateUI.MOCK_STATES[name]);
+    }, i * 4000));
+  });
+}
+
 async function playDemo() {
   demoTimers.forEach(clearTimeout); demoTimers = [];
   setStatus("model", "model: nemotron-3-nano:free");
-  setStatus("quota", "quota: 12/50 today");
+  demoQuotaCycle(); // RateGate demo: replaces static "quota: 12/50 today"
   setStatus("conn", "● mock");
   let lines;
   try {

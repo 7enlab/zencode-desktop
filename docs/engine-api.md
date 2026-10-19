@@ -104,6 +104,14 @@ re-review the insta snapshots. `parse_ndjson()` rejects lines with a missing (`v
 or newer version instead of misreading them — a CLI rev bump can never silently
 change what the UI sees; the contract tests fail first.
 
+**Additive variants are allowed in v1.** Adding a new variant to
+`DesktopEvent` (e.g. `SessionEnd`) does **not** bump `SCHEMA_VERSION`; only
+breaking changes to existing variants or fields do. Consumers must tolerate
+unknown variants (see the `Unknown { variant }` catch-all) rather than fail
+on them, because older readers will keep meeting newer event streams.
+`SCHEMA_VERSION` moves only when the envelope shape or an existing variant's
+meaning changes incompatibly.
+
 ## New modules
 
 **`prompt_budget` (g4).** Keeps the static prompt (system prompt + tool

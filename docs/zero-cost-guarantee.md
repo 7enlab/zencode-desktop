@@ -37,7 +37,19 @@ promotion, or a setting you can misconfigure. It is structural.
 
 - `FreeOnlyPolicy::validate_all(primary, fallbacks)` — call this on any new
   model-selection path you add (e.g. the RateGate/ModelChain integration).
+- `FreeOnlyPolicy::with_extra_allowlist(["my-lab/local-coder"])` — extends
+  the policy with extra zero-cost model ids. Local and self-hosted models
+  (Ollama, LM Studio, a relay) have no `:free` suffix, so the default policy
+  blocks them; add their exact ids here after verifying they cost nothing.
+  The engine's `run_task_with_sink` currently validates with
+  `FreeOnlyPolicy::default()`, so the extra allowlist is not yet exposed
+  through `RunOptions` or config — that exposure is an open follow-up.
 - `FREE_ALLOWLIST` — add an id here only after a real API call returns
   `usage.cost == 0.0`. Documentation claims are not enough.
+- Note on the guarantee's scope: the firewall validates the **model id
+  string** client-side before any network call. It cannot prove what a
+  remote gateway does with a `:free`-named route on its side of the wire —
+  "cannot bill you" means the app never attempts a paid model, not that a
+  dishonest gateway cannot mislabel one.
 - `cargo test -p zencode_engine cost_firewall` runs the firewall's test suite,
   including the proof that validation performs no I/O.

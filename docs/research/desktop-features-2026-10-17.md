@@ -62,7 +62,7 @@ Out of scope for v0.3.0 (noted for later): share-session links, slash commands/@
 1. **Architecture doc**: adopt D1–D3 as the Tauri shell's founding decisions (thin adapters, Channel streaming, day-one updater). The v0.3 step-2 ("Tauri 2 shell, one chat session via engine") is the vehicle.
 2. **g3 scope grows a UI half**: RateGate is not just engine middleware — D8 (meter + queue + auto-fallback UI) is what makes it a differentiator. Engine and UI should be designed together.
 3. **Ordering**: D4 (sessions) → D5 (checkpoints/diff) → D6 (terminal) matches existing steps 3–5; D7–D10 are step-2 polish items to schedule right after the first chat shell works.
-4. **Work split** (see Hub page "Muse 2 — phân công ZenCode Desktop 17/10/2026"):
+4. **Work split** (see Hub page "Muse 2 — ZenCode Desktop work split 2026-10-17"):
    - *Muse 2 (side branches, Hark 2 reviews)*: this proposal; Tauri shell scaffold (D1–D3); engine g2 (real `:free` run).
    - *Hark 2 (when quota returns)*: review; `rebuild/` → zencode-cowsay move; continue steps 3–5.
    - *CLI team*: stream-json version (F1); RateGate/token-budget placement (issue #10).

@@ -267,13 +267,48 @@ fn restore_checkpoint(session_id: String, checkpoint_id: String) -> Result<Resto
     })
 }
 
+/// Updater comparator: accept a remote release only if
+/// `zencode_engine::release_signing::check_update_offer` passes for this
+/// platform's entry (version newer than the running build, and bound to the
+/// signed artifact name). Any refusal is logged and treated as "no update".
+fn signed_version_comparator(current: &str, release: tauri_plugin_updater::RemoteRelease) -> bool {
+    let Some(target) = tauri_plugin_updater::target() else {
+        return false;
+    };
+    let (Ok(url), Ok(signature)) = (release.download_url(&target), release.signature(&target))
+    else {
+        eprintln!("updater: no manifest entry for {target}; ignoring update");
+        return false;
+    };
+    match zencode_engine::release_signing::check_update_offer(
+        current,
+        &release.version.to_string(),
+        url.as_str(),
+        signature,
+    ) {
+        Ok(()) => true,
+        Err(e) => {
+            eprintln!("updater: refusing update {}: {e}", release.version);
+            false
+        }
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         // Auto-update. `plugins.updater.pubkey` in tauri.conf.json holds the
         // release minisign public key (docs/keys/zencode-release.pub, see
         // docs/signed-releases.md); updates whose signature does not verify
-        // are refused by the plugin.
-        .plugin(tauri_plugin_updater::Builder::new().build())
+        // are refused by the plugin. On top of that, the signed-version check
+        // (0.3-4) refuses an offer whose manifest version is not the version
+        // named in the signed trusted comment, or is not newer than this build.
+        .plugin(
+            tauri_plugin_updater::Builder::new()
+                .default_version_comparator(|current, release| {
+                    signed_version_comparator(&current.to_string(), release)
+                })
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())

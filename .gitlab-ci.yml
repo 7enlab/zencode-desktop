@@ -4,8 +4,13 @@
 # defined here, and none denser than hourly may be added.
 #
 # The release-key-check job compares docs/keys/zencode-release.pub with the
-# updater pubkey in desktop/src-tauri/tauri.conf.json. It needs NO secret key:
-# the minisign private key must NEVER enter CI.
+# updater pubkey in desktop/src-tauri/tauri.conf.json. It needs NO secret key.
+#
+# Release signing runs ONLY in CI (0.3-4): the minisign key is stored in the
+# masked + protected CI variables TAURI_SIGNING_PRIVATE_KEY and
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD, so GitLab only exposes it to jobs on
+# protected branches/tags. Only the release-* jobs (protected vX.Y.Z tags) use
+# it; no other job may read it, and it must never be committed or printed.
 
 workflow:
   auto_cancel:
@@ -22,6 +27,7 @@ stages:
   - lint
   - test
   - security
+  - release
 
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/.cargo
@@ -71,3 +77,50 @@ release-key-check:
   cache: {}
   script:
     - sh tools/check-release-key.sh
+
+# --- Release (0.3-4): protected vX.Y.Z tags only --------------------------
+# Builds the Linux AppImage, re-signs it under a versioned name so the signed
+# trusted comment carries the version, writes latest.json, uploads both to the
+# generic package registry and creates the GitLab release whose latest.json
+# link backs the updater endpoint
+# (/-/releases/permalink/latest/downloads/latest.json).
+release-linux:
+  stage: release
+  interruptible: false
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+[.][0-9]+[.][0-9]+$/
+  cache: {}
+  variables:
+    APPIMAGE_EXTRACT_AND_RUN: "1"
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev file curl >/dev/null
+    - cargo install tauri-cli --version "^2" --locked
+  script:
+    - tools/release-linux.sh "$CI_COMMIT_TAG" dist/
+    - PKG="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/zencode-desktop/${CI_COMMIT_TAG}"
+    - 'for f in dist/*; do curl --fail --silent --show-error --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$f" "$PKG/$(basename "$f")"; echo; done'
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 30 days
+
+release-publish:
+  stage: release
+  needs: [release-linux]
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  before_script: []
+  cache: {}
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+[.][0-9]+[.][0-9]+$/
+  script:
+    - echo "Publishing $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: "ZenCode Desktop $CI_COMMIT_TAG"
+    description: "See CHANGELOG.md. Updater manifest: latest.json (signed-version checked)."
+    assets:
+      links:
+        - name: latest.json
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/zencode-desktop/${CI_COMMIT_TAG}/latest.json"
+          direct_asset_path: /latest.json

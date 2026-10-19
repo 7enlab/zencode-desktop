@@ -40,6 +40,22 @@ reason. The Tauri UI shows the declaration as a checklist card
 logs a `scope_expanded` system event — the audit trail shows exactly when
 the scope grew and by how much.
 
+## Limitations: a guard-rail, not a sandbox
+
+The Bash check is a **token heuristic**, not a security boundary. It
+substring-matches a small list of destructive patterns against the
+lowercased command text and checks path-like tokens of mutating commands
+(`rm`, `mv`, `cp`, `>`, …) against the declared scope. This is easy to
+bypass: `python -c`, backticks, `$HOME/x` expansion, `cd .. && …`,
+`find -delete` and similar tricks sail through untouched. Treat the Scope
+Guard as a **guard-rail** that catches accidents and honest mistakes —
+not a sandbox that stops a determined attacker. Paths are normalised
+lexically, not canonicalised, so symlinks can escape the root, and
+platform quirks (macOS `/tmp` vs `/private/tmp`, Windows
+case-insensitivity) can produce false denials or false allows. Real
+enforcement is the deferred OS-level sandbox (roadmap step e); until it
+lands, never rely on the scope guard to contain untrusted agents.
+
 ## Wiring
 
 `RunOptions.scope: Option<ScopeDecl>` — `None` preserves the previous

@@ -22,7 +22,7 @@ Khi (b)+(c)+(d) xong → lõi agent chạy được một vòng thật → tag `
 
 ## HƯỚNG MỚI 2026-10-17: dựa trên ZenCode CLI (Zen quyết định)
 ZenCode CLI = https://gitlab.com/atzenn/zencode (public, Rust workspace ~27k dòng: zen-core, zen-agent, zen-tools, zen-cli, zen-ext, zen-mcp). Đã có: vòng agent, client OpenAI-compatible + retry 429/5xx theo Retry-After + `fallback_models`, `edit_match.rs` sửa file linh hoạt, compaction, session event log replay byte-identical, hooks, MCP, sub-agent, background Bash, permissions, headless JSON, CI + cargo-audit. Desktop KHÔNG tự viết lại các phần này nữa; `core/` (zencode_core) đóng băng, giữ để tham khảo, không xóa.
-Desktop dùng crate CLI qua git dependency ghim rev (hiện `3a09220`), cập nhật rev có chủ đích. Chỉ có quyền đọc repo atzenn: cải tiến cho lõi thì làm lớp bọc trong Desktop + ghi đề xuất vào docs/upstream-proposals.md (khi có quyền Write thì gửi PR).
+The Desktop consumes the CLI crates through a pinned-rev git dependency (currently `3a09220`); rev bumps are deliberate. Only read access to the atzenn repo: core improvements go in a Desktop-side wrapper layer, and proposals are recorded in docs/upstream-proposals.md (send PRs once Write access is granted).
 
 | # | Bước | Trạng thái | Chứng minh |
 |---|------|-----------|------------|

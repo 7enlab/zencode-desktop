@@ -38,8 +38,9 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
 
 - [ ] **C3** 🟠 No sanitization or provenance marking for untrusted tool/skill
   content entering the model context. Sweep fixes closed the worst vectors
-  (C1 spawn-at-open, C2 pre-approval descriptions), but there is no general
-  provenance/sanitization layer. **Decision needed:** adopt a tagging scheme
+  (C1 spawn-at-open, C2 pre-approval descriptions) on their feature branches —
+  see the "What the sweep fixed" record below — but there is no general
+  provenance/sanitization layer on main. **Decision needed:** adopt a tagging scheme
   (e.g. wrap untrusted content in marked spans) as a follow-up epic.
 - [ ] **C6** 🟡 The skill-library approval store (`approved` in the manifest)
   has no bridge to the skill registry's approval set — approving in one place

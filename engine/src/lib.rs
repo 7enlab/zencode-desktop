@@ -61,6 +61,11 @@ pub struct RunOptions {
     /// `Some` = the caller keeps the [`telemetry::NetworkLog`] afterwards
     /// (the desktop Network tab passes one in).
     pub telemetry_log: Option<Arc<telemetry::NetworkLog>>,
+    /// R6 convergence guard (0.3-7). `None` (default) = off. `Some(policy)` =
+    /// detect repair loops; the first detection forces a re-plan (the next
+    /// tool call is refused with the re-plan prompt), a second one stops the
+    /// task. See [`convergence::ConvergenceMonitor`].
+    pub convergence: Option<convergence::ConvergencePolicy>,
 }
 
 impl RunOptions {
@@ -81,6 +86,7 @@ impl RunOptions {
             scope: None,
             dangerous_allow_all: false,
             telemetry_log: None,
+            convergence: None,
         }
     }
 }
@@ -217,6 +223,27 @@ pub async fn run_task_with_sink(
             )
         }
         None => (llm_inner, base_permissions),
+    };
+    // R6 convergence guard (opt-in): observes the agent's events, marks round
+    // boundaries at each model call, and gates tool calls. It wraps outermost
+    // so a forced re-plan or stop applies before budget and scope checks.
+    let (llm, permissions, sink): (
+        Arc<dyn LlmBackend>,
+        Arc<dyn PermissionChecker>,
+        Arc<dyn EventSink>,
+    ) = match &opts.convergence {
+        Some(policy) => {
+            let monitor = convergence::ConvergenceMonitor::new(policy.clone(), 1, sink.clone())?;
+            (
+                Arc::new(convergence::ConvergenceBackend::new(llm, monitor.clone())),
+                Arc::new(convergence::ConvergencePermissions::new(
+                    permissions,
+                    monitor.clone(),
+                )),
+                Arc::new(convergence::ConvergenceSink::new(sink, monitor)),
+            )
+        }
+        None => (llm, permissions, sink),
     };
     let config = AgentConfig {
         model: opts.model.clone(),

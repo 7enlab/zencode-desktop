@@ -11,6 +11,7 @@ pub mod scope;
 pub mod session_store;
 pub mod smart_router;
 pub mod sovereign;
+pub mod stream_json;
 pub mod telemetry;
 pub mod timeline;
 

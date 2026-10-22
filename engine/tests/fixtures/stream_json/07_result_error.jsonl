@@ -1,0 +1,1 @@
+{"v":1,"type":"result","subtype":"error","is_error":true,"result":"LLM request failed: 429 rate limited","session_id":"ses_abc123","total_cost_usd":0.0,"duration_ms":1200,"num_turns":1,"usage":{"input_tokens":800,"output_tokens":0}}

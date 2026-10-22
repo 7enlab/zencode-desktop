@@ -1,0 +1,1 @@
+{"v":1,"type":"system","subtype":"init","session_id":"ses_abc123","model":"cohere/north-mini-code:free","tools":["read","write","bash"]}

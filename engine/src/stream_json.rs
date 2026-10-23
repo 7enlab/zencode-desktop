@@ -9,13 +9,17 @@
 //! [`crate::events::DesktopEvent::Unknown`], mirroring this crate's
 //! "surface, never silently change" rule for future variants.
 //!
-//! # Open questions
+//! # Notes on the contract
 //!
-//! The authoritative `docs/stream-json-v1.md` (CLI team) had **not** been
-//! delivered when this module was written (DV-2). Every assumption taken from
-//! the CLI↔Desktop contract v1 as currently known is marked
-//! `DOCS-OPEN-QUESTION` below — reconcile each of them against that document
-//! when it lands, before wiring this parser into a release build.
+//! This module was first written from the CLI/Desktop contract v1 before the
+//! authoritative `docs/stream-json-v1.md` (CLI team, zen 0.1.0) landed. The
+//! open questions were reconciled against that
+//! document on 2026-10-23: assistant `content` is a plain string (omitted when
+//! the message only calls tools), tool calls arrive as OpenAI-style
+//! `message.tool_calls` (never Claude-style `tool_use` blocks), the `tools`
+//! list rides on `system/init`, `user` tool results are arrays of
+//! `tool_result` blocks, and the `result` line carries the `model` name. All
+//! five are handled below.
 
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
@@ -69,9 +73,8 @@ pub enum ContentBlock {
     },
     ToolResult {
         tool_use_id: String,
-        /// DOCS-OPEN-QUESTION: the contract is assumed to allow either a plain
-        /// string or an array of blocks here (Claude-Code-style); both are
-        /// normalized to text by [`tool_result_text`].
+        /// Per docs/stream-json-v1.md, `content` is the model-visible text;
+        /// arrays of blocks are normalized to text by [`tool_result_text`].
         #[serde(default)]
         content: Value,
         #[serde(default)]
@@ -84,15 +87,41 @@ pub enum ContentBlock {
     Unknown,
 }
 
+/// One OpenAI-style tool call on an `assistant` message's `tool_calls` field:
+/// `{id, type: "function", function: {name, arguments}}`, where `arguments`
+/// is a JSON-encoded string (docs/stream-json-v1.md, zen 0.1.0).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ToolCall {
+    pub id: String,
+    /// Always `"function"` in v1; kept for fidelity, never matched on.
+    #[serde(default)]
+    pub r#type: Option<String>,
+    pub function: ToolFunction,
+}
+
+/// The `function` payload of an OpenAI-style tool call.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ToolFunction {
+    pub name: String,
+    /// JSON-encoded argument string; passed through verbatim.
+    #[serde(default)]
+    pub arguments: String,
+}
+
 /// The `message` payload of `assistant` / `user` lines.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StreamMessage {
     #[serde(default)]
     pub role: Option<String>,
-    /// DOCS-OPEN-QUESTION: v1 is assumed to always emit `content` as an array
-    /// of blocks; a plain string is normalized to a single `text` block here.
+    /// `content` is a plain string on `assistant` lines (omitted when the
+    /// message only calls tools) and an array of `tool_result` blocks on
+    /// `user` lines. A string is normalized to a single `text` block here.
     #[serde(default, deserialize_with = "de_content_blocks")]
     pub content: Vec<ContentBlock>,
+    /// OpenAI-style tool calls on `assistant` lines (`message.tool_calls`);
+    /// omitted when the message calls no tools.
+    #[serde(default)]
+    pub tool_calls: Vec<ToolCall>,
 }
 
 fn de_content_blocks<'de, D>(d: D) -> Result<Vec<ContentBlock>, D::Error>
@@ -131,7 +160,7 @@ pub enum CliStreamEvent {
         subtype: String,
         #[serde(default)]
         session_id: Option<String>,
-        /// DOCS-OPEN-QUESTION: field name/shape of the tool list on `init`.
+        /// Tool names offered to the model, in registry order (on `init`).
         #[serde(default)]
         tools: Vec<String>,
         #[serde(default)]
@@ -158,10 +187,12 @@ pub enum CliStreamEvent {
         duration_ms: Option<u64>,
         #[serde(default)]
         num_turns: Option<u64>,
-        /// DOCS-OPEN-QUESTION: does the `result` line carry the model name?
-        /// Left empty (not guessed) — reconcile with docs/stream-json-v1.md.
         #[serde(default)]
         usage: StreamUsage,
+        /// The model that served this turn (present on every `result` line
+        /// per docs/stream-json-v1.md).
+        #[serde(default)]
+        model: Option<String>,
     },
     /// A line type this parser does not know. The raw `type` tag is kept on
     /// [`CliLine::line_type`]; the event surfaces as `DesktopEvent::Unknown`.
@@ -282,18 +313,26 @@ pub fn to_desktop_events(line: &CliLine) -> Vec<DesktopEvent> {
                 })
                 .collect::<Vec<_>>()
                 .join("");
-            let tool_calls = message
-                .content
+            // OpenAI-style `message.tool_calls` is the real v1 shape; the
+            // Claude-style `tool_use` blocks below are tolerated only
+            // (the v1 CLI never emits them).
+            let mut tool_calls: Vec<ToolCallInfo> = message
+                .tool_calls
                 .iter()
-                .filter_map(|b| match b {
-                    ContentBlock::ToolUse { id, name, input } => Some(ToolCallInfo {
-                        id: id.clone(),
-                        name: name.clone(),
-                        arguments: input.to_string(),
-                    }),
-                    _ => None,
+                .map(|tc| ToolCallInfo {
+                    id: tc.id.clone(),
+                    name: tc.function.name.clone(),
+                    arguments: tc.function.arguments.clone(),
                 })
                 .collect();
+            tool_calls.extend(message.content.iter().filter_map(|b| match b {
+                ContentBlock::ToolUse { id, name, input } => Some(ToolCallInfo {
+                    id: id.clone(),
+                    name: name.clone(),
+                    arguments: input.to_string(),
+                }),
+                _ => None,
+            }));
             vec![DesktopEvent::AssistantMessage {
                 text: if text.is_empty() { None } else { Some(text) },
                 tool_calls,
@@ -325,6 +364,7 @@ pub fn to_desktop_events(line: &CliLine) -> Vec<DesktopEvent> {
             duration_ms,
             num_turns,
             usage,
+            model,
             ..
         } => {
             vec![DesktopEvent::SessionEnd {
@@ -334,9 +374,7 @@ pub fn to_desktop_events(line: &CliLine) -> Vec<DesktopEvent> {
                 total_cost_usd: total_cost_usd.unwrap_or(0.0),
                 input_tokens: usage.input_tokens,
                 output_tokens: usage.output_tokens,
-                // DOCS-OPEN-QUESTION: model name on the `result` line — left
-                // empty rather than guessed; reconcile with docs/stream-json-v1.md.
-                model: String::new(),
+                model: model.clone().unwrap_or_default(),
                 duration_ms: duration_ms.unwrap_or(0),
                 claims_verified: 0,
                 claims_unverified: 0,

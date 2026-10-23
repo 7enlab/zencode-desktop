@@ -1,0 +1,1 @@
+{"v":1,"type":"result","subtype":"success","is_error":false,"result":"Xong.","session_id":"ses_m01","total_cost_usd":0.0,"duration_ms":9000,"num_turns":1,"usage":{"input_tokens":800,"output_tokens":120},"model":"cohere/north-mini-code:free"}

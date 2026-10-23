@@ -1,10 +1,11 @@
 //! Integration tests for the CLI stream-json v1 parser (DV-2).
 //!
 //! Fixtures live in `engine/tests/fixtures/stream_json/` as `.jsonl` files,
-//! one scenario each. They encode the CLI↔Desktop contract v1 as currently
-//! known; the authoritative `docs/stream-json-v1.md` (CLI team) had not been
-//! delivered when these were written — reconcile the marked open questions in
-//! `engine/src/stream_json.rs` when it lands.
+//! one scenario each. They encode the CLI/Desktop contract v1 per the
+//! authoritative `docs/stream-json-v1.md` (CLI team, zen 0.1.0), reconciled
+//! 2026-10-23: assistant `content` is a string (omitted when only calling
+//! tools), tool calls are OpenAI-style `message.tool_calls` with JSON-encoded
+//! `arguments`, and the `result` line carries `model`.
 
 use std::path::PathBuf;
 
@@ -80,7 +81,7 @@ fn parses_assistant_tool_use() {
         DesktopEvent::AssistantMessage { text, tool_calls, .. } => {
             assert_eq!(text.as_deref(), Some("Đọc file:"));
             assert_eq!(tool_calls.len(), 1);
-            assert_eq!(tool_calls[0].id, "toolu_01");
+            assert_eq!(tool_calls[0].id, "call_read_01");
             assert_eq!(tool_calls[0].name, "read");
             assert!(tool_calls[0].arguments.contains("tauri.conf.json"), "{}", tool_calls[0].arguments);
         }
@@ -217,4 +218,48 @@ fn exit_codes_follow_contract_v1() {
     assert_eq!(interpret_exit_code(143), CliExit::Terminated);
     assert_eq!(interpret_exit_code(2), CliExit::Other(2));
     assert_eq!(interpret_exit_code(-1), CliExit::Other(-1));
+}
+
+#[test]
+fn parses_assistant_tool_calls_without_text() {
+    // content is omitted when the message only calls tools (docs v1).
+    let events = project("11_assistant_tool_calls_no_text.jsonl");
+    assert_eq!(events.len(), 1);
+    match &events[0] {
+        DesktopEvent::AssistantMessage { text, tool_calls, .. } => {
+            assert_eq!(text, &None);
+            assert_eq!(tool_calls.len(), 1);
+            assert_eq!(tool_calls[0].id, "call_task_1");
+            assert_eq!(tool_calls[0].name, "Task");
+            assert!(
+                tool_calls[0].arguments.contains("Explore"),
+                "{}",
+                tool_calls[0].arguments
+            );
+        }
+        other => panic!("unexpected event: {other:?}"),
+    }
+}
+
+#[test]
+fn parses_result_model() {
+    let events = project("12_result_with_model.jsonl");
+    assert_eq!(events.len(), 1);
+    match &events[0] {
+        DesktopEvent::SessionEnd { success, model, .. } => {
+            assert!(success);
+            assert_eq!(model, "cohere/north-mini-code:free");
+        }
+        other => panic!("unexpected event: {other:?}"),
+    }
+}
+
+#[test]
+fn result_without_model_defaults_to_empty() {
+    let events = project("06_result_success.jsonl");
+    assert_eq!(events.len(), 1);
+    match &events[0] {
+        DesktopEvent::SessionEnd { model, .. } => assert_eq!(model, ""),
+        other => panic!("unexpected event: {other:?}"),
+    }
 }

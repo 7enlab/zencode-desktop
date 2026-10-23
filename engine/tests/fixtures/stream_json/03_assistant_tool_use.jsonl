@@ -1,1 +1,1 @@
-{"v":1,"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Đọc file:"},{"type":"tool_use","id":"toolu_01","name":"read","input":{"path":"tauri.conf.json"}}]}}
+{"v":1,"type":"assistant","message":{"role":"assistant","content":"Đọc file:","tool_calls":[{"id":"call_read_01","type":"function","function":{"name":"read","arguments":"{\"path\":\"tauri.conf.json\"}"}}]}}

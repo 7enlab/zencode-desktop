@@ -6,6 +6,21 @@
 # The release-key-check job compares docs/keys/zencode-release.pub with the
 # updater pubkey in desktop/src-tauri/tauri.conf.json. It needs NO secret key.
 #
+# Cargo git dependencies come from the PRIVATE mirror
+# https://gitlab.com/atzenn/zencode.git, so every cargo job must authenticate
+# its git fetch. Cargo tries git's credential.helper and fails when none is
+# configured, which fails clippy/test/deny before any code is compiled.
+# Auth resolution, in order:
+#   1. ZENCODE_MIRROR_CREDS (masked CI variable, format
+#      "gitlab+deploy-token-<n>:<token>") from a read_repository deploy token
+#      on atzenn/zencode, when set.
+#   2. CI_JOB_TOKEN, which works only when atzenn/zencode allowlists
+#      atzenn/zencode-desktop under Settings > CI/CD > Token Access.
+# The variable must be masked but NOT protected, otherwise merge-request
+# pipelines from unprotected branches never receive it and fail the same way.
+# CARGO_NET_GIT_FETCH_WITH_CLI makes cargo fetch through the git CLI so the
+# stored credential is honoured.
+#
 # Release signing runs ONLY in CI (0.3-4): the minisign key is stored in the
 # masked + protected CI variables TAURI_SIGNING_PRIVATE_KEY and
 # TAURI_SIGNING_PRIVATE_KEY_PASSWORD, so GitLab only exposes it to jobs on
@@ -32,11 +47,15 @@ stages:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/.cargo
   CARGO_NET_RETRY: "10"
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 
 default:
   image: rust:1-bookworm
   interruptible: true
   before_script:
+    - git config --global credential.helper store
+    - if [ -n "$ZENCODE_MIRROR_CREDS" ]; then echo "https://${ZENCODE_MIRROR_CREDS}@gitlab.com" > ~/.git-credentials; else echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com" > ~/.git-credentials; fi
+    - chmod 600 ~/.git-credentials
     - rustup component add rustfmt clippy
     - rustc --version && cargo --version
 
@@ -79,6 +98,9 @@ desktop-check:
   stage: test
   image: rust:latest
   before_script:
+    - git config --global credential.helper store
+    - if [ -n "$ZENCODE_MIRROR_CREDS" ]; then echo "https://${ZENCODE_MIRROR_CREDS}@gitlab.com" > ~/.git-credentials; else echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com" > ~/.git-credentials; fi
+    - chmod 600 ~/.git-credentials
     - rustc --version && cargo --version
     - apt-get update -y && apt-get install -y --no-install-recommends
         pkg-config build-essential curl wget file
@@ -98,6 +120,9 @@ desktop-check:
 cargo-deny:
   stage: security
   before_script:
+    - git config --global credential.helper store
+    - if [ -n "$ZENCODE_MIRROR_CREDS" ]; then echo "https://${ZENCODE_MIRROR_CREDS}@gitlab.com" > ~/.git-credentials; else echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com" > ~/.git-credentials; fi
+    - chmod 600 ~/.git-credentials
     - cargo install --locked cargo-deny
     - cargo deny --version
   script:

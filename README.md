@@ -48,7 +48,7 @@ Legacy files kept for reference: `PLAN.md` (old), `RESEARCH.md`, `RELEASE-GATE-v
 
 ## Rules
 
-- **Never use `main`.** All work on `muse2/*` branches, opened as MRs for Hark 2's review.
+- **Never use `main`.** All work on `dev/*` (developer) or `lead/*` (leader) branches, opened as MRs for Z App's review.
 - **Free-only.** Only `:free` / local models in development and testing. Never spend money.
 - **English** in repo (commits, docs, MRs); Vietnamese in reports/Notion.
 - Release gate: before tagging, run context7 → ocr → e2e → rea → bughunter; tag only when all clean.

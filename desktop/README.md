@@ -42,7 +42,7 @@ error — nothing is faked. Finished runs are persisted via `SessionStore`.
 The D3 design (`docs/research/d3-plugins-updater-2026-10-17.md`, PR #18)
 specifies 11 day-one plugins. The g6 scaffold spec additionally requires
 `autostart`, `os`, `clipboard-manager`, and `positioner`. This scaffold
-registers the **union (15)** — Hark 2 may trim:
+registers the **union (15)** — Z App may trim:
 
 | Plugin | Purpose |
 |---|---|
@@ -77,7 +77,7 @@ registers the **union (15)** — Hark 2 may trim:
 - [ ] Real app icons in `src-tauri/icons/` (currently solid-color PNG
       placeholders + stub .icns/.ico — replace with real branded icons
       before `tauri build`; `cargo check` only needs the files to exist).
-- [ ] `tauri-action` workflow for signed per-OS builds (Hark 2 — needs
+- [ ] `tauri-action` workflow for signed per-OS builds (Z App — needs
       `workflow` scope; the 7enlab token lacks it).
 
 ## What's next (engine wiring)

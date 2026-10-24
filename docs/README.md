@@ -53,5 +53,5 @@ Every document in `docs/` (and the security audit in `audit/`), one line each.
 ## Roadmap to docs
 
 - **New contributors:** read `docs/desktop-architecture.md` → `docs/engine-api.md` → `docs/research/competitors-2026-10-17.md`; when stuck, `docs/troubleshooting.md`.
-- **Hark 2 (reviewing PRs):** `docs/release-checklist-v0.3.0.md` for merge order; `docs/engine-api.md` for the API surface; `docs/e2e/` transcripts for run proof.
+- **Z App (reviewing PRs):** `docs/release-checklist-v0.3.0.md` for merge order; `docs/engine-api.md` for the API surface; `docs/e2e/` transcripts for run proof.
 - **CLI team (atzenn/zencode):** `docs/upstream-proposals.md` (U1–U6), plus issues #10, #19, #20, #21 on atzenn/zencode.

@@ -1,6 +1,6 @@
 # D5 — Checkpoints timeline + per-hunk diff (design)
 
-Status: design only, for Hark 2's implementation. Verified against `origin/main` 2026-10-17.
+Status: design only, for Z App's implementation. Verified against `origin/main` 2026-10-17.
 
 ## Research
 
@@ -101,7 +101,7 @@ needed (nothing changed). If approved, the checkpoint is taken *before* executio
    - Selective: reverse-apply only the chosen hunks via `similar`.
    - Returns `{restored_files, skipped_new_files, new_checkpoint_id}`.
 
-**Open questions for Hark 2:**
+**Open questions for Z App:**
 1. Shadow repo per workspace or per project? (Per workspace is simpler; per project shares history.)
 2. Retention policy: keep all checkpoints, or prune (e.g. keep last 100, or 7 days)?
 3. Should Bash-tool checkpoints be automatic (heuristic risk) or manual-only to avoid noise?

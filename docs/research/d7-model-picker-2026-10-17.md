@@ -1,6 +1,6 @@
 # D7 — Free-Only Model Picker
 
-**Date:** 2026-10-17 · **Status:** Design (for Hark 2's g6 UI work)
+**Date:** 2026-10-17 · **Status:** Design (for Z App's g6 UI work)
 **Constraint:** FREE-ONLY is a locked project decision. Paid usage needs Zen's approval.
 
 ---
@@ -137,7 +137,7 @@ engine `ensure_free_model` hard-blocks before any network call.
 5. The registry file is data, not policy — the `:free` suffix check does not
    depend on the registry being present or fresh.
 
-### Open questions for Hark 2
+### Open questions for Z App
 
 1. **Registry location:** bundle inside the Tauri app resources, or
    `~/.zencode/models.json` with a shipped default? (Impacts update flow.)

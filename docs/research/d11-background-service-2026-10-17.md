@@ -1,6 +1,6 @@
 # D11 — Background Service (tray icon, headless tasks)
 
-*Design only. Author: Muse 2, 2026-10-17. For Hark 2 (g6).*
+*Design only. Author: ZD Leader, 2026-10-17. For Z App (g6).*
 
 ## Research
 
@@ -81,7 +81,7 @@ and opens the window.
    `zencode://open` deep link (or re-running the binary, via single-instance)
    restores the window.
 
-**Open questions for Hark 2:**
+**Open questions for Z App:**
 
 1. macOS: should Cmd+Q quit outright (platform norm) or also confirm when idle?
    Leaning: confirm only when a task is running.

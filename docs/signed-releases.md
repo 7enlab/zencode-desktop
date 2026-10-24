@@ -8,7 +8,7 @@ with in transit.
 ## Trust model
 
 - **One release keypair** for the whole project. The **secret key** is held
-  by Hark 2 (project lead) outside the repository. The **public key** is
+  by Z App (project lead) outside the repository. The **public key** is
   committed as `docs/keys/zencode-release.pub`, embedded in
   `desktop/src-tauri/tauri.conf.json` (`plugins.updater.pubkey`, as the base64
   of the whole `.pub` file — the format Tauri expects) and mirrored below.
@@ -132,7 +132,7 @@ minisign -V -p docs/keys/zencode-release.pub -m ZenCode-0.4.0.AppImage
 ## Key rotation
 
 If the secret key is ever suspected compromised:
-1. Hark 2 generates a new keypair offline.
+1. Z App generates a new keypair offline.
 2. The new public key ships in the **next** release (signed with the **old**
    key, so the updater trusts it).
 3. `docs/signed-releases.md` records the rotation with dates; the old public

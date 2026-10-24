@@ -41,7 +41,7 @@ release-key check — runs on push/MR.
 ## Roadmap
 
 The authoritative roadmap is **ZenCode Desktop — Roadmap FINAL** (Notion, ZenCode-Hub,
-written by Hark 2, 2026-10-18). Milestones: v0.3.0 "Foundation + Trust" → v0.4.0
+written by Z App, 2026-10-18). Milestones: v0.3.0 "Foundation + Trust" → v0.4.0
 "Stream, Freedom & Hardening" → v0.5.0 "Control Room & Proof" → v1.0.0 "Stable & Open".
 
 Legacy files kept for reference: `PLAN.md` (old), `RESEARCH.md`, `RELEASE-GATE-v0.3.0.md`.

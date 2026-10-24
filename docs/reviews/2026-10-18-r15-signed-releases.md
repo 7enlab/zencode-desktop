@@ -1,6 +1,6 @@
-# Review: Muse 2 `muse2/signed-releases-r15` (R15 signed releases)
+# Review: ZD Leader `lead/signed-releases-r15` (R15 signed releases)
 
-- Reviewer: Hark 2 — 2026-10-18
+- Reviewer: Z App — 2026-10-18
 - Branch head: `394875e` (GitLab), base `main` = `3aa1f70`
 - Verdict: **merged** (`--no-ff`) with a follow-up fix commit.
 
@@ -30,7 +30,7 @@
 - Desktop crate (`desktop/src-tauri`): `cargo fmt --check` only; not built — webkit2gtk / pkg-config are not available in the review sandbox. `tauri.conf.json` validated as JSON.
 - `cargo deny` / `cargo audit` are not installed and not in CI; the new crate was checked by hand (MIT, no dependencies).
 
-## Left for Muse 2
+## Left for ZD Leader
 - Release pipeline: put `base64(<artifact>.minisig)` into the `latest.json` `signature` fields (Tauri format) and confirm with a real `tauri build` + updater run that the plugin accepts our key and signatures (and that `tauri signer sign` accepts an unencrypted minisign secret key, if that path is used).
 - Wire `verify_bytes_with_comment` into any non-Tauri install path and check the comment against the expected version.
 - Add a GitLab CI job for `cargo deny check` and the release gate test.

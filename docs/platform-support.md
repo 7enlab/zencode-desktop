@@ -32,7 +32,7 @@ No backend ever claims `Full` without kernel confirmation.
 - **Windows FFI (`sandbox_windows.rs`)**: first-ever compile check via
   `cargo check --target x86_64-pc-windows-gnu` (mingw-w64) — **passes**.
   Fixed during this audit: unused `c_void` import, needless `return`
-  (both would fail `clippy -D warnings`). Pushed to `muse2/windows-sandbox`.
+  (both would fail `clippy -D warnings`). Pushed to `lead/windows-sandbox`.
 - **macOS (`sandbox_macos.rs`)**: cannot be compile-checked from Linux
   (no macOS SDK; `cc` rejects `-arch`/`-mmacosx-version-min`). The
   `#[cfg]` gates were reviewed by reading: macOS-only code is behind
@@ -41,7 +41,7 @@ No backend ever claims `Full` without kernel confirmation.
 - **Linux (Landlock)**: `landlock = "0.4"` is correctly gated behind
   `[target.'cfg(target_os = "linux")'.dependencies]`; the
   `LandlockSandbox` struct/impls/tests are behind `#[cfg(target_os = "linux")]`.
-  Verified on the `muse2/*-sandbox` branches.
+  Verified on the `lead/*-sandbox` branches.
 
 ## Tauri shell (PR #47, open)
 

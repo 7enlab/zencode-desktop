@@ -14,7 +14,7 @@
 - Next ideas: measure real terminal width via ioctl/WinAPI (still std-only via FFI), optional ANSI colors (--rainbow like Neo-cowsay), push private repo to GitHub for real CI on macOS/Windows.
 
 ## 2026-10-16 — GitHub + Real CI
-- **Research**: Windows checkout defaults `core.autocrlf=true` turning golden `.out` and cowfiles into CRLF → parity fail on Windows (21 cases). Hark GitHub App has contents/workflows/actions write on all repos but no administration (cannot create repo, cannot edit description/topics).
+- **Research**: Windows checkout defaults `core.autocrlf=true` turning golden `.out` and cowfiles into CRLF → parity fail on Windows (21 cases). The GitHub App has contents/workflows/actions write on all repos but no administration (cannot create repo, cannot edit description/topics).
 - **Ideas**: `.gitattributes` force LF for golden/cowfiles; later add release job (tag → build binary 3 OS → GitHub Release), commit `Cargo.lock`, clippy/fmt job.
 - **Result**: private repo `7enlab/zencode-desktop`, 2 commits on `main`. CI run 38897073575: ubuntu ✅ macOS ✅ windows ✅ (first Windows fail due to CRLF, fixed). Artifacts binary for 3 OS. Added LICENSE, CHANGELOG, .editorconfig, Cargo metadata, CI runs only on push main/PR/dispatch, read-only permissions, concurrency.
 

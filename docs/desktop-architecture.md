@@ -65,5 +65,5 @@ Desktop fixes:
 7. Hard-coded system prompt → use the CLI prompt builder.
 8. RateGate and token budget belong in the CLI: open issues labelled `desktop` on atzenn/zencode instead of writing Desktop wrappers (replaces the earlier v0.3.0 RateGate/budget gate; v0.3.0 gate = PLAN-v0.3 milestone).
 9. Create `docs/upstream-proposals.md`; proposals go out as issues (CLI repo is public).
-10. Merge the three "Added" sections in CHANGELOG, remove frozen `core/` from CI, add `cargo audit`; consider moving `rebuild/` (cowsay) to its own repo (needs Zen — Hark cannot create repos).
+10. Merge the three "Added" sections in CHANGELOG, remove frozen `core/` from CI, add `cargo audit`; consider moving `rebuild/` (cowsay) to its own repo (needs Zen — Z App cannot create repos).
 CLI team (track only; open an issue if not yet filed): 11 `#[non_exhaustive]` on `AgentEvent`; 12 publish `docs/stream-json-v1.md` + NDJSON fixtures; 13 Bash tool on Windows; 14 release tags so Desktop pins a tag instead of a hash.

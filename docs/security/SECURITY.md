@@ -1,6 +1,6 @@
 # SECURITY.md — Open Security Decisions (R7 sweep, 2026-10-17)
 
-These items were found by the adversarial R7 security sweep but need **Hark 2's
+These items were found by the adversarial R7 security sweep but need **Z App's
 design decision** (or a follow-up PR) rather than a unilateral fix. Each is a
 checkbox: check it when the decision is made and the fix lands.
 

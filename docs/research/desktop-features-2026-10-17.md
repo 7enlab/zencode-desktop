@@ -3,7 +3,7 @@
 > Follows up on `docs/research/competitors-2026-10-17.md` (CLI/engine focus, 12 features).
 > This doc covers the **desktop GUI layer only**: what a Tauri 2 shell around the engine should do,
 > based on two new studies done today. Method: web research, primary sources preferred, marked below.
-> Author: Muse 2 (side branch, awaiting Hark 2's review).
+> Author: ZD Leader (side branch, awaiting Z App's review).
 
 ---
 
@@ -62,9 +62,9 @@ Out of scope for v0.3.0 (noted for later): share-session links, slash commands/@
 1. **Architecture doc**: adopt D1–D3 as the Tauri shell's founding decisions (thin adapters, Channel streaming, day-one updater). The v0.3 step-2 ("Tauri 2 shell, one chat session via engine") is the vehicle.
 2. **g3 scope grows a UI half**: RateGate is not just engine middleware — D8 (meter + queue + auto-fallback UI) is what makes it a differentiator. Engine and UI should be designed together.
 3. **Ordering**: D4 (sessions) → D5 (checkpoints/diff) → D6 (terminal) matches existing steps 3–5; D7–D10 are step-2 polish items to schedule right after the first chat shell works.
-4. **Work split** (see Hub page "Muse 2 — ZenCode Desktop work split 2026-10-17"):
-   - *Muse 2 (side branches, Hark 2 reviews)*: this proposal; Tauri shell scaffold (D1–D3); engine g2 (real `:free` run).
-   - *Hark 2 (when quota returns)*: review; `rebuild/` → zencode-cowsay move; continue steps 3–5.
+4. **Work split** (see Hub page "ZD Leader — ZenCode Desktop work split 2026-10-17"):
+   - *ZD Leader (side branches, Z App reviews)*: this proposal; Tauri shell scaffold (D1–D3); engine g2 (real `:free` run).
+   - *Z App (when quota returns)*: review; `rebuild/` → zencode-cowsay move; continue steps 3–5.
    - *CLI team*: stream-json version (F1); RateGate/token-budget placement (issue #10).
 
 ## Limitations

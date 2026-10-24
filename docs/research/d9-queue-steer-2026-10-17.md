@@ -1,6 +1,6 @@
 # D9 — Message Queue + Steer (design)
 
-**Date:** 2026-10-17 · **Status:** design only, for Hark 2 (g6) · **Author:** Muse 2
+**Date:** 2026-10-17 · **Status:** design only, for Z App (g6) · **Author:** ZD Leader
 
 ## Research
 
@@ -49,7 +49,7 @@ pub async fn run_loop(
 - `steer(text)` — appends a `steer`; the engine injects it as a user message at the next tool-result boundary. If no tool is running (pure LLM streaming), it is injected before the next turn instead — never mid-token-stream.
 - `interrupt(reason)` — sets the cancellation flag; the current turn ends at the next boundary with `SessionEnd{success:false, interrupted:true}` (new field, additive). Queued entries are preserved; the UI asks whether to start a new turn with the first queued message.
 
-**Open questions for Hark 2.**
+**Open questions for Z App.**
 1. Should a steer also be visible in the transcript as a distinct `user_steer` event, or as a plain user message with a flag?
 2. Interrupt during a destructive tool (Write/Edit/Bash): finish the tool or kill it mid-write? (Killing risks half-written files — D5 checkpoints mitigate.)
 3. Queue cap and overflow policy: reject new input, or drop the oldest queued entry?

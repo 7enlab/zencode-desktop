@@ -37,7 +37,7 @@ fi
 if grep -q "PLACEHOLDER" "$TAURI_CONF"; then
   echo "ERROR: updater pubkey in tauri.conf.json is still PLACEHOLDER." >&2
   echo "Generate the release keypair and publish the public key first" >&2
-  echo "(see docs/signed-releases.md, blocker for Hark 2)." >&2
+  echo "(see docs/signed-releases.md, blocker for Z App)." >&2
   exit 1
 fi
 

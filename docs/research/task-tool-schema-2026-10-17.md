@@ -182,4 +182,4 @@ Emitted on: spawn, completion, failure, cancellation. The existing `parent_tool_
 
 ---
 
-*Design by Muse 2, 2026-10-17. No implementation. Awaiting team review before any code is written.*
+*Design by ZD Leader, 2026-10-17. No implementation. Awaiting team review before any code is written.*

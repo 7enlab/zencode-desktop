@@ -2,7 +2,7 @@
 
 ## Research
 
-The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-core`) as pinned git dependencies and, in headless mode, the `zen -p ... --output-format stream-json` contract. While building the engine (PRs #1–#9) and reviewing the stream-json contract, Muse 2 found several issues that can only be fixed in the CLI repo. This file collects them; each is actionable by the CLI team. Desktop-side workarounds are noted where they exist.
+The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-core`) as pinned git dependencies and, in headless mode, the `zen -p ... --output-format stream-json` contract. While building the engine (PRs #1–#9) and reviewing the stream-json contract, ZD Leader found several issues that can only be fixed in the CLI repo. This file collects them; each is actionable by the CLI team. Desktop-side workarounds are noted where they exist.
 
 ## Ideas (proposals)
 
@@ -50,39 +50,39 @@ The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-cor
 
 ## Results — what Desktop does meanwhile
 
-- All Desktop-side mitigations above are implemented on `muse2/*` branches and proposed as PRs; none touch CLI code.
+- All Desktop-side mitigations above are implemented on `lead/*` branches and proposed as PRs; none touch CLI code.
 - When the CLI team accepts a proposal, Desktop adopts it and drops the workaround; until then the workarounds stay.
 - New findings go here first; once filed upstream, they should become issues in atzenn/zencode with the `desktop` label.
 
 ## Desktop branches parked for the CLI team (2026-10-18 review)
 
-These `muse2/*` branches on `gitlab.com/7enlab/zencode-desktop` implement agent-core behaviour.
+These `lead/*` branches on `gitlab.com/7enlab/zencode-desktop` implement agent-core behaviour.
 They are **not** merged into Desktop. Each line is a pointer for the CLI team (`gitlab.com/atzenn/zencode`):
 read the branch, port the idea into the CLI, then Desktop consumes it through a rev bump.
-Full verdict table: `docs/reviews/2026-10-18-muse2-branches.md`.
+Full verdict table: `docs/reviews/2026-10-18-lead-branches.md`.
 
 | Branch | Proposal for the CLI |
 |---|---|
-| `muse2/agent-skills` | Skill discovery/loading in the agent loop (SKILL.md registry). |
-| `muse2/skills-index` | Skill index/search on top of agent-skills (depends on it). |
-| `muse2/approval-flow` | Interactive tool-approval flow in the permission checker (pairs with U3). |
-| `muse2/compaction` | Context compaction strategy in the agent loop. |
-| `muse2/g3-rategate` | RateGate / token-budget gate (see U4). |
-| `muse2/g4-prompt-budget` | Prompt budgeting (`prompt_budget.rs`); drop the bundled spec-kit scaffold. |
-| `muse2/integration-test` | Agent-loop integration tests; belong next to the loop. |
-| `muse2/linux-sandbox` | OS sandbox for Bash on Linux (zen-tools). |
-| `muse2/macos-sandbox` | OS sandbox for Bash on macOS (zen-tools). |
-| `muse2/windows-sandbox` | OS sandbox for Bash on Windows (zen-tools). |
-| `muse2/wasmtime-sandbox` | WASM sandbox for tools (zen-tools). |
-| `muse2/atomic-writes` | Atomic file writes for Write/Edit tools (zen-tools), incl. Windows readonly fix. |
-| `muse2/memory-polish` | Agent memory handling. |
-| `muse2/p2-pretooluse-hook` | PreToolUse hook (see U3). |
-| `muse2/p3-read-tracking` | Read-before-edit tracking in the tool layer. |
-| `muse2/parallel-tools` | Parallel tool execution in the agent loop. |
-| `muse2/plan-mode` | Plan mode in the agent loop. |
-| `muse2/repo-map` | Repository map for context building. |
-| `muse2/smart-router` | In-loop model routing (Desktop keeps the pure `smart_router.rs` from R10 for model choice). |
-| `muse2/user-learning` | Learning user preferences across sessions. |
-| `muse2/verify-loop`, `muse2-verify-loop` | Verify loop `--until` (re-run tests until green). |
+| `lead/agent-skills` | Skill discovery/loading in the agent loop (SKILL.md registry). |
+| `lead/skills-index` | Skill index/search on top of agent-skills (depends on it). |
+| `lead/approval-flow` | Interactive tool-approval flow in the permission checker (pairs with U3). |
+| `lead/compaction` | Context compaction strategy in the agent loop. |
+| `lead/g3-rategate` | RateGate / token-budget gate (see U4). |
+| `lead/g4-prompt-budget` | Prompt budgeting (`prompt_budget.rs`); drop the bundled spec-kit scaffold. |
+| `lead/integration-test` | Agent-loop integration tests; belong next to the loop. |
+| `lead/linux-sandbox` | OS sandbox for Bash on Linux (zen-tools). |
+| `lead/macos-sandbox` | OS sandbox for Bash on macOS (zen-tools). |
+| `lead/windows-sandbox` | OS sandbox for Bash on Windows (zen-tools). |
+| `lead/wasmtime-sandbox` | WASM sandbox for tools (zen-tools). |
+| `lead/atomic-writes` | Atomic file writes for Write/Edit tools (zen-tools), incl. Windows readonly fix. |
+| `lead/memory-polish` | Agent memory handling. |
+| `lead/p2-pretooluse-hook` | PreToolUse hook (see U3). |
+| `lead/p3-read-tracking` | Read-before-edit tracking in the tool layer. |
+| `lead/parallel-tools` | Parallel tool execution in the agent loop. |
+| `lead/plan-mode` | Plan mode in the agent loop. |
+| `lead/repo-map` | Repository map for context building. |
+| `lead/smart-router` | In-loop model routing (Desktop keeps the pure `smart_router.rs` from R10 for model choice). |
+| `lead/user-learning` | Learning user preferences across sessions. |
+| `lead/verify-loop`, `lead-verify-loop` | Verify loop `--until` (re-run tests until green). |
 
-- **CLI: declare a license** (Hark 2, 2026-10-18): `zen-core`, `zen-agent`, `zen-tools` have no `license` field and the repo has no LICENSE file, so `cargo deny check licenses` flags them as unlicensed. Desktop marks them `LicenseRef-ZenCode-FirstParty` in `deny.toml` until the CLI adds `license = "..."` to its workspace `Cargo.toml`.
+- **CLI: declare a license** (Z App, 2026-10-18): `zen-core`, `zen-agent`, `zen-tools` have no `license` field and the repo has no LICENSE file, so `cargo deny check licenses` flags them as unlicensed. Desktop marks them `LicenseRef-ZenCode-FirstParty` in `deny.toml` until the CLI adds `license = "..."` to its workspace `Cargo.toml`.

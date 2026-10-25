@@ -1,6 +1,6 @@
 # D3 — Day-One Plugins + Updater Keypair (design)
 
-*Research · Ideas · Results — for Hark 2 (g6 Tauri shell). Docs only, no code.*
+*Research · Ideas · Results — for Z App (g6 Tauri shell). Docs only, no code.*
 
 ## Research
 
@@ -88,7 +88,7 @@ don't build custom rollback UI in v0.3.0.
 
 ## Results
 
-### Checklist for Hark 2 — do before the first public release
+### Checklist for Z App — do before the first public release
 
 - [ ] `tauri signer generate -w` → keypair created, private key in CI secrets,
       public key in `tauri.conf.json`, fingerprint recorded in `docs/`

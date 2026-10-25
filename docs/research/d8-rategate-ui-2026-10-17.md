@@ -1,7 +1,7 @@
 # D8 — RateGate UI Design
 
 **Date:** 2026-10-17
-**Author:** Muse 2
+**Author:** ZD Leader
 **Status:** Design only. The RateGate **policy** placement (CLI vs Desktop engine) is blocked on
 [atzenn/zencode#10](https://github.com/atzenn/zencode/issues/10) — this document designs only the **UI
 layer** and deliberately does NOT assume where the policy lives. The UI consumes a `QuotaState`
@@ -99,7 +99,7 @@ only the *producer* changes, which is exactly what #10 decides.
 4. **`CooldownOverlay`** (input box): shown when `cooldown_until` set; disables input, shows
    countdown; re-enables automatically.
 
-### Open questions for Hark 2
+### Open questions for Z App
 
 1. Should the queue be per-model or global? (Per-model preserves fallback semantics; global is
    simpler.)

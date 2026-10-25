@@ -81,14 +81,14 @@ rendering is coalesced.
 
 ## 3. Results
 
-Concrete deliverables for the implementer (Hark 2, g6):
+Concrete deliverables for the implementer (Z App, g6):
 1. `pub trait StreamEmitter: Send + Sync { fn emit(&self, event: DesktopEvent); }`
    in `engine/src/stream.rs`, plus `ChannelEmitter`, `BatchingEmitter`,
    `BroadcastSink`, and `RecordingSink::record` as sketched above.
 2. Wiring: `run_task_with_sink` unchanged; the Tauri command builds the
    `BroadcastSink` per run.
 
-### Open questions for Hark 2
+### Open questions for Z App
 1. One `Channel` per run vs one global event bus with `run_id` filtering? I
    recommend per-run channels; flag if multi-window needs the bus.
 2. Should TextDelta batching live in Rust (`BatchingEmitter`) or purely in the

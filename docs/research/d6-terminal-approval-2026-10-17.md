@@ -1,6 +1,6 @@
 # D6 — Embedded Terminal + Approval UI (design)
 
-*Status: design only, for Hark 2's g6 (Tauri UI). No implementation.*
+*Status: design only, for Z App's g6 (Tauri UI). No implementation.*
 
 ## Research
 
@@ -60,7 +60,7 @@ struct TerminalTab { pty: Box<dyn MasterPty>, child: Box<dyn Child>, tx: Channel
 ```
 Approval card → `PreToolUseHook::on_tool_use(tool, args)` → returns `Allow | Deny(reason) | Modify(new_args)`; the agent loop awaits the decision (with a 5-min timeout → Deny).
 
-**Open questions for Hark 2:**
+**Open questions for Z App:**
 1. Should the terminal share the approval policy (e.g. warn before pasting a command containing `rm -rf`), or stay fully manual?
 2. Session allowlist persistence: per-project opt-in file vs memory-only — which default?
 3. Destructive-tier pattern list: ship a built-in denylist, or let the user define everything from empty?

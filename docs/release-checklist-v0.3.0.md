@@ -1,7 +1,7 @@
 # v0.3.0 Release Checklist
 
 Tag v0.3.0 per PLAN.md when: **g5 eval ≥5/10 passes + CI green on 3 OS**.
-Owner of merges: Hark 2 (Muse 2 never merges). All PRs below are open on `7enlab/zencode-desktop`.
+Owner of merges: Z App (ZD Leader never merges). All PRs below are open on `7enlab/zencode-desktop`.
 
 ## 1. Pre-conditions — PRs that must merge first
 
@@ -9,12 +9,12 @@ Owner of merges: Hark 2 (Muse 2 never merges). All PRs below are open on `7enlab
 |---|---|---|
 | g1 | (on main) | engine + fake-LLM tests, CI 3 OS |
 | s1 | (on main, `eb5d364`) | event schema v1 + contract tests |
-| g2 | #3 `muse2/g2-smoke` | real `:free` run, 2 turns, $0.0 |
-| g2+g5 | #4 `muse2/claude-learnings` | `zencode run`/`eval` binary, eval 10/10 pass |
-| g4 | #6 `muse2/g4-prompt-budget` | prompt ≤1200 tokens, fail-fast |
-| g3 | #33 `muse2/g3-rategate` | daily quota + model fallback |
-| g3 infra | #8 `muse2/p2-pretooluse-hook` | PreToolUse hook point |
-| base | #1 `muse2/rev-bump-04b742e` | CLI rev 04b742e + `Unknown` event arm |
+| g2 | #3 `lead/g2-smoke` | real `:free` run, 2 turns, $0.0 |
+| g2+g5 | #4 `lead/claude-learnings` | `zencode run`/`eval` binary, eval 10/10 pass |
+| g4 | #6 `lead/g4-prompt-budget` | prompt ≤1200 tokens, fail-fast |
+| g3 | #33 `lead/g3-rategate` | daily quota + model fallback |
+| g3 infra | #8 `lead/p2-pretooluse-hook` | PreToolUse hook point |
+| base | #1 `lead/rev-bump-04b742e` | CLI rev 04b742e + `Unknown` event arm |
 
 Merge order: #1 → #3 → #4 → #6 → #8 → #33. Docs-only PRs (#2, #5, #7, #10–#22, #24, #25, #27–#29, #38) may merge any time; code PRs #23, #26, #30–#32, #34–#37, #39–#41 are v0.4.0/v0.5.0 scope and must NOT block v0.3.0.
 
@@ -25,10 +25,10 @@ Gate checks before tagging:
 
 ## 2. Blockers to resolve
 
-- [ ] **Hark 2 review queue** — 41 open PRs; the 8 in §1 are release-critical
+- [ ] **Z App review queue** — 41 open PRs; the 8 in §1 are release-critical
 - [ ] **atzenn/zencode#10** (RateGate placement) — #33 is engine-side; if CLI team claims it, drop #33 from the release
-- [ ] **PR #4 CI fix** — commit `4715479` (`scrub_duration_ms`) must be pushed to `muse2/claude-learnings` or the insta snapshot flakes on CI
-- [ ] **PR #17 workflow push** — the supply-chain CI job commit exists locally only; needs a token with `workflow` scope (Hark 2) or it stays out of v0.3.0
+- [ ] **PR #4 CI fix** — commit `4715479` (`scrub_duration_ms`) must be pushed to `lead/claude-learnings` or the insta snapshot flakes on CI
+- [ ] **PR #17 workflow push** — the supply-chain CI job commit exists locally only; needs a token with `workflow` scope (Z App) or it stays out of v0.3.0
 
 ## 3. Release steps
 

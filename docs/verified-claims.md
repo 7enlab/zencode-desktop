@@ -80,7 +80,7 @@ wherever it runs.
 ## Merge notes
 
 - `SessionEnd` + `emit_session_end_with_claims` are vendored from PR #4
-  (`muse2-sessionend`) and extended with `claims_verified/unverified/contradicted`.
+  (`lead-sessionend`) and extended with `claims_verified/unverified/contradicted`.
   When both PRs merge, keep PR #4's fields AND the claim fields — exactly one
   `SessionEnd` variant must survive.
 - The verify-loop wiring (`attach_verify_evidence` ← `VerifyReport`) activates

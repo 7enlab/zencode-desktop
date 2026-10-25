@@ -82,7 +82,7 @@ corrupt/missing, rebuild by scanning `*.ndjson` headers (first user message + fi
 **Invariants:** `.ndjson` files are append-only (except fork-truncate at creation); `index.json`
 is always rebuildable; every index entry has a matching `.ndjson` (orphans pruned on rebuild).
 
-**Open questions for Hark 2:**
+**Open questions for Z App:**
 1. Session scope: global `~/.zencode/sessions/` only, or also per-project `.zencode/sessions/`
    in cwd (PR #4 used the latter)? Which is canonical for the UI?
 2. Fork semantics: copy full history (simple, chosen above) or start a fresh log that

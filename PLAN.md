@@ -1,7 +1,7 @@
 # PLAN — ZenCode Desktop
 
 > **SUPERSEDED.** The authoritative roadmap is **ZenCode Desktop — Roadmap FINAL**
-> (Notion, ZenCode-Hub, written by Hark 2, 2026-10-18). This file is kept for history.
+> (Notion, ZenCode-Hub, written by Z App, 2026-10-18). This file is kept for history.
 > Milestones: v0.3.0 "Foundation + Trust" → v0.4.0 "Stream, Freedom & Hardening" →
 > v0.5.0 "Control Room & Proof" → v1.0.0 "Stable & Open".
 
@@ -45,7 +45,7 @@ The Desktop consumes the CLI crates through a pinned-rev git dependency (current
 - Tool / sandbox denial errors are returned to the model as a `tool` message "ERROR: ..."; LLM / log / step limit errors end the turn and are logged as `Event::Error`.
 
 ## Infrastructure
-- Sandbox Hark may lose `gcc` after a restart → `cargo test` reports "linker `cc` not found". Fix: `sudo -n apt-get update -qq && sudo -n apt-get install -y -qq gcc libc6-dev`.
+- The sandbox may lose `gcc` after a restart → `cargo test` reports "linker `cc` not found". Fix: `sudo -n apt-get update -qq && sudo -n apt-get install -y -qq gcc libc6-dev`.
 
 ## Failures
 - (none)

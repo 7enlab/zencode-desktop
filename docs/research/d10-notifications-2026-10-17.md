@@ -1,6 +1,6 @@
 # D10 — Completion Notifications
 
-**Date:** 2026-10-17 · **Status:** design proposal for Hark 2 (g6) · **Docs only**
+**Date:** 2026-10-17 · **Status:** design proposal for Z App (g6) · **Docs only**
 
 ## Research
 
@@ -65,7 +65,7 @@ assuming the app hung.
 2. Never notify when the app window is focused — use the in-app event feed instead.
 3. `approval_needed` always plays the default sound; others are silent by default.
 
-**Open questions for Hark 2:**
+**Open questions for Z App:**
 1. Should `still_working` milestones be configurable (interval, on/off), or fixed at 15 min?
 2. Linux action-button support is DE-dependent — acceptable to degrade to click-to-open?
 3. Do we need notification history in-app, or is the session list sufficient?

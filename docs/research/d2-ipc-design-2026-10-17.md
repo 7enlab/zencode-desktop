@@ -115,7 +115,7 @@ function flush() {
 await invoke('run_agent', { prompt, onEvent });
 ```
 
-### Open questions for Hark 2
+### Open questions for Z App
 
 1. Large payloads: a `ToolResult` can be megabytes (spill files). Send whole over the
    channel, or truncate on the wire with a "view full" pointer into the NDJSON log?

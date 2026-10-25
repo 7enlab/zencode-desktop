@@ -18,7 +18,7 @@ the project was opened.
 3. Desktop spawns every configured MCP server at session start — no approval
    gate — and the payload runs with the user's privileges.
 
-## Fix (from sweep branch `muse2/security-sweep`, commit `bc7179f`)
+## Fix (from sweep branch `lead/security-sweep`, commit `bc7179f`)
 
 `engine/src/mcp.rs` was changed so project-scope servers are never spawned
 automatically:
@@ -42,6 +42,6 @@ startup (`pending_servers()` accessor).
 **This branch contains only this record — no code changes.** `mcp.rs` does not
 exist on `main` (the MCP integration is an unmerged feature branch). The fix
 rides with the MCP feature branch when it merges; the sweep branch
-`muse2/security-sweep` (commit `bc7179f`) holds the reference implementation.
+`lead/security-sweep` (commit `bc7179f`) holds the reference implementation.
 This MR exists so the Critical finding is tracked as a standalone reviewable
 unit, per roadmap FINAL §0A (W-7).

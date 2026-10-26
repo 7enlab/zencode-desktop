@@ -1,0 +1,54 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  CARGO_TERM_COLOR: always
+jobs:
+  lint:
+    name: lint ${{ matrix.crate }} (fmt + clippy, 3 targets)
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [rebuild, core, engine]
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: '${{ matrix.crate }}' } }
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy --no-self-update
+      - run: rustup target add x86_64-pc-windows-msvc aarch64-apple-darwin
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - if: matrix.crate != 'engine'   # ring (rustls) cannot cross-build to msvc/apple from linux; engine is built natively on all 3 OS in the test job
+        run: cargo clippy --locked --all-targets --target x86_64-pc-windows-msvc -- -D warnings
+      - if: matrix.crate != 'engine'   # ring (rustls) cannot cross-build to msvc/apple from linux; engine is built natively on all 3 OS in the test job
+        run: cargo clippy --locked --all-targets --target aarch64-apple-darwin -- -D warnings
+  test:
+    name: test ${{ matrix.crate }} (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        crate: [rebuild, core, engine]
+    runs-on: ${{ matrix.os }}
+    defaults: { run: { working-directory: '${{ matrix.crate }}' } }
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - run: cargo build --release --locked
+      - run: cargo test --release --locked   # rebuild: includes golden parity (tests/parity.rs)
+      - if: matrix.crate == 'rebuild'
+        uses: actions/upload-artifact@v5
+        with:
+          name: cowsay-${{ matrix.os }}
+          path: |
+            rebuild/target/release/cowsay
+            rebuild/target/release/cowsay.exe
+          if-no-files-found: ignore

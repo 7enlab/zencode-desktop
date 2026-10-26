@@ -1,0 +1,185 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push"
+    
+    
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "api"
+
+stages:
+  - lint
+  - test
+  - security
+  - release
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  CARGO_NET_RETRY: "10"
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+
+default:
+  image: rust:1-bookworm
+  interruptible: true
+  before_script:
+    - git config --global credential.helper store
+    - if [ -n "$ZENCODE_MIRROR_CREDS" ]; then echo "https://${ZENCODE_MIRROR_CREDS}@gitlab.com" > ~/.git-credentials; else echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com" > ~/.git-credentials; fi
+    - chmod 600 ~/.git-credentials
+    - rustup component add rustfmt clippy
+    - rustc --version && cargo --version
+
+cache:
+  key: cargo-$CI_COMMIT_REF_SLUG
+  paths:
+    - .cargo/
+    - engine/target/
+
+fmt:
+  stage: lint
+  script:
+    - cd engine && cargo fmt --check
+
+clippy:
+  stage: lint
+  script:
+    - cd engine && cargo clippy --all-targets -- -D warnings
+
+test:
+  stage: test
+  script:
+    - cd engine && cargo test --locked
+
+node-test-ui:
+  stage: test
+  image: node:22-bookworm
+  before_script: []
+  cache: {}
+  rules:
+    - changes:
+        - desktop/src/**/*
+  script:
+    - node --version
+    - node --test desktop/src/*.test.js
+
+
+
+desktop-check:
+  stage: test
+  image: rust:latest
+  before_script:
+    - git config --global credential.helper store
+    - if [ -n "$ZENCODE_MIRROR_CREDS" ]; then echo "https://${ZENCODE_MIRROR_CREDS}@gitlab.com" > ~/.git-credentials; else echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com" > ~/.git-credentials; fi
+    - chmod 600 ~/.git-credentials
+    - rustc --version && cargo --version
+    - apt-get update -y && apt-get install -y --no-install-recommends
+        pkg-config build-essential curl wget file
+        libwebkit2gtk-4.1-dev libxdo-dev libssl-dev
+        libayatana-appindicator3-dev librsvg2-dev
+  cache:
+    key: cargo-desktop-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cargo/
+      - desktop/src-tauri/target/
+  script:
+    - cd desktop/src-tauri && cargo check --locked
+  rules:
+    - changes:
+        - desktop/**/*
+
+cargo-deny:
+  stage: security
+  before_script:
+    - git config --global credential.helper store
+    - if [ -n "$ZENCODE_MIRROR_CREDS" ]; then echo "https://${ZENCODE_MIRROR_CREDS}@gitlab.com" > ~/.git-credentials; else echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com" > ~/.git-credentials; fi
+    - chmod 600 ~/.git-credentials
+    - cargo install --locked cargo-deny
+    - cargo deny --version
+  script:
+    
+    - cargo deny --manifest-path engine/Cargo.toml check licenses advisories bans
+
+release-key-check:
+  stage: security
+  image: alpine:latest
+  before_script: []
+  cache: {}
+  script:
+    - sh tools/check-release-key.sh
+
+
+
+
+
+
+
+release-linux:
+  stage: release
+  interruptible: false
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+[.][0-9]+[.][0-9]+$/
+  cache: {}
+  variables:
+    APPIMAGE_EXTRACT_AND_RUN: "1"
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev file curl >/dev/null
+    - cargo install tauri-cli --version "^2" --locked
+  script:
+    - tools/release-linux.sh "$CI_COMMIT_TAG" dist/
+    - PKG="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/zencode-desktop/${CI_COMMIT_TAG}"
+    - 'for f in dist/*; do curl --fail --silent --show-error --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$f" "$PKG/$(basename "$f")"; echo; done'
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 30 days
+
+release-publish:
+  stage: release
+  needs: [release-linux]
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  before_script: []
+  cache: {}
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+[.][0-9]+[.][0-9]+$/
+  script:
+    - echo "Publishing $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: "ZenCode Desktop $CI_COMMIT_TAG"
+    description: "See CHANGELOG.md. Updater manifest: latest.json (signed-version checked)."
+    assets:
+      links:
+        - name: latest.json
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/zencode-desktop/${CI_COMMIT_TAG}/latest.json"
+          direct_asset_path: /latest.json

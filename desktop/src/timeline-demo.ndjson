@@ -1,0 +1,12 @@
+{"v":1,"seq":0,"type":"system_message","event":"session_start","text":"Session demo-timeline · model nemotron-3-nano:free"}
+{"v":1,"seq":1,"type":"assistant_message","text":null,"tool_calls":[{"id":"t1","name":"Read","arguments":"{\"path\":\"src/main.rs\"}"}],"parent_tool_use_id":null}
+{"v":1,"seq":2,"type":"tool_result","tool_use_id":"t1","content":"src/main.rs (48 lines)\nfn main() { println!(\"hello\"); }","is_error":false,"parent_tool_use_id":null}
+{"v":1,"seq":3,"type":"system_message","event":"checkpoint","text":"checkpoint a1b2c3d before seq 4"}
+{"v":1,"seq":4,"type":"assistant_message","text":null,"tool_calls":[{"id":"t2","name":"Edit","arguments":"{\"path\":\"src/main.rs\",\"old\":\"println!(\\\"hello\\\")\",\"new\":\"tracing::info!(\\\"hello\\\")\"}"}],"parent_tool_use_id":null}
+{"v":1,"seq":5,"type":"tool_result","tool_use_id":"t2","content":"src/main.rs: replaced println! with tracing::info! (1 match)","is_error":false,"parent_tool_use_id":null}
+{"v":1,"seq":6,"type":"system_message","event":"checkpoint","text":"checkpoint e4f5a6b before seq 7"}
+{"v":1,"seq":7,"type":"assistant_message","text":null,"tool_calls":[{"id":"t3","name":"Write","arguments":"{\"path\":\"src/lib.rs\",\"content\":\"pub fn version() -> &'static str { \\\"0.1.0\\\" }\"}"}],"parent_tool_use_id":null}
+{"v":1,"seq":8,"type":"tool_result","tool_use_id":"t3","content":"src/lib.rs: wrote 1 file (68 bytes)","is_error":false,"parent_tool_use_id":null}
+{"v":1,"seq":9,"type":"assistant_message","text":null,"tool_calls":[{"id":"t4","name":"Bash","arguments":"{\"command\":\"rm -rf /tmp/scratch\"}"}],"parent_tool_use_id":null}
+{"v":1,"seq":10,"type":"permission_denied","tool_name":"Bash","tool_use_id":"t4"}
+{"v":1,"seq":11,"type":"system_message","event":"session_end","text":"Session ended: 4 actions, 2 files changed, 0 billed"}

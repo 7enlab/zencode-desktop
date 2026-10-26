@@ -1,9 +1,9 @@
-/* ZenCode Desktop — RateGate UI (D8 design, docs/research/d8-rategate-ui-2026-10-17.md).
+/* ZenCode Desktop - RateGate UI (D8 design, docs/research/d8-rategate-ui-2026-10-17.md).
  * Vanilla JS, no framework. Consumes the D8 `QuotaState` JSON interface (v1):
  *   { v, minute: {used, limit, resets_at}, daily: {...}, queue_depth,
  *     active_model, fallback: {active, from, to, reason, at} | null,
  *     cooldown_until, policy_owner }
- * The policy interface is TBD pending atzenn/zencode#10 — this module never
+ * The policy interface is TBD pending atzenn/zencode#10 - this module never
  * calls the policy, it only renders QuotaState pushed to it.
  */
 (function (root, factory) {
@@ -55,7 +55,7 @@
   /* ---------- QuotaMeter (status bar) ---------- */
   function createQuotaMeter(doc, host) {
     var wrap = el(doc, "span", "quota-meter");
-    var label = el(doc, "span", "qm-label", "⚡ —/—");
+    var label = el(doc, "span", "qm-label", "⚡ -/-");
     var bars = el(doc, "span", "qm-bars");
     var minBar = el(doc, "span", "qbar qbar-min");
     var dayBar = el(doc, "span", "qbar qbar-day");
@@ -123,7 +123,7 @@
         var resetTxt = "";
         if (qs.daily && qs.daily.resets_at) resetTxt = " (resets " + fmtCountdown(qs.daily.resets_at) + ")";
         msg.textContent =
-          "🔀 Switched to " + fb.to + " — " + fb.from + " " +
+          "🔀 Switched to " + fb.to + " - " + fb.from + " " +
           String(fb.reason || "unavailable").replace(/_/g, " ") + resetTxt;
         banner.classList.remove("hidden");
       },
@@ -147,7 +147,7 @@
         if (timer) { clearInterval(timer); timer = null; }
         return;
       }
-      txt.textContent = "⏳ Cooling down — retry in " + fmtCountdown(qs.cooldown_until);
+      txt.textContent = "⏳ Cooling down - retry in " + fmtCountdown(qs.cooldown_until);
     }
 
     return {
@@ -174,7 +174,7 @@
     if (qs.queue_depth > 0) {
       chip.textContent = "⏳ Queued (" + qs.queue_depth + ")";
       chip.classList.remove("hidden");
-      chip.title = qs.queue_depth + " task(s) queued — auto-retry when quota frees up";
+      chip.title = qs.queue_depth + " task(s) queued - auto-retry when quota frees up";
     } else {
       chip.textContent = "";
       chip.classList.add("hidden");

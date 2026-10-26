@@ -17,7 +17,7 @@ instead of asking the user to take the agent's word for it.
 |---|---|
 | `Claim` | One agent assertion: `{ id, kind, statement, evidence, status }` |
 | `ClaimKind` | `TestRun` · `FileWritten` · `CommandExecuted` · `BuildPassed` · `ExternalFact` |
-| `Evidence` | `{ kind, detail, verified }` — `verified=true` supports, `false` refutes |
+| `Evidence` | `{ kind, detail, verified }` - `verified=true` supports, `false` refutes |
 | `ClaimStatus` | `Unverified` → `Verified` / `Contradicted` |
 | `ClaimCounts` | `{ verified, unverified, contradicted }` for the SessionEnd summary |
 
@@ -62,7 +62,7 @@ recording_sink.emit_session_end_with_claims(&result, &counts);
 ## Detection heuristics
 
 `detect_claims` fires only on explicit completion assertions ("tests pass",
-"build succeeds", "file written", "command succeeded") — never on plans or
+"build succeeds", "file written", "command succeeded") - never on plans or
 intentions. `ExternalFact` is deliberately NOT auto-detected.
 
 `ClaimingSink` additionally watches `ToolResult` events: for Bash invocations
@@ -81,7 +81,7 @@ wherever it runs.
 
 - `SessionEnd` + `emit_session_end_with_claims` are vendored from PR #4
   (`lead-sessionend`) and extended with `claims_verified/unverified/contradicted`.
-  When both PRs merge, keep PR #4's fields AND the claim fields — exactly one
+  When both PRs merge, keep PR #4's fields AND the claim fields - exactly one
   `SessionEnd` variant must survive.
 - The verify-loop wiring (`attach_verify_evidence` ← `VerifyReport`) activates
   when PR #32 merges; until then the bridge is tested standalone.

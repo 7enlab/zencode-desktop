@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cross-platform check for ZenCode Desktop — what can be verified from Linux.
+# Cross-platform check for ZenCode Desktop - what can be verified from Linux.
 # macOS target check requires the Apple SDK and is CI's job (see docs/platform-support.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."

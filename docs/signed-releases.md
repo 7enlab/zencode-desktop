@@ -11,7 +11,7 @@ with in transit.
   by Z App (project lead) outside the repository. The **public key** is
   committed as `docs/keys/zencode-release.pub`, embedded in
   `desktop/src-tauri/tauri.conf.json` (`plugins.updater.pubkey`, as the base64
-  of the whole `.pub` file — the format Tauri expects) and mirrored below.
+  of the whole `.pub` file - the format Tauri expects) and mirrored below.
 - The Tauri auto-updater **refuses to install** any update whose signature
   does not verify against the embedded public key. There is no bypass.
 - Git tags are informational only; the signature on the artifact is what
@@ -115,7 +115,7 @@ minisign -V -p docs/keys/zencode-release.pub -m ZenCode-0.4.0.AppImage
   - `endpoints`: release metadata URLs. **Must point at GitLab**
     (`https://gitlab.com/7enlab/zencode-desktop/-/releases/...`) while the
     GitHub account is suspended; GitHub endpoints are kept as fallback only.
-  - `active: true`, `dialog: true` — the user always sees and confirms updates.
+  - `active: true`, `dialog: true` - the user always sees and confirms updates.
 - `desktop/src-tauri/src/main.rs` registers `tauri_plugin_updater`. The plugin
   verifies the Ed25519 signature of the downloaded bundle **before**
   installation; a bad signature aborts the update with an error dialog.
@@ -125,7 +125,7 @@ minisign -V -p docs/keys/zencode-release.pub -m ZenCode-0.4.0.AppImage
   `verify_bytes_with_comment` returns the verified trusted comment so a caller
   can bind it to the expected version/file name (anti-downgrade);
   `updater_public_key(tauri_conf)` extracts and validates the embedded key.
-  It uses `minisign-verify` (zero dependencies, verification only — the same
+  It uses `minisign-verify` (zero dependencies, verification only - the same
   crate `tauri-plugin-updater` uses) and rejects legacy non-prehashed
   signatures.
 

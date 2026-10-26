@@ -1,5 +1,5 @@
 "use strict";
-/* ZenCode Desktop — R8 60-second onboarding.
+/* ZenCode Desktop - R8 60-second onboarding.
  *
  * Goal: a first-time user opens the app and runs their first task with a
  * free model within 60 seconds.
@@ -10,7 +10,7 @@
  * free endpoints to auto-detect a working model.
  *
  * Persistence: localStorage key "zencode.onboarding.v1".
- * The raw BYOK key is NEVER stored here — only a provider label + key
+ * The raw BYOK key is NEVER stored here - only a provider label + key
  * reference (the real secret stays in the OS keychain / Secure Vault).
  */
 
@@ -58,13 +58,13 @@ const BAN_RISK = Object.freeze({
   anthropic: {
     level: "HIGH",
     message:
-      "Do NOT sign in with a Claude Pro/Max subscription here — Anthropic bans " +
+      "Do NOT sign in with a Claude Pro/Max subscription here - Anthropic bans " +
       "third-party apps using subscription OAuth. Use an Anthropic API key instead.",
   },
   google: {
     level: "HIGH",
     message:
-      "Do NOT sign in with Google AI Ultra / Antigravity here — Google issues " +
+      "Do NOT sign in with Google AI Ultra / Antigravity here - Google issues " +
       "mass 403 bans for third-party subscription use and may affect your whole " +
       "Google account. Use an AI Studio API key instead.",
   },
@@ -77,18 +77,18 @@ const BAN_RISK = Object.freeze({
 
 function banRiskFor(provider) {
   const key = String(provider || "").toLowerCase();
-  return BAN_RISK[key] || { level: "UNKNOWN", message: "Unknown provider — proceed with caution." };
+  return BAN_RISK[key] || { level: "UNKNOWN", message: "Unknown provider - proceed with caution." };
 }
 
 /* ------------------------------------------------------------------ */
-/* State machine (pure logic — no DOM)                                 */
+/* State machine (pure logic - no DOM)                                 */
 /* ------------------------------------------------------------------ */
 
 class OnboardingStateMachine {
   constructor() {
     this.step = OnboardingStep.WELCOME;
     this.selectedModel = null; // { id, label, baseUrl }
-    this.byok = null; // { provider, keyRef } — keyRef only, never the raw key
+    this.byok = null; // { provider, keyRef } - keyRef only, never the raw key
     this.demoCompleted = false;
     this.startedAt = Date.now();
   }
@@ -274,7 +274,7 @@ function buildDemoRequest(model) {
 }
 
 /* ------------------------------------------------------------------ */
-/* UI (DOM) — kept separate from the state machine                     */
+/* UI (DOM) - kept separate from the state machine                     */
 /* ------------------------------------------------------------------ */
 
 class OnboardingUI {
@@ -316,7 +316,7 @@ class OnboardingUI {
 
     switch (this.machine.step) {
       case OnboardingStep.WELCOME:
-        label.textContent = "Step 1 of 3 — Welcome";
+        label.textContent = "Step 1 of 3 - Welcome";
         nextBtn.textContent = "Get started →";
         body.innerHTML = `
           <h2>⬢ Welcome to ZenCode Desktop</h2>
@@ -324,7 +324,7 @@ class OnboardingUI {
           <p>In the next 60 seconds you'll pick a <strong>free</strong> model and run your first task.</p>`;
         break;
       case OnboardingStep.MODEL_SELECT:
-        label.textContent = "Step 2 of 3 — Pick a free model";
+        label.textContent = "Step 2 of 3 - Pick a free model";
         nextBtn.textContent = "Use this model →";
         body.innerHTML = `
           <h2>Pick a free model</h2>
@@ -338,7 +338,7 @@ class OnboardingUI {
         this.renderModelList(body);
         break;
       case OnboardingStep.BYOK_SETUP: {
-        label.textContent = "Step 2 of 3 — Bring your own key";
+        label.textContent = "Step 2 of 3 - Bring your own key";
         nextBtn.textContent = "Continue →";
         const risk = banRiskFor(this._byokProvider || "openai");
         body.innerHTML = `
@@ -352,7 +352,7 @@ class OnboardingUI {
           </label>
           <div id="ob-banwarn" class="banwarn banwarn-${risk.level.toLowerCase()}">⚠ [${risk.level}] ${risk.message}</div>
           <label>API key reference <input id="ob-keyref" type="text" placeholder="e.g. keychain / vault ref" /></label>
-          <p class="hint">Your key is stored in the OS keychain — never in plain text.</p>`;
+          <p class="hint">Your key is stored in the OS keychain - never in plain text.</p>`;
         const sel = body.querySelector("#ob-provider");
         sel.addEventListener("change", () => {
           this._byokProvider = sel.value;
@@ -364,11 +364,11 @@ class OnboardingUI {
         break;
       }
       case OnboardingStep.DEMO_TASK:
-        label.textContent = "Step 3 of 3 — First task";
+        label.textContent = "Step 3 of 3 - First task";
         nextBtn.textContent = "Run demo task ⚡";
         body.innerHTML = `
           <h2>Run your first task</h2>
-          <p>Model: <strong>${this.machine.selectedModel ? this.machine.selectedModel.label : "—"}</strong></p>
+          <p>Model: <strong>${this.machine.selectedModel ? this.machine.selectedModel.label : "-"}</strong></p>
           <p class="hint">"${DEMO_PROMPT}"</p>
           <div id="ob-demo-out" class="demo-out hidden"></div>`;
         break;
@@ -390,8 +390,8 @@ class OnboardingUI {
     const aliveIds = new Set(alive.map((r) => r.id));
     const def = recommendedDefaultModel(alive);
     status.textContent = alive.length > 0
-      ? `✓ ${alive.length} free model(s) responding — recommended: ${def.label}`
-      : "Could not reach free endpoints — showing defaults (you can still continue).";
+      ? `✓ ${alive.length} free model(s) responding - recommended: ${def.label}`
+      : "Could not reach free endpoints - showing defaults (you can still continue).";
     list.innerHTML = FREE_MODELS.map((m) => `
       <li><label>
         <input type="radio" name="ob-model" value="${m.id}" ${m.id === def.id ? "checked" : ""} />
@@ -458,7 +458,7 @@ class OnboardingUI {
       }
       out.textContent = text.trim();
     } catch (e) {
-      out.textContent = `Demo task failed (${e.message}). You can still finish setup — the app works offline with local models.`;
+      out.textContent = `Demo task failed (${e.message}). You can still finish setup - the app works offline with local models.`;
     } finally {
       nextBtn.disabled = false;
       nextBtn.textContent = "Finish ✓";
@@ -502,7 +502,7 @@ function maybeStartOnboarding({ document, storage, onFinish }) {
   return ui;
 }
 
-/* Node test hook — DOM classes are exported but only constructed with a document. */
+/* Node test hook - DOM classes are exported but only constructed with a document. */
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     OnboardingStep,

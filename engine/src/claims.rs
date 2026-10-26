@@ -24,15 +24,15 @@ use zen_core::{AgentEvent, EventSink};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ClaimKind {
-    /// "tests pass" — needs test output as evidence.
+    /// "tests pass" - needs test output as evidence.
     TestRun,
-    /// "file written" — needs the checkpoint diff / read-back as evidence.
+    /// "file written" - needs the checkpoint diff / read-back as evidence.
     FileWritten,
-    /// "command ran" — needs exit code / output as evidence.
+    /// "command ran" - needs exit code / output as evidence.
     CommandExecuted,
-    /// "build succeeds" — needs build output as evidence.
+    /// "build succeeds" - needs build output as evidence.
     BuildPassed,
-    /// "the API returns X" — needs a tool result as evidence.
+    /// "the API returns X" - needs a tool result as evidence.
     ExternalFact,
 }
 
@@ -215,7 +215,7 @@ fn evaluate(evidence: &[Evidence]) -> ClaimStatus {
 
 /// Heuristic: find assertions in assistant text and classify them.
 ///
-/// Conservative on purpose — it only fires on explicit completion claims
+/// Conservative on purpose - it only fires on explicit completion claims
 /// ("tests pass", "build succeeds", ...), never on plans or intentions.
 /// [`ClaimKind::ExternalFact`] is intentionally NOT auto-detected: factual
 /// claims about the outside world need deliberate registration.
@@ -468,7 +468,7 @@ mod tests {
     fn never_auto_verified_without_evidence() {
         let r = ClaimRegistry::new();
         let id = r.register_claim(ClaimKind::BuildPassed, "build succeeds");
-        // verify() only recomputes — no evidence means it stays Unverified.
+        // verify() only recomputes - no evidence means it stays Unverified.
         assert_eq!(r.verify(id), Some(ClaimStatus::Unverified));
         assert_eq!(r.counts().unverified, 1);
         assert_eq!(r.counts().verified, 0);

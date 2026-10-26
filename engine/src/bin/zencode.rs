@@ -1,6 +1,6 @@
-//! `zencode run "<task>"` — headless agent run against a `:free` model channel,
+//! `zencode run "<task>"` - headless agent run against a `:free` model channel,
 //! saving the session as NDJSON. PLAN step g2.
-//! `zencode eval` — run 10 small tasks, print a metrics table. PLAN step g5.
+//! `zencode eval` - run 10 small tasks, print a metrics table. PLAN step g5.
 //!
 //! Usage:
 //!   zencode run "<task>" [--model M] [--cwd DIR] [--max-turns N] [--session-dir DIR]
@@ -8,7 +8,7 @@
 //!
 //! Env (all optional):
 //!   ZENCODE_BASE_URL  OpenAI-compatible base URL (default: Kilo anonymous free tier)
-//!   ZENCODE_API_KEY   Bearer <redacted> (default: none — anonymous free tier)
+//!   ZENCODE_API_KEY   Bearer <redacted> (default: none - anonymous free tier)
 //!   ZENCODE_MODEL     Model id (default: a `:free` model)
 //!
 //! Only `:free` models are allowed; anything else is refused.

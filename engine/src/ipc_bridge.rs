@@ -3,14 +3,14 @@
 //! Implements the engine side of the D1/D2 designs (`docs/research/d1-stream-emitter-2026-10-17.md`,
 //! `docs/research/d2-ipc-design-2026-10-17.md`):
 //!
-//! - [`IpcEnvelope`] — the wire format the Tauri `Channel<Envelope>` carries:
+//! - [`IpcEnvelope`] - the wire format the Tauri `Channel<Envelope>` carries:
 //!   `{"v":1,"seq":42,"type":"text_delta","text":"Hello, "}`.
-//! - [`BridgeSink`] — an `EventSink` that converts each `AgentEvent` into an
+//! - [`BridgeSink`] - an `EventSink` that converts each `AgentEvent` into an
 //!   [`IpcEnvelope`] with a monotonically increasing `seq`, stores them, and
 //!   serializes to NDJSON (the single source of truth for persistence).
-//! - [`BridgeSink::get_log_since`] — reconnect replay for the D2 `get_log_since`
+//! - [`BridgeSink::get_log_since`] - reconnect replay for the D2 `get_log_since`
 //!   Tauri command.
-//! - [`detect_gaps`] — frontend-side helper: find missing `seq`s in what was received.
+//! - [`detect_gaps`] - frontend-side helper: find missing `seq`s in what was received.
 //!
 //! No Tauri dependency: this is the pure engine side. The Tauri command layer
 //! (one `Channel` per run, rAF batching) lives in `desktop/` and consumes this
@@ -136,7 +136,7 @@ impl BridgeSink {
             .collect()
     }
 
-    /// The whole run as NDJSON (one envelope per line) — the single source of
+    /// The whole run as NDJSON (one envelope per line) - the single source of
     /// truth the frontend persists for resume.
     pub fn to_ndjson(&self) -> anyhow::Result<String> {
         self.envelopes()
@@ -190,7 +190,7 @@ impl EventSink for BridgeSink {
 /// `received` is the list of `seq`s the UI has seen (any order, may contain
 /// duplicates). Returns the sorted missing seqs in `[0, max(received)]`.
 /// The webview IPC bridge delivers channel messages in order, so a non-empty
-/// result means silent corruption — surface it as a loud, debuggable warning
+/// result means silent corruption - surface it as a loud, debuggable warning
 /// (D2: "one integer comparison").
 pub fn detect_gaps(received: &[u64]) -> Vec<u64> {
     let Some(&max) = received.iter().max() else {
@@ -297,7 +297,7 @@ mod tests {
 
         let restored = BridgeSink::from_ndjson(&ndjson).unwrap();
         assert_eq!(restored.envelopes().len(), 2);
-        // Sequence continues after restore — no seq reuse.
+        // Sequence continues after restore - no seq reuse.
         restored.emit(AgentEvent::TextDelta { text: "c".into() });
         let seqs: Vec<u64> = restored.envelopes().iter().map(|e| e.seq).collect();
         assert_eq!(seqs, vec![0, 1, 2]);

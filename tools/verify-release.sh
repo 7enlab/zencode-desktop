@@ -1,5 +1,5 @@
 #!/bin/bash
-# tools/verify-release.sh — verify one release artifact against a minisign public key.
+# tools/verify-release.sh - verify one release artifact against a minisign public key.
 #
 # Usage: tools/verify-release.sh <public-key-file> <artifact-file>
 # Example: tools/verify-release.sh zencode-release.pub ZenCode-0.4.0.AppImage
@@ -33,7 +33,7 @@ fi
 
 # minisign -V verifies both the signature and the trusted comment.
 if minisign -V -p "$PUBKEY" -m "$FILE" -x "$SIG"; then
-  echo "OK: signature valid — $(basename "$FILE") is an authentic ZenCode release artifact."
+  echo "OK: signature valid - $(basename "$FILE") is an authentic ZenCode release artifact."
 else
   echo "FAILED: signature INVALID for $(basename "$FILE"). Do NOT install it." >&2
   exit 1

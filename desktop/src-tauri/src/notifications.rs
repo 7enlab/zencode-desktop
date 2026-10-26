@@ -2,7 +2,7 @@
 //!
 //! Wraps `tauri-plugin-notification` with the D10 policy rules:
 //! 1. Max 1 notification per run, except `approval_needed` (throttled to 5 min).
-//! 2. Never notify when the app window is focused — the in-app feed covers it.
+//! 2. Never notify when the app window is focused - the in-app feed covers it.
 //! 3. `approval_needed` plays the default sound; task notifications are silent.
 //!
 //! The OS handles do-not-disturb automatically (the plugin defers to it).
@@ -50,7 +50,7 @@ impl NotificationManager {
     pub fn should_notify<R: Runtime>(app: &AppHandle<R>) -> bool {
         match app.get_webview_window("main") {
             Some(window) => !window.is_focused().unwrap_or(false),
-            // No window yet (startup) — notifying is harmless.
+            // No window yet (startup) - notifying is harmless.
             None => true,
         }
     }
@@ -112,7 +112,7 @@ impl Default for NotificationManager {
 }
 
 /// Register the "View" / "Dismiss" action buttons (D10 content spec).
-/// Linux support varies by desktop environment — degrades to click-to-open.
+/// Linux support varies by desktop environment - degrades to click-to-open.
 pub fn register_actions<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     let action_type = ActionType::builder(SESSION_ACTIONS_ID)
         .actions(vec![
@@ -155,11 +155,11 @@ pub fn notify_session_end<R: Runtime>(
         return Ok(());
     }
     let title = if success {
-        "ZenCode — task finished"
+        "ZenCode - task finished"
     } else {
-        "ZenCode — task failed"
+        "ZenCode - task failed"
     };
-    let body = format!("{} — {}", truncate(summary, 80), session_id);
+    let body = format!("{} - {}", truncate(summary, 80), session_id);
     app.notification()
         .builder()
         .title(title)
@@ -186,14 +186,14 @@ pub fn notify_approval_needed<R: Runtime>(
     }
     app.notification()
         .builder()
-        .title("ZenCode — approval needed")
+        .title("ZenCode - approval needed")
         .body(format!(
             "Agent is waiting for approval: `{}` ({})",
             truncate(tool_name, 60),
             session_id
         ))
         .action_type_id(SESSION_ACTIONS_ID)
-        // No `.silent()` — D10 rule 3: approval_needed plays the default sound.
+        // No `.silent()` - D10 rule 3: approval_needed plays the default sound.
         .show()
         .map_err(|e| e.to_string())
 }
@@ -203,7 +203,7 @@ pub fn notify_approval_needed<R: Runtime>(
 // ---------------------------------------------------------------------------
 
 /// Frontend-callable: notify that a run is still working (D10 long-run milestone).
-/// Send at most once per 15 minutes per run — the caller enforces the interval.
+/// Send at most once per 15 minutes per run - the caller enforces the interval.
 #[tauri::command]
 pub fn cmd_notify_still_working<R: Runtime>(
     app: AppHandle<R>,
@@ -219,9 +219,9 @@ pub fn cmd_notify_still_working<R: Runtime>(
     }
     app.notification()
         .builder()
-        .title("ZenCode — still working…")
+        .title("ZenCode - still working…")
         .body(format!(
-            "Run {} has been going for {} min — no action needed.",
+            "Run {} has been going for {} min - no action needed.",
             session_id, elapsed_mins
         ))
         .silent()
@@ -308,7 +308,7 @@ mod tests {
     #[test]
     fn truncate_unicode_safe() {
         // Must not split a multi-byte char.
-        let s = "héllo wörld — test ✓";
+        let s = "héllo wörld - test ✓";
         let out = truncate(s, 8);
         assert!(out.chars().count() <= 9);
     }

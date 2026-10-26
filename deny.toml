@@ -1,13 +1,13 @@
 # cargo-deny configuration for zencode-desktop.
 # Policy: allow-list of licenses. Strong copyleft (GPL-3.0-only, AGPL) is NOT
-# on the allow list, so it fails the check — a legal risk for a shipped desktop app.
+# on the allow list, so it fails the check - a legal risk for a shipped desktop app.
 # Run per crate from the repo root:
 #   cargo deny --manifest-path <crate>/Cargo.toml check licenses advisories bans
 # (deny.toml is picked up from the current directory.)
 
 [graph]
 targets = [
-    # Only the platforms we ship on — keeps the graph small.
+    # Only the platforms we ship on - keeps the graph small.
     "x86_64-unknown-linux-gnu",
     "x86_64-pc-windows-msvc",
     "aarch64-apple-darwin",
@@ -22,7 +22,7 @@ ignore = []
 [licenses]
 # Allow-list: permissive + weak copyleft only.
 # Deliberately EXCLUDED (deny by omission): GPL-3.0-only, AGPL-1.0/3.0 (any),
-# and any other strong copyleft — risky for a closed-source desktop app.
+# and any other strong copyleft - risky for a closed-source desktop app.
 # Weak copyleft (LGPL, MPL-2.0) is allowed: fine when dynamically linked.
 allow = [
     "MIT",
@@ -58,7 +58,7 @@ ignore = false
 multiple-versions = "warn"
 # Wildcard version requirements make builds non-reproducible.
 # Note: git dependencies pinned to a rev are flagged as "wildcard" by cargo-deny
-# (they have no version requirement), but they are NOT actually wildcards —
+# (they have no version requirement), but they are NOT actually wildcards -
 # the rev pins them. We warn rather than deny to avoid false positives.
 wildcards = "warn"
 

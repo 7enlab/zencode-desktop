@@ -1,6 +1,6 @@
-# PLAN — ZenCode Desktop
+# PLAN - ZenCode Desktop
 
-> **SUPERSEDED.** The authoritative roadmap is **ZenCode Desktop — Roadmap FINAL**
+> **SUPERSEDED.** The authoritative roadmap is **ZenCode Desktop - Roadmap FINAL**
 > (Notion, ZenCode-Hub, written by Z App, 2026-10-18). This file is kept for history.
 > Milestones: v0.3.0 "Foundation + Trust" → v0.4.0 "Stream, Freedom & Hardening" →
 > v0.5.0 "Control Room & Proof" → v1.0.0 "Stable & Open".
@@ -16,7 +16,7 @@ Do not break `rebuild/` (golden parity 21/21). Use only `:free` models, do not s
 | c | Minimal tools `shell` + `str_replace` (Minimal mode), ask `Sandbox` before any side effect | SUPERSEDED 2026-10-17 → use zen-tools from zencode CLI | test in tempdir: str_replace matches exactly once, errors when 0/≥2 match; NoSandbox refuses |
 | d | OpenAI-compatible Client to free channel (`/workspace/tools/free-llm.sh` / relay), only `:free` models | SUPERSEDED 2026-10-17 → use zen-agent client.rs (retry 429 + fallback_models) | refuse models without `:free` suffix; test with localhost mock server |
 | e | Sandbox fail-closed (Landlock / sandbox-exec / Job Object), report `Isolation::Partial` honestly | DEFERRED (after CLI integration; CLI already has permissions) | test policy; return Partial instead of Full on unsupported kernels |
-| f | Ideas from docs/research/daily-feature-ideas.md (file does not exist yet) | — | — |
+| f | Ideas from docs/research/daily-feature-ideas.md (file does not exist yet) | - | - |
 
 When (b)+(c)+(d) are done → agent core can run a real loop → tag `v0.3.0`.
 
@@ -32,7 +32,7 @@ The Desktop consumes the CLI crates through a pinned-rev git dependency (current
 | g3 | RateGate: daily quota per provider (OpenRouter :free 50 req/day, errors count) wrapping CLI client, switch model when exhausted | TODO | test quota counting + model switching with mock server |
 | g4 | Prompt budget: measure CLI system prompt + tool defs, CI test ≤1,200 tokens (or minimal tool profile) | TODO | test print token count, fail if exceeded |
 | g5 | `zencode eval` 10 tasks, table of requests/tokens/429/edit-fail/pass | TODO | run with ≥1 :free model; tag v0.3.0 when ≥5/10 + CI green |
-| g6 | Desktop UI (after v0.3.0) | TODO | — |
+| g6 | Desktop UI (after v0.3.0) | TODO | - |
 ## Competitor Research Roadmap (2026-10-17, docs/research/competitors-2026-10-17.md §3)
 - v0.3.0: (1) `zencode run` + shell/read/str_replace + JSONL; (2) RateGate + ModelChain (429, cap 50 req/day :free, fallback); (3) strict tool-call parser + text-mode fallback (1 bash block) + lenient str_replace (whitespace/CRLF/indent, still exactly 1 match); (4) system prompt + tool defs ≤ 1.200 token (CI test) + trim tool output; (5) `zencode eval` 10 tasks, table of requests/tokens/429/edit-fail/pass. Tag when ≥1 model :free actually done on ≥5/10.
 - v0.4.0: multiple tool calls/turn + read-only parallel; compaction; checkpoint/undo + atomic write; verify loop `--until` + plan mode.
@@ -53,7 +53,7 @@ The Desktop consumes the CLI crates through a pinned-rev git dependency (current
 
 ## Status notes (English, 2026-10-19)
 
-### 0.3-7 — R6 convergence guard wired into `run_task` — DONE
+### 0.3-7 - R6 convergence guard wired into `run_task` - DONE
 - `RunOptions::convergence: Option<ConvergencePolicy>` (default `None` = off).
   `ConvergenceMonitor` observes the agent from outside (sink / backend /
   permission wrappers): first loop → the next tool call is refused with the
@@ -68,7 +68,7 @@ The Desktop consumes the CLI crates through a pinned-rev git dependency (current
   `engine/tests/convergence.rs`: loop → re-plan → stop; progress stays quiet;
   repeated identical probe still fires `stagnant_rounds`.
 
-### 0.3-5 part 1 — unsigned `cargo tauri build` on Linux (InstaBox) — PASSED
+### 0.3-5 part 1 - unsigned `cargo tauri build` on Linux (InstaBox) - PASSED
 - Built 2026-10-18 in `desktop/src-tauri` (log `~/tauri-build.log` on the box):
   release binary in 2m40s (total 3m15s), `zencode-desktop` binary 33.3 MB.
 - Bundles: `ZenCode Desktop_0.1.0_amd64.deb` 9.36 MiB,

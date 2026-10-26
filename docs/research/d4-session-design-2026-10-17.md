@@ -1,4 +1,4 @@
-# D4 — Session list / search / rename / fork (design)
+# D4 - Session list / search / rename / fork (design)
 
 Design for the Desktop UI session manager. Docs-only; no implementation.
 
@@ -55,14 +55,14 @@ Session id: `YYYY-MM-DD-<12 hex chars>` (sortable, unique enough, human-greppabl
 `parent_id` = set only on fork.
 
 **Search:** substring (case-insensitive) over `title` + `preview` for v1. This is O(n) over a
-small index — fine for hundreds of sessions. Reach for tantivy only if sessions exceed ~10k
+small index - fine for hundreds of sessions. Reach for tantivy only if sessions exceed ~10k
 or full-transcript search is required; not before.
 
 **Title:** default = first user message truncated to 60 chars. Optional LLM-generated title
 later; never blocks session creation.
 
 **Write path:** append each `Envelope` to `<id>.ndjson` as it is emitted; update `index.json`
-(updated_at, message_count) on session end or every N events. `index.json` is a cache — if
+(updated_at, message_count) on session end or every N events. `index.json` is a cache - if
 corrupt/missing, rebuild by scanning `*.ndjson` headers (first user message + file mtime).
 
 ## Results

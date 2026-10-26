@@ -1,5 +1,5 @@
 #!/bin/bash
-# tools/release-linux.sh — build, sign and stage the Linux updater release (0.3-4).
+# tools/release-linux.sh - build, sign and stage the Linux updater release (0.3-4).
 #
 # Usage (CI only, protected tag pipeline):
 #   TAURI_SIGNING_PRIVATE_KEY=... TAURI_SIGNING_PRIVATE_KEY_PASSWORD=... \
@@ -67,7 +67,7 @@ SIGNATURE="$(tr -d '\n' < "$SIG_FILE")"
 cat > "$DIST/latest.json" <<EOF
 {
   "version": "$VERSION",
-  "notes": "ZenCode Desktop $TAG — see CHANGELOG.md",
+  "notes": "ZenCode Desktop $TAG - see CHANGELOG.md",
   "pub_date": "$PUB_DATE",
   "platforms": {
     "linux-x86_64": {

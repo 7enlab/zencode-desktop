@@ -1,4 +1,4 @@
-# R8 — 60-Second Onboarding
+# R8 - 60-Second Onboarding
 
 **Goal:** a first-time user opens ZenCode Desktop and runs their first task
 with a free model within 60 seconds.
@@ -11,22 +11,22 @@ WELCOME → MODEL_SELECT → DEMO_TASK → DONE
 Any step → SKIPPED (user can bail out anytime)
 ```
 
-1. **Welcome** — value prop ("the AI coding agent that cannot bill you"), 60s promise.
-2. **Model select** — auto-probes free endpoints (`probeFreeModels`), pre-selects
+1. **Welcome** - value prop ("the AI coding agent that cannot bill you"), 60s promise.
+2. **Model select** - auto-probes free endpoints (`probeFreeModels`), pre-selects
    the fastest alive model. User can pick another or go BYOK.
-3. **BYOK (optional)** — provider dropdown + key reference. **Ban-risk warning**
+3. **BYOK (optional)** - provider dropdown + key reference. **Ban-risk warning**
    is shown before connecting (mirrors PR #66 knowledge):
    - Anthropic subscription OAuth → **HIGH** (banned since Feb 2026)
    - Google AI Ultra / Antigravity → **HIGH** (mass 403 bans)
    - OpenAI SIWC → **LOW** (official program)
-   - The raw key is never stored — only an opaque key reference.
-4. **Demo task** — one-click run of `"Explain in one sentence what ZenCode
+   - The raw key is never stored - only an opaque key reference.
+4. **Demo task** - one-click run of `"Explain in one sentence what ZenCode
    Desktop is."` against the chosen model.
 
 ## Files
 
-- `desktop/src/onboarding.js` — state machine (pure logic), probe, persistence, UI
-- `desktop/src/onboarding.test.js` — 19 unit tests (`node --test`)
+- `desktop/src/onboarding.js` - state machine (pure logic), probe, persistence, UI
+- `desktop/src/onboarding.test.js` - 19 unit tests (`node --test`)
 - Wired in: `desktop/src/index.html` (script tag), `desktop/src/app.js` (boot),
   `desktop/src/styles.css` (overlay styles)
 
@@ -44,6 +44,6 @@ node --check desktop/src/onboarding.js       # syntax
 
 ## Security notes
 
-- No raw API keys in code, logs, or localStorage — only provider label + key ref.
+- No raw API keys in code, logs, or localStorage - only provider label + key ref.
 - Probe uses minimal `max_tokens: 1` ping; 8s timeout per model.
 - `AbortController` ensures hung probes don't block the UI.

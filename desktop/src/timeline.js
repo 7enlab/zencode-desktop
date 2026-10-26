@@ -1,5 +1,5 @@
 "use strict";
-/* ZenCode Desktop — R2 Time-Travel / Undo-Everything timeline UI.
+/* ZenCode Desktop - R2 Time-Travel / Undo-Everything timeline UI.
  *
  * Live mode (inside the Tauri webview): uses the `get_timeline` and
  * `restore_checkpoint` Tauri commands. Mock mode: replays
@@ -105,7 +105,7 @@ function tlBuildFromEnvelopes(envs) {
       entries.push({
         step, seq: e.seq, kind: "blocked",
         title: "Blocked: " + (e.tool_name || "tool") + " needed your approval",
-        detail: "the agent did not run this — waiting on you",
+        detail: "the agent did not run this - waiting on you",
         files: [], checkpoint_id: null, undoable: false, status: "blocked",
       });
     } else if (e.type === "system_message" && (e.event === "session_start" || e.event === "session_end")) {
@@ -169,7 +169,7 @@ const KIND_LABEL = { write: "write", edit: "edit", bash: "shell", read: "read", 
 function renderTimeline() {
   const panel = document.getElementById("timeline-panel");
   panel.innerHTML = "";
-  panel.append(tlEl("div", "tl-head", "Time-Travel — every action the agent took, undoable"));
+  panel.append(tlEl("div", "tl-head", "Time-Travel - every action the agent took, undoable"));
 
   if (!TL.entries.length) {
     panel.append(tlEl("div", "tl-empty", "No actions recorded for this session yet."));
@@ -223,7 +223,7 @@ function renderTimeline() {
   }
 
   const note = tlEl("div", "tl-note",
-    "Restoring always takes a safety checkpoint first — so a restore can itself be undone.");
+    "Restoring always takes a safety checkpoint first - so a restore can itself be undone.");
   panel.append(note);
 }
 
@@ -252,7 +252,7 @@ async function doRestore(checkpointId, doneMsg) {
     if (!invokeTl) {
       // Mock mode: simulate the restore.
       await new Promise(r => setTimeout(r, 600));
-      status.textContent = "✓ (demo) " + doneMsg + ". Safety checkpoint demo999 taken — this restore is undoable.";
+      status.textContent = "✓ (demo) " + doneMsg + ". Safety checkpoint demo999 taken - this restore is undoable.";
       status.classList.add("ok");
       return;
     }
@@ -260,7 +260,7 @@ async function doRestore(checkpointId, doneMsg) {
       sessionId: TL.sessionId, checkpointId,
     });
     status.textContent = "✓ " + doneMsg + ". Restored " + res.restored_files.length +
-      " file(s). Safety checkpoint " + res.safety_checkpoint_id + " taken — this restore is undoable.";
+      " file(s). Safety checkpoint " + res.safety_checkpoint_id + " taken - this restore is undoable.";
     status.classList.add("ok");
     // Refresh the timeline: the restore took a new checkpoint.
     await loadTimeline(TL.sessionId);

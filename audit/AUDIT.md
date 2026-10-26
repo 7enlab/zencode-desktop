@@ -1,4 +1,4 @@
-# AUDIT — npm cowsay@1.6.0 (MIT) · project: ZenCode Desktop (pilot)
+# AUDIT - npm cowsay@1.6.0 (MIT) · project: ZenCode Desktop (pilot)
 Source read: lib/balloon.js, index.js, cli.js, cows/default.cow.
 - Input: CLI args joined by " "; no args -> stdin, trailing newline stripped.
 - Normalize: \r\n and \r -> \n; \t -> 8 spaces.

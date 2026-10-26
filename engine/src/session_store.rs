@@ -646,7 +646,7 @@ mod tests {
     #[test]
     fn unicode_truncation_is_char_safe() {
         let (store, _) = store("unicode");
-        let text = "héllo wörld — ".repeat(50);
+        let text = "héllo wörld - ".repeat(50);
         store
             .save_session("u1", &[assistant(0, &text)], None, "m", Path::new("/x"))
             .unwrap();

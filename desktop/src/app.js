@@ -1,5 +1,5 @@
 "use strict";
-/* ZenCode Desktop chat UI — vanilla JS.
+/* ZenCode Desktop chat UI - vanilla JS.
  * Frontend pipeline (D2 IPC design): onmessage → validate v → seq gap check
  * → push to pending → rAF flush → single DOM update → persist NDJSON. */
 
@@ -182,7 +182,7 @@ function applyEnvelope(env) {
       setStatus("conn", `↻ retry ${env.attempt || ""}`.trim());
       break;
     case "compact_boundary":
-      box.append(wrapMsg("system", "", "— context compacted —"));
+      box.append(wrapMsg("system", "", "- context compacted -"));
       break;
     case "quota_state":
       if (typeof RateGateUI !== "undefined") RateGateUI.onEnvelope(env);
@@ -282,7 +282,7 @@ async function playDemo() {
   try {
     const res = await fetch("demo.ndjson");
     lines = (await res.text()).trim().split("\n");
-  } catch { return; } // no demo file (e.g. packaged build) — stay empty
+  } catch { return; } // no demo file (e.g. packaged build) - stay empty
   let delay = 400, seq = 0;
   for (const line of lines) {
     const env = JSON.parse(line);
@@ -296,9 +296,9 @@ async function playDemo() {
 function mockRespond(text) {
   const base = state.expectedSeq;
   const reply = [
-    { v: 1, type: "text_delta", text: "Mock mode — no engine connected yet. " },
+    { v: 1, type: "text_delta", text: "Mock mode - no engine connected yet. " },
     { v: 1, type: "text_delta", text: `You said: "${text.slice(0, 60)}". ` },
-    { v: 1, type: "assistant_message", content: `Mock mode — no engine connected yet. You said: "${text.slice(0, 60)}".` },
+    { v: 1, type: "assistant_message", content: `Mock mode - no engine connected yet. You said: "${text.slice(0, 60)}".` },
   ];
   reply.forEach((env, i) => { env.seq = base + i; setTimeout(() => onEnvelope(env), 300 * (i + 1)); });
 }

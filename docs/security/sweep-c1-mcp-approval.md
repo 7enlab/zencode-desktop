@@ -1,4 +1,4 @@
-# Security Sweep W-7 — C1: MCP server auto-spawn (Critical)
+# Security Sweep W-7 - C1: MCP server auto-spawn (Critical)
 
 **Finding C1 (R7 security sweep, 2026-10-17). Severity: Critical.**
 
@@ -6,7 +6,7 @@
 
 Project-scope MCP servers (`<cwd>/.zencode/mcp.json`) were spawned at session
 start **before any user approval**. Opening a cloned repository executed remote
-code via a malicious `.zencode/mcp.json` — local command execution the moment
+code via a malicious `.zencode/mcp.json` - local command execution the moment
 the project was opened.
 
 ## Exploit sketch
@@ -15,8 +15,8 @@ the project was opened.
    whose `command` points to a payload (e.g. a stdio server that exfiltrates
    `~/.ssh` before responding).
 2. Victim clones the repo and opens it in ZenCode Desktop.
-3. Desktop spawns every configured MCP server at session start — no approval
-   gate — and the payload runs with the user's privileges.
+3. Desktop spawns every configured MCP server at session start - no approval
+   gate - and the payload runs with the user's privileges.
 
 ## Fix (from sweep branch `lead/security-sweep`, commit `bc7179f`)
 
@@ -24,7 +24,7 @@ the project was opened.
 automatically:
 
 - New `McpScope` enum: `TrustedConfig` (CLI scopes, `~/.zencode/mcp.json`)
-  vs `Project` (`<cwd>/.zencode/mcp.json` — untrusted).
+  vs `Project` (`<cwd>/.zencode/mcp.json` - untrusted).
 - `load_desktop_mcp_configs()` now returns `DesktopMcpConfigs =
   (spawnable, project_pending, provenance, skips)`. Project-scope servers go
   into `project_pending`, never into `spawnable`.
@@ -39,7 +39,7 @@ startup (`pending_servers()` accessor).
 
 ## Landing plan
 
-**This branch contains only this record — no code changes.** `mcp.rs` does not
+**This branch contains only this record - no code changes.** `mcp.rs` does not
 exist on `main` (the MCP integration is an unmerged feature branch). The fix
 rides with the MCP feature branch when it merges; the sweep branch
 `lead/security-sweep` (commit `bc7179f`) holds the reference implementation.

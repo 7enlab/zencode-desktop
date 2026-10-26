@@ -1,10 +1,10 @@
-# Release Gate v0.3.0 "Foundation + Trust" — Report
+# Release Gate v0.3.0 "Foundation + Trust" - Report
 
 **Date:** 2026-10-18
 **Commit:** 4249480 (validated; main has since advanced to 91a7907 with ocr-fixes M1–M3 and .gitlab-ci.yml merged)
 **Reviewer:** ZD Leader
 **Gate:** 5 steps per AGENTS.md release process
-**Roadmap:** v5.1 (Z App approved 2026-10-18) — renumbered from v0.4.0 "Trust" to v0.3.0 "Foundation + Trust"
+**Roadmap:** v5.1 (Z App approved 2026-10-18) - renumbered from v0.4.0 "Trust" to v0.3.0 "Foundation + Trust"
 
 ## Summary
 
@@ -16,7 +16,7 @@
 | 4 | rea | ✅ PASS | Core checks green (hopper/IDA missing = commercial) |
 | 5 | bughunter | ✅ PASS | No Critical/High; 1 minor note (lock ordering) |
 
-**Recommendation:** ✅ **APPROVED FOR TAGGING** — all 5 gates clean.
+**Recommendation:** ✅ **APPROVED FOR TAGGING** - all 5 gates clean.
 
 ---
 
@@ -26,13 +26,13 @@
 |---|-----------|--------|
 | 1 | Green CI (fmt, clippy -D warnings, test --locked, cargo deny, release-key-check) | ✅ `.gitlab-ci.yml` merged (91a7907); cargo-deny fixed in MR !7 (9ba91f7) |
 | 2 | ≥102 test pass | 🔄 91 at gate time; 165 reported on d5bee01 (re-run pending) |
-| 3 | 3 signed release artifacts | ⏳ Pending — minisign keypair exists (A459EE7B787B86FF) |
+| 3 | 3 signed release artifacts | ⏳ Pending - minisign keypair exists (A459EE7B787B86FF) |
 | 4 | Private key encrypted before public release | ⏳ Key holder's task |
 | 5 | CHANGELOG | ⏳ Pending |
 
 ---
 
-## Step 1: context7 — Dependency Check
+## Step 1: context7 - Dependency Check
 
 ### crates.io dependencies (from Cargo.lock)
 | Crate | Version | Status |
@@ -57,17 +57,17 @@
 
 ---
 
-## Step 2: ocr — Code Review
+## Step 2: ocr - Code Review
 
-**Method:** Manual systematic review (ocr LLM backend unavailable — no free API key in environment; matches 2026-10-17 audit approach).
+**Method:** Manual systematic review (ocr LLM backend unavailable - no free API key in environment; matches 2026-10-17 audit approach).
 
 **Modules reviewed** (2,991 lines total):
-- `engine/src/cost_firewall.rs` (327 lines) — R1 Zero-Cost Firewall
-- `engine/src/claims.rs` (612 lines) — R4 Verified Claims
-- `engine/src/convergence.rs` (565 lines) — R6 Convergence Guard
-- `engine/src/budget.rs` (568 lines) — R12 Hard Budget Authority
-- `engine/src/scope.rs` (509 lines) — R3 Ask-First Scope Guard
-- `engine/src/timeline.rs` (410 lines) — R2 Undo Timeline
+- `engine/src/cost_firewall.rs` (327 lines) - R1 Zero-Cost Firewall
+- `engine/src/claims.rs` (612 lines) - R4 Verified Claims
+- `engine/src/convergence.rs` (565 lines) - R6 Convergence Guard
+- `engine/src/budget.rs` (568 lines) - R12 Hard Budget Authority
+- `engine/src/scope.rs` (509 lines) - R3 Ask-First Scope Guard
+- `engine/src/timeline.rs` (410 lines) - R2 Undo Timeline
 
 ### Findings
 
@@ -87,7 +87,7 @@
 
 ---
 
-## Step 3: e2e — Full Test Suite
+## Step 3: e2e - Full Test Suite
 
 ### Test Results (at gate time, commit 4249480)
 ```
@@ -115,10 +115,10 @@ cargo fmt --check: clean (exit 0)
 
 ---
 
-## Step 4: rea — REA Tools Check
+## Step 4: rea - REA Tools Check
 
 - `rea doctor`: core checks pass (node, host, environment)
-- ⚠️ Hopper/IDA missing (commercial tools, not installed — expected)
+- ⚠️ Hopper/IDA missing (commercial tools, not installed - expected)
 - Ghidra 12.1.4 available at `~/workspace/tools/ghidra_12.1.4_PUBLIC`
 - JADX MCP available
 
@@ -126,7 +126,7 @@ cargo fmt --check: clean (exit 0)
 
 ---
 
-## Step 5: bughunter — Systematic Bug Hunt
+## Step 5: bughunter - Systematic Bug Hunt
 
 ### Checked
 1. **Panics in production:** None (only mutex/test patterns)
@@ -152,14 +152,14 @@ cargo fmt --check: clean (exit 0)
 
 ## Final Recommendation
 
-✅ **ALL 5 GATES CLEAN — APPROVED FOR v0.3.0 TAGGING** (pending exit criteria completion)
+✅ **ALL 5 GATES CLEAN - APPROVED FOR v0.3.0 TAGGING** (pending exit criteria completion)
 
 The 6 Trust modules (R1, R2, R3, R4, R6, R12) are ready for release. No blocking issues found.
 
 ### Pre-tag checklist for Z App
 - [x] Confirm tag name: `v0.3.0` (renumbered from v0.4.0 per roadmap v5.1)
 - [x] Minisign keypair created (key id `A459EE7B787B86FF`, public key in repo + tauri.conf.json)
-- [ ] Encrypt private key before first public release (key holder's task — key has no password yet)
+- [ ] Encrypt private key before first public release (key holder's task - key has no password yet)
 - [ ] Test `tauri build` + real updater (in progress)
 - [ ] Re-run test suite on current main to confirm ≥102 tests
 - [ ] Produce 3 signed release artifacts

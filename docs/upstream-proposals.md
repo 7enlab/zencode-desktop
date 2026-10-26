@@ -15,7 +15,7 @@ The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-cor
 
 ### U2. ToolSchemaMode in AgentConfig (progressive disclosure)
 
-- **Problem:** The engine can measure and enforce a prompt budget (g4: ≤1,200 tokens, `engine/src/prompt_budget.rs`), but truly lazy tool schemas — names + one-liners first, full JSON schemas on demand — need cooperation inside the `zen-agent` turn loop, which the engine cannot inject.
+- **Problem:** The engine can measure and enforce a prompt budget (g4: ≤1,200 tokens, `engine/src/prompt_budget.rs`), but truly lazy tool schemas - names + one-liners first, full JSON schemas on demand - need cooperation inside the `zen-agent` turn loop, which the engine cannot inject.
 - **Proposal:** Add `ToolSchemaMode { Full, Minimal }` to `AgentConfig`. In `Minimal` mode the agent sends compact tool definitions and fetches full schemas through a lightweight internal mechanism before each tool's first use.
 - **Status:** Proposed (design only; no CLI change drafted).
 - **Desktop workaround:** Budget measurement + `ensure_within_budget()` fail-fast guard in `run_task_with_sink`; currently ~782/1200 tokens with the 4 default tools.
@@ -23,9 +23,9 @@ The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-cor
 ### U3. Align on PreToolUse hook usage
 
 - **Problem:** `zen-agent` already fires `HookEvent::PreToolUse` before every tool call, but the Desktop engine hardcodes `NoHooks`, so the event is dead weight on our side.
-- **Proposal:** None required from the CLI — this is a note. If the CLI team adds hook events or changes `HookRunner` semantics, please announce it; it affects Desktop's hook chain.
+- **Proposal:** None required from the CLI - this is a note. If the CLI team adds hook events or changes `HookRunner` semantics, please announce it; it affects Desktop's hook chain.
 - **Status:** Noted. Desktop now has its own type-safe `PreToolUseHook` (`engine/src/hooks.rs`, PR #8: Allow/Deny/Modify + ordered chain) wired through `RunOptions::pre_tool_use_hooks`.
-- **Desktop workaround:** N/A — implemented engine-side.
+- **Desktop workaround:** N/A - implemented engine-side.
 
 ### U4. RateGate / token-budget placement
 
@@ -39,7 +39,7 @@ The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-cor
 - **Problem:** `stream-json` emits nothing while a tool call (e.g. a long Bash command) runs. A Desktop UI cannot distinguish "working" from "hung" and cannot show progress.
 - **Proposal:** Emit a lightweight heartbeat line (e.g. `{"type":"heartbeat","v":1,"tool_use_id":"..."}`) every N seconds while a tool call is in flight.
 - **Status:** Open.
-- **Desktop workaround:** None — the UI currently shows a spinner with no progress signal.
+- **Desktop workaround:** None - the UI currently shows a spinner with no progress signal.
 
 ### U6. Structured spill-file reference
 
@@ -48,7 +48,7 @@ The Desktop engine consumes the CLI's crates (`zen-agent`, `zen-tools`, `zen-cor
 - **Status:** Open.
 - **Desktop workaround:** Regex extraction (fragile).
 
-## Results — what Desktop does meanwhile
+## Results - what Desktop does meanwhile
 
 - All Desktop-side mitigations above are implemented on `lead/*` branches and proposed as PRs; none touch CLI code.
 - When the CLI team accepts a proposal, Desktop adopts it and drops the workaround; until then the workarounds stay.

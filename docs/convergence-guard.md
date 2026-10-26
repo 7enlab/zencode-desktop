@@ -12,7 +12,7 @@ Runaway token burn is the most universal complaint about coding agents:
 - Repair loops of 20–40 iterations "leave the workspace in a worse state"
   (re-reading files until a 40k-token task consumes 180k).
 
-ZenCode is free-only, so a loop burns *quota and time* instead of money — but the
+ZenCode is free-only, so a loop burns *quota and time* instead of money - but the
 frustration is identical. The convergence guard stops the loop early and makes the
 agent try a different approach.
 
@@ -28,17 +28,17 @@ agent try a different approach.
 
 Three patterns are detected (defaults in `ConvergencePolicy`):
 
-1. **Same file, failing edits** — the same file edited ≥3 times with a failing
+1. **Same file, failing edits** - the same file edited ≥3 times with a failing
    verify between edits.
-2. **Repeating error** — the same normalized error signature (first line,
+2. **Repeating error** - the same normalized error signature (first line,
    lowercased, numbers folded) ≥3 times in a row.
-3. **Stagnation** — ≥5 consecutive tool rounds with no file changes.
+3. **Stagnation** - ≥5 consecutive tool rounds with no file changes.
 
 When a pattern fires:
 
 1. `check()` returns the `LoopPattern` **exactly once** (the task must stop).
 2. The caller records a `loop_detected` system event in the session log via
-   `emit_loop_detected()` — same schema-preserving pattern as `verify_attempt`
+   `emit_loop_detected()` - same schema-preserving pattern as `verify_attempt`
    (PR #32): `AgentEvent::SystemMessage { event: "loop_detected", text: <JSON> }`,
    no `DesktopEvent` change, no schema bump.
 3. The caller hands the agent the forced re-plan prompt from `replan_prompt()`:
@@ -53,7 +53,7 @@ When a pattern fires:
   (PR #32) or `checkpoints.rs` (PR #31). The verify loop calls `record_verify`;
   the checkpoint id is passed through as an `Option<&str>`. This keeps the merge
   order flexible.
-- A passing verify resets all counters for the edited paths — success breaks
+- A passing verify resets all counters for the edited paths - success breaks
   every loop pattern by definition.
 - Thresholds are configurable via `ConvergencePolicy`; `validate()` rejects zeros.
 

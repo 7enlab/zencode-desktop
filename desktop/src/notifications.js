@@ -1,5 +1,5 @@
 /**
- * Desktop notifications — frontend (D10 design, g6 roadmap).
+ * Desktop notifications - frontend (D10 design, g6 roadmap).
  *
  * Listens for backend engine events and routes them to OS notifications
  * (via the Tauri `cmd_notify_*` commands) or, in demo/standalone mode,
@@ -21,7 +21,7 @@ export const isTauri = typeof window !== "undefined" && !!window.__TAURI__;
 
 let invokeFn = null;
 if (isTauri) {
-  // Lazily loaded — the Tauri API is only present in the webview.
+  // Lazily loaded - the Tauri API is only present in the webview.
   import("@tauri-apps/api/core")
     .then((m) => {
       invokeFn = m.invoke;
@@ -111,7 +111,7 @@ export function notifySessionEnd(envelope) {
   return invokeOrToast(
     "cmd_notify_session_end",
     { sessionId, summary, success },
-    success ? "ZenCode — task finished" : "ZenCode — task failed",
+    success ? "ZenCode - task finished" : "ZenCode - task failed",
     `${summary} (${sessionId})`,
     success ? "info" : "failed",
   );
@@ -122,14 +122,14 @@ export function notifyApprovalNeeded(toolName, sessionId) {
   return invokeOrToast(
     "cmd_notify_approval_needed",
     { toolName, sessionId },
-    "ZenCode — approval needed",
+    "ZenCode - approval needed",
     `Agent is waiting for approval: ${toolName}`,
     "approval",
   );
 }
 
 // ---------------------------------------------------------------------------
-// Event router — maps engine IpcEnvelopes to notifications (D10 trigger table)
+// Event router - maps engine IpcEnvelopes to notifications (D10 trigger table)
 // ---------------------------------------------------------------------------
 
 /**
@@ -137,7 +137,7 @@ export function notifyApprovalNeeded(toolName, sessionId) {
  * Returns true when a notification was (or would be) shown.
  *
  * @param {object} envelope - IpcEnvelope {v, seq, type, session_id, payload}
- * @param {object} opts - { runEnded: boolean } — set when this event ends the run
+ * @param {object} opts - { runEnded: boolean } - set when this event ends the run
  */
 export function routeEvent(envelope, opts = {}) {
   const type = envelope.type || "";
@@ -165,16 +165,16 @@ export function routeEvent(envelope, opts = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Demo mode — simulate the trigger table without a backend
+// Demo mode - simulate the trigger table without a backend
 // ---------------------------------------------------------------------------
 
 /** Play a short demo of the notification triggers (standalone mode). */
 export function demoNotifications() {
   const sessionId = "demo-" + Math.floor(Math.random() * 1000);
-  showToast("ZenCode — task finished", `Refactored auth.ts (12 files changed) (${sessionId})`, "info");
+  showToast("ZenCode - task finished", `Refactored auth.ts (12 files changed) (${sessionId})`, "info");
   setTimeout(() => {
     showToast(
-      "ZenCode — approval needed",
+      "ZenCode - approval needed",
       "Agent is waiting for approval: Bash (rm -rf)",
       "approval",
     );

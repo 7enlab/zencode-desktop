@@ -1,7 +1,7 @@
 /**
  * Sovereign Mode (R5) UI: toggle, status badge, preflight findings, attestation.
  *
- * Mirrors engine/src/sovereign.rs — the engine is the source of truth.
+ * Mirrors engine/src/sovereign.rs - the engine is the source of truth.
  * This file duplicates the *presentation* logic so the UI can render without
  * a backend round-trip; policy decisions themselves always come from the
  * engine via the Tauri commands below.
@@ -58,7 +58,7 @@ export function renderPreflight(container, findings) {
   if (!findings || findings.length === 0) {
     const p = document.createElement('p');
     p.className = 'preflight-clean';
-    p.textContent = 'Preflight clean — no remote endpoints or API keys found.';
+    p.textContent = 'Preflight clean - no remote endpoints or API keys found.';
     container.appendChild(p);
     return 0;
   }
@@ -81,7 +81,7 @@ export function renderPreflight(container, findings) {
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.disabled = true;
-      cb.title = 'This finding cannot be acknowledged — fix the configuration instead.';
+      cb.title = 'This finding cannot be acknowledged - fix the configuration instead.';
       const span = document.createElement('span');
       span.textContent = 'Cannot be acknowledged';
       label.appendChild(cb);
@@ -95,7 +95,7 @@ export function renderPreflight(container, findings) {
       cb.dataset.findingKind = f.kind;
       cb.className = 'ack-checkbox';
       const span = document.createElement('span');
-      span.textContent = 'I understand — enable anyway';
+      span.textContent = 'I understand - enable anyway';
       label.appendChild(cb);
       label.appendChild(span);
       li.appendChild(label);
@@ -122,7 +122,7 @@ export function wireSovereignToggle({ toggleBtn, badgeEl, preflightEl, tauri }) 
     toggleBtn.textContent = status.enabled ? 'Disable Sovereign Mode' : 'Enable Sovereign Mode';
     toggleBtn.disabled = !status.enabled && !canEnable(status);
     toggleBtn.title = !status.enabled && !status.ollama_reachable
-      ? 'Start Ollama (`ollama serve`) first — Sovereign Mode needs local inference.'
+      ? 'Start Ollama (`ollama serve`) first - Sovereign Mode needs local inference.'
       : '';
     return status;
   }
@@ -131,7 +131,7 @@ export function wireSovereignToggle({ toggleBtn, badgeEl, preflightEl, tauri }) 
     const status = await tauri.invoke('sovereign_status');
     if (status.enabled) {
       const att = await tauri.invoke('sovereign_disable');
-      // Offer the attestation for download — the compliance receipt.
+      // Offer the attestation for download - the compliance receipt.
       const blob = new Blob([JSON.stringify(att, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);

@@ -18,7 +18,7 @@ every mutating tool call:
 
 Out-of-scope attempts are **blocked** with a loud denial and a
 `scope_violation` system event in the session log ("agent tried to edit
-X — not in declared scope").
+X - not in declared scope").
 
 ## Ask-first
 
@@ -37,7 +37,7 @@ reason. The Tauri UI shows the declaration as a checklist card
 ## Expansion
 
 `ScopeGuard::expand_scope(files, dirs)` adds paths after user approval and
-logs a `scope_expanded` system event — the audit trail shows exactly when
+logs a `scope_expanded` system event - the audit trail shows exactly when
 the scope grew and by how much.
 
 ## Limitations: a guard-rail, not a sandbox
@@ -48,7 +48,7 @@ lowercased command text and checks path-like tokens of mutating commands
 (`rm`, `mv`, `cp`, `>`, …) against the declared scope. This is easy to
 bypass: `python -c`, backticks, `$HOME/x` expansion, `cd .. && …`,
 `find -delete` and similar tricks sail through untouched. Treat the Scope
-Guard as a **guard-rail** that catches accidents and honest mistakes —
+Guard as a **guard-rail** that catches accidents and honest mistakes -
 not a sandbox that stops a determined attacker. Paths are normalised
 lexically, not canonicalised, so symlinks can escape the root, and
 platform quirks (macOS `/tmp` vs `/private/tmp`, Windows
@@ -58,7 +58,7 @@ lands, never rely on the scope guard to contain untrusted agents.
 
 ## Wiring
 
-`RunOptions.scope: Option<ScopeDecl>` — `None` preserves the previous
+`RunOptions.scope: Option<ScopeDecl>` - `None` preserves the previous
 pre-approved headless behavior. When `Some`, the run:
 
 1. rejects ambiguous declarations up front,

@@ -1,4 +1,4 @@
-# P5 — Background Task tool: schema design (2026-10-17)
+# P5 - Background Task tool: schema design (2026-10-17)
 
 > Status: **design only, no implementation**. Target: post-v0.3.0.
 > Source: P5 from `claude-code-learnings-2026-10-17.md` (§1.6 subagents, §2 pattern #2).
@@ -26,7 +26,7 @@ Sources: https://code.claude.com/docs/en/sub-agents (primary); `claude-code-lear
 | `SubAgentExecutor` | `zen-agent/src/subagent.rs` | Runs a subagent: fresh `Agent`, empty history, depth+1, tool allow-list/`disallowedTools`, model `inherit`, skill preloading, `SubagentStart`/`SubagentStop` hooks |
 | `AgentDefinition` | `zen-core/src/lib.rs` | name, description, tools, model, system_prompt, disallowed_tools, permission_mode, max_turns, skills |
 | `parent_tool_use_id` | `zen-agent/src/subagent.rs` | Every subagent event carries the spawning Task call ID; builds the nested tree |
-| Depth guard | `zen-agent/src/subagent.rs` | `max_depth` (default 1); `Task` removed from tool set at max depth — no infinite recursion |
+| Depth guard | `zen-agent/src/subagent.rs` | `max_depth` (default 1); `Task` removed from tool set at max depth - no infinite recursion |
 | Background-job registry pattern | `zen-tools/src/jobs.rs` | `Bash { background: true }` → job id; `JobOutput` polls; `JobKill` stops; process-wide registry, 30k-char output cap |
 
 ### 1.3 The gap
@@ -47,11 +47,11 @@ The CLI's `Task` is **foreground-only**: the parent turn blocks until the subage
 
 ### 2.2 Why not just foreground Task?
 
-Exploration is the biggest context hog (learnings §1.6, pattern #2). A foreground subagent still blocks the parent turn; a background one lets the parent continue working and collect the result later — the highest "work per request" ratio for free-tier users.
+Exploration is the biggest context hog (learnings §1.6, pattern #2). A foreground subagent still blocks the parent turn; a background one lets the parent continue working and collect the result later - the highest "work per request" ratio for free-tier users.
 
 ---
 
-## 3. Results — the schema
+## 3. Results - the schema
 
 ### 3.1 `Task` tool definition
 
@@ -61,8 +61,8 @@ Parameters (`docs/research/task-tool.schema.json` carries the machine-readable v
 
 | Field | Type | Required | Default | Notes |
 |---|---|---|---|---|
-| `description` | string | yes | — | Short (3–5 word) label; shown in UI task list. Max 120 chars. |
-| `prompt` | string | yes | — | Full, self-contained instruction for the subagent. |
+| `description` | string | yes | - | Short (3–5 word) label; shown in UI task list. Max 120 chars. |
+| `prompt` | string | yes | - | Full, self-contained instruction for the subagent. |
 | `subagent_type` | string | no | `"general"` | Enum: `"explore"` (read-only), `"code"` (read+write), `"general"`. Maps to `AgentDefinition` names. |
 | `run_in_background` | boolean | no | `false` | `true` → return immediately with `task_id`. |
 | `model` | string | no | inherit | Override model for this subagent. **Must end with `:free`**; anything else is rejected before any request is made. Empty or `"inherit"` = parent model. |
@@ -103,7 +103,7 @@ On subagent error: `status: "failed"`, `result` carries the error text (same con
 
 Three companion tools, registered alongside `Task` only when background execution is enabled.
 
-**`TaskList`** — no parameters. Returns all known tasks, newest first:
+**`TaskList`** - no parameters. Returns all known tasks, newest first:
 
 ```json
 {
@@ -120,13 +120,13 @@ Three companion tools, registered alongside `Task` only when background executio
 }
 ```
 
-**`TaskResult`** — parameters: `{ "task_id": string (required), "wait_ms": integer (optional, default 0, max 600000) }`.
+**`TaskResult`** - parameters: `{ "task_id": string (required), "wait_ms": integer (optional, default 0, max 600000) }`.
 
 - If the task is still running and `wait_ms > 0`: block up to `wait_ms` for completion (mirrors `JobOutput`).
 - If running and `wait_ms == 0`: return `{ task_id, status: "running", partial_result: "<text so far or null>" }`.
 - If finished: return the full foreground-style result object (§3.2).
 
-**`TaskCancel`** — parameters: `{ "task_id": string (required) }`. Returns `{ "task_id": "...", "status": "cancelled" }`.
+**`TaskCancel`** - parameters: `{ "task_id": string (required) }`. Returns `{ "task_id": "...", "status": "cancelled" }`.
 
 ### 3.4 Lifecycle & error cases
 
@@ -169,7 +169,7 @@ Emitted on: spawn, completion, failure, cancellation. The existing `parent_tool_
 | Background scheduling | `jobs.rs` registry *pattern* (Bash only) | `TaskRegistry`: spawn on tokio task, store handle + metadata |
 | Poll / list / cancel | `JobOutput` / `JobKill` (Bash only) | `TaskResult` / `TaskList` / `TaskCancel` tools |
 | Lifecycle events | `SubagentStart`/`SubagentStop` hook events | `DesktopEvent::TaskUpdate` |
-| Free-model guard | — (CLI has no such policy) | `:free` suffix check on `model` override |
+| Free-model guard | - (CLI has no such policy) | `:free` suffix check on `model` override |
 | Concurrency cap | `max_depth` (nesting, not concurrency) | `max_background_tasks` (default 4) |
 
 ### 3.7 Open questions (for the team)
@@ -177,7 +177,7 @@ Emitted on: spawn, completion, failure, cancellation. The existing `parent_tool_
 1. Should background tasks survive the parent turn ending, or are they scoped to the turn that spawned them?
 2. Is 4 the right default cap for concurrent background tasks on free-tier rate limits (20 req/min)?
 3. Should `subagent_type` stay a fixed 3-value enum, or reference named `AgentDefinition`s like the CLI (extensible, but heavier prompt)?
-4. Where should the `:free` enforcement live — engine-only, or pushed down into the CLI's `TaskTool` too?
+4. Where should the `:free` enforcement live - engine-only, or pushed down into the CLI's `TaskTool` too?
 5. For `TaskResult` with `wait_ms`: long-poll inside the tool call, or should the Desktop UI poll on its own cadence?
 
 ---

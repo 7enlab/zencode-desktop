@@ -1,4 +1,4 @@
-# SECURITY.md — Open Security Decisions (R7 sweep, 2026-10-17)
+# SECURITY.md - Open Security Decisions (R7 sweep, 2026-10-17)
 
 These items were found by the adversarial R7 security sweep but need **Z App's
 design decision** (or a follow-up PR) rather than a unilateral fix. Each is a
@@ -38,12 +38,12 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
 
 - [ ] **C3** 🟠 No sanitization or provenance marking for untrusted tool/skill
   content entering the model context. Sweep fixes closed the worst vectors
-  (C1 spawn-at-open, C2 pre-approval descriptions) on their feature branches —
-  see the "What the sweep fixed" record below — but there is no general
+  (C1 spawn-at-open, C2 pre-approval descriptions) on their feature branches -
+  see the "What the sweep fixed" record below - but there is no general
   provenance/sanitization layer on main. **Decision needed:** adopt a tagging scheme
   (e.g. wrap untrusted content in marked spans) as a follow-up epic.
 - [ ] **C6** 🟡 The skill-library approval store (`approved` in the manifest)
-  has no bridge to the skill registry's approval set — approving in one place
+  has no bridge to the skill registry's approval set - approving in one place
   may not be honored in the other. **Verify** the wiring when both PRs land.
 - [ ] **C14** 🟠 The skill catalog invokes `npx -y <package>` **unpinned**.
   This is the exact Clinejection-class vector (R7's raison d'être): a
@@ -57,7 +57,7 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
 ## Secret scrubbing (residual)
 
 - [ ] **D2-entropy** 🟡 Bare secrets with no known prefix (random-looking
-  strings) are not detected — entropy-based detection was deliberately left
+  strings) are not detected - entropy-based detection was deliberately left
   out (false-positive risk). **Decision needed:** accept the residual risk or
   scope an entropy detector with an allowlist.
 - [ ] **D6** 🟡 (design) Cross-field scrubbing: a secret split across two
@@ -93,7 +93,7 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
   mutation", not "no side effects". **Decision needed:** make the copy say
   this plainly, and consider a dry-run mode.
 - [ ] **D31** 🟡 Automation notification bodies are truncated to 280 chars;
-  truncation happens *after* scrubbing (sweep fix D27) — confirm ordering stays
+  truncation happens *after* scrubbing (sweep fix D27) - confirm ordering stays
   scrub-then-truncate in future edits.
 - [ ] **D32** 🟡 Goal-mode verifier is an LLM: `parse_verifier_reply` now
   extracts citations (sweep fix D30) but does not *require* them. Consider
@@ -101,12 +101,12 @@ Severity: 🔴 Critical · 🟠 Major · 🟡 Minor. "Sweep fix" = what this bra
 
 ---
 
-## What the sweep fixed (record — fixes land with their feature branches)
+## What the sweep fixed (record - fixes land with their feature branches)
 
 The R7 sweep branch fixed the items below, each with a regression test, but the
 fixes target files that only exist on unmerged feature branches
 (`share.rs`, `sandbox_v4.rs`, `skills.rs`, …). They are recorded here and will
-land together with their respective feature branches — **this MR contains only
+land together with their respective feature branches - **this MR contains only
 this checklist document**, no code changes.
 
 A1, A2, A3, A4, A6, A7, A8, A9 · B1, B4, B5, B7, B8, B9, B10, B11, B12, B13, B14 ·

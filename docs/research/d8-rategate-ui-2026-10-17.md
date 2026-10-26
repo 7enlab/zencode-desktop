@@ -1,9 +1,9 @@
-# D8 — RateGate UI Design
+# D8 - RateGate UI Design
 
 **Date:** 2026-10-17
 **Author:** ZD Leader
 **Status:** Design only. The RateGate **policy** placement (CLI vs Desktop engine) is blocked on
-[atzenn/zencode#10](https://github.com/atzenn/zencode/issues/10) — this document designs only the **UI
+[atzenn/zencode#10](https://github.com/atzenn/zencode/issues/10) - this document designs only the **UI
 layer** and deliberately does NOT assume where the policy lives. The UI consumes a `QuotaState`
 interface that either side can provide; the policy interface is marked **TBD pending #10**.
 
@@ -11,7 +11,7 @@ interface that either side can provide; the policy interface is marked **TBD pen
 
 Quota/rate-limit UX is the market gap for a free-model-first desktop agent. Competitors
 (`docs/research/competitors-2026-10-17.md`) confirm: OpenRouter `:free` models enforce 20 req/min
-and 50 req/day (< 10 credits purchased), and *failed attempts count toward the daily cap* — blind
+and 50 req/day (< 10 credits purchased), and *failed attempts count toward the daily cap* - blind
 retry burns quota. OpenCode caps retries with jitter for exactly this reason.
 
 How existing tools surface limits:
@@ -21,7 +21,7 @@ How existing tools surface limits:
 | OpenAI dashboard | Usage bars per day, per-model spend, hard-limit email at 80%/100% |
 | Claude (console) | Weekly usage meter with reset countdown, per-model breakdown |
 | OpenRouter | `X-RateLimit-*` headers, `Retry-After`, key page shows remaining/day |
-| Kilo gateway | Anonymous tier: 200 req/hour/IP, no UI — errors only |
+| Kilo gateway | Anonymous tier: 200 req/hour/IP, no UI - errors only |
 
 What the UI needs from the policy layer (regardless of location): requests used vs limit (minute
 and day scopes), reset timestamps, queue depth, active model + fallback reason. All of this is
@@ -38,15 +38,15 @@ The meter reads `QuotaState` on every `DesktopEvent` and on a 30s poll fallback.
 ### 2. Offline queue
 
 When a request would exceed the limit, the task is queued instead of failing: the UI shows
-`⏳ Queued (3) — next retry in 42s`. Queue is FIFO with user-visible reorder/cancel. Auto-retry
-fires when `QuotaState` signals capacity; the user can also force-retry (counts against quota —
+`⏳ Queued (3) - next retry in 42s`. Queue is FIFO with user-visible reorder/cancel. Auto-retry
+fires when `QuotaState` signals capacity; the user can also force-retry (counts against quota -
 shown as a warning). Queue survives app restart (persisted NDJSON, like sessions).
 
 ### 3. Auto-fallback indicator
 
 When the policy switches models (e.g. daily cap hit → fallback model), the UI shows a banner:
-`🔀 Switched to kimi-k2:free — deepseek-v4.1-flash hit daily cap (resets 00:00 UTC)`. The *reason*
-is required — silent model switches erode trust. Dismissible, logged in the session transcript.
+`🔀 Switched to kimi-k2:free - deepseek-v4.1-flash hit daily cap (resets 00:00 UTC)`. The *reason*
+is required - silent model switches erode trust. Dismissible, logged in the session transcript.
 
 ### 4. Warning states
 
@@ -61,7 +61,7 @@ is required — silent model switches erode trust. Dismissible, logged in the se
 
 The UI never calls the policy directly. It subscribes to `QuotaState` updates pushed by whichever
 side owns the policy. If the CLI owns it, the engine forwards CLI-emitted quota events; if the
-Desktop owns it, the engine computes `QuotaState` itself. The interface is identical either way —
+Desktop owns it, the engine computes `QuotaState` itself. The interface is identical either way -
 only the *producer* changes, which is exactly what #10 decides.
 
 ## Results
@@ -103,7 +103,7 @@ only the *producer* changes, which is exactly what #10 decides.
 
 1. Should the queue be per-model or global? (Per-model preserves fallback semantics; global is
    simpler.)
-2. Where does `QuotaState` polling live when the window is closed — does the tray service (D11)
+2. Where does `QuotaState` polling live when the window is closed - does the tray service (D11)
    keep the meter fresh?
 3. For `approaching` warnings: toast notification (D10) or status-bar-only? Toasts risk fatigue
    at 70% on a 20 req/min bucket.

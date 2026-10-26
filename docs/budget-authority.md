@@ -7,7 +7,7 @@ with a **hard stop**. Part of the v0.4.0 "Trust" roadmap.
 
 The community's unanimous advice for runaway agents is "set hard spend
 limits". Every model ZenCode uses is `:free`, so a budget here is not about
-money — it stretches free-tier quotas and kills runaway loops (20–40
+money - it stretches free-tier quotas and kills runaway loops (20–40
 iteration death spirals that leave the workspace worse) before they burn
 turns.
 

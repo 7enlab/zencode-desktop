@@ -1,4 +1,4 @@
-# Platform Support Matrix — ZenCode Desktop
+# Platform Support Matrix - ZenCode Desktop
 
 **Last verified:** 2026-10-17 (engine, `main` @ `eb5d364`; sandbox PR branches as noted).
 **Policy:** ZenCode Desktop ships on Linux, macOS, and Windows. Every PR must keep
@@ -16,7 +16,7 @@ all three building. See `scripts/check-cross.sh` for the local cross-compile che
 
 Legend: ✅ verified · ⚠️ must be covered by CI · ⏳ not yet merged
 
-## Sandbox backends (PRs #41 / #44 / #50 — all open, awaiting review)
+## Sandbox backends (PRs #41 / #44 / #50 - all open, awaiting review)
 
 | OS | Backend | Enforcement | Honest reporting |
 |---|---|---|---|
@@ -30,7 +30,7 @@ No backend ever claims `Full` without kernel confirmation.
 ### Cross-compile verification (2026-10-17)
 
 - **Windows FFI (`sandbox_windows.rs`)**: first-ever compile check via
-  `cargo check --target x86_64-pc-windows-gnu` (mingw-w64) — **passes**.
+  `cargo check --target x86_64-pc-windows-gnu` (mingw-w64) - **passes**.
   Fixed during this audit: unused `c_void` import, needless `return`
   (both would fail `clippy -D warnings`). Pushed to `lead/windows-sandbox`.
 - **macOS (`sandbox_macos.rs`)**: cannot be compile-checked from Linux
@@ -47,12 +47,12 @@ No backend ever claims `Full` without kernel confirmation.
 
 - 14 of 15 day-one plugins registered. `tauri-plugin-deep-link` is
   **excluded**: v2.6.2 does not compile (requires `rust-ini` 0.21 but
-  constructs `ParseOption` without the new fields — upstream bug).
+  constructs `ParseOption` without the new fields - upstream bug).
   The `zencode://` scheme stays declared in `tauri.conf.json` for re-adding later.
 - `tauri-plugin-autostart` uses `MacosLauncher::LaunchAgent` (correct per-OS behavior).
 - `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]` hides the
   console on Windows release builds. Correct.
-- **Updater pubkey is a placeholder** — the real minisign keypair
+- **Updater pubkey is a placeholder** - the real minisign keypair
   (`tauri signer generate -w`) MUST be generated and committed before the
   first public release. Shipping the placeholder means updates can never verify.
 - Bundle targets: `"all"` (deb/rpm/AppImage, dmg, msi/nsis).
@@ -67,16 +67,16 @@ No backend ever claims `Full` without kernel confirmation.
 3. **`sandbox-exec` profiles are best-effort.** Seatbelt syntax is not validated
    at build time; review generated profiles before trusting them.
 4. **Landlock needs kernel ≥ 5.13** (ABI v1). Older kernels get `Partial`
-   (in-process checks only) — never silently `Full`.
+   (in-process checks only) - never silently `Full`.
 
 ## For contributors
 
 ```bash
-# From the repo root — checks what can be checked locally:
+# From the repo root - checks what can be checked locally:
 ./scripts/check-cross.sh
 ```
 
 What it does: `cargo fmt --check`, `cargo clippy -D warnings` (native),
 `cargo check --target x86_64-pc-windows-gnu` for `engine/` (installs the
 target + mingw if missing), and prints the macOS reminder.
-What it cannot do: macOS target check (needs Apple SDK) — that is CI's job.
+What it cannot do: macOS target check (needs Apple SDK) - that is CI's job.

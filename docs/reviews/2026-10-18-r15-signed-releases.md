@@ -1,13 +1,13 @@
 # Review: ZD Leader `lead/signed-releases-r15` (R15 signed releases)
 
-- Reviewer: Z App — 2026-10-18
+- Reviewer: Z App - 2026-10-18
 - Branch head: `394875e` (GitLab), base `main` = `3aa1f70`
 - Verdict: **merged** (`--no-ff`) with a follow-up fix commit.
 
 ## Scope check
-- Touches only `engine/`, `desktop/src-tauri/` (config + one comment), `docs/`, `tools/` — Desktop scope (updater / release integrity). `core/` (frozen) untouched.
+- Touches only `engine/`, `desktop/src-tauri/` (config + one comment), `docs/`, `tools/` - Desktop scope (updater / release integrity). `core/` (frozen) untouched.
 - No secret committed: only a test public key and one test signature in `release_signing.rs`. The release secret key is kept outside the repository.
-- Updater endpoints: GitLab release permalink added first, GitHub kept as fallback — OK while the GitHub account is suspended.
+- Updater endpoints: GitLab release permalink added first, GitHub kept as fallback - OK while the GitHub account is suspended.
 
 ## What was good
 - `verify_bytes` rejects tampered files, wrong keys, malformed keys/signatures; `allow_legacy = false` (prehashed signatures only); the trusted comment is covered by the global signature. No code path skips verification.
@@ -15,7 +15,7 @@
 - Test claim confirmed: 100/100 engine tests passed on the branch as submitted (91 lib + 3 + 6).
 
 ## Issues found and fixed (follow-up commit)
-1. **Heavy dependency**: `minisign 0.10` pulled 17 transitive crates (incl. `rpassword`, `scrypt`, terminal password prompting) into a library that only verifies. Replaced by `minisign-verify 0.3` (zero dependencies, MIT, verification only — the same crate `tauri-plugin-updater` already uses).
+1. **Heavy dependency**: `minisign 0.10` pulled 17 transitive crates (incl. `rpassword`, `scrypt`, terminal password prompting) into a library that only verifies. Replaced by `minisign-verify 0.3` (zero dependencies, MIT, verification only - the same crate `tauri-plugin-updater` already uses).
 2. **Placeholder check too weak**: `contains("PLACEHOLDER")` accepted an empty, missing or malformed key, and a bare `RW...` key (Tauri expects base64 of the whole `.pub` file). New `updater_public_key()` parses the JSON, unwraps and validates the key; `updater_pubkey_is_placeholder()` now means "no usable key".
 3. **Trusted comment not usable by callers**: added `verify_bytes_with_comment()` returning the verified trusted comment, so an install path can bind it to the expected version/file (anti-downgrade / substitution).
 4. **Docs claimed a `check-release-signing` CI job that does not exist**. Replaced by a real gate: test `release_key_is_wired` (fails if `tauri.conf.json` and `docs/keys/zencode-release.pub` disagree or the key is missing).
@@ -27,7 +27,7 @@
 - Engine: `cargo fmt --check` and `cargo clippy --locked --all-targets -- -D warnings` clean.
 - Engine: `cargo test --locked` → **102 passed, 0 failed** (93 lib + 3 + 6).
 - Scripts end-to-end with the real key: signing 2 artifacts (one name with a space) + SHA256SUMS → OK; `verify-release.sh` OK; tampered file → exit 1; signing with a different key → exit 1 at the self-check.
-- Desktop crate (`desktop/src-tauri`): `cargo fmt --check` only; not built — webkit2gtk / pkg-config are not available in the review sandbox. `tauri.conf.json` validated as JSON.
+- Desktop crate (`desktop/src-tauri`): `cargo fmt --check` only; not built - webkit2gtk / pkg-config are not available in the review sandbox. `tauri.conf.json` validated as JSON.
 - `cargo deny` / `cargo audit` are not installed and not in CI; the new crate was checked by hand (MIT, no dependencies).
 
 ## Left for ZD Leader

@@ -26,7 +26,7 @@
 //! - Model preferences are mapped to PR #66's [`ProviderKind`] vocabulary
 //!   (`OpenAICompatible { base_url }` / `Anthropic { base_url }` / Ollama
 //!   preset) and written to `~/.zencode/imported-providers.json` as
-//!   *suggestions* — the user activates one in Settings. When PR #66 merges,
+//!   *suggestions* - the user activates one in Settings. When PR #66 merges,
 //!   replace [`MappedProvider`] with `ProviderKind`.
 //! - Skills go to `~/.zencode/skills/` with Project-equivalent trust; when
 //!   PR #73 merges, register the import dir accordingly (never
@@ -331,7 +331,7 @@ fn model_name_part(raw: &str) -> &str {
 }
 
 // ---------------------------------------------------------------------------
-// Secret detection — keys are reported, never copied
+// Secret detection - keys are reported, never copied
 // ---------------------------------------------------------------------------
 
 /// A detected secret that the importer refuses to copy.
@@ -412,7 +412,7 @@ fn looks_like_secret_value(value: &str) -> bool {
     if prefixes.iter().any(|p| v.starts_with(p)) {
         return true;
     }
-    // Long opaque strings (hex/base64-ish, no spaces) are suspicious —
+    // Long opaque strings (hex/base64-ish, no spaces) are suspicious -
     // but not model ids like "anthropic/claude-opus-4-6" (real keys never
     // contain '/').
     v.len() >= 24
@@ -648,13 +648,13 @@ impl<'a> Ctx<'a> {
     ) {
         let id = item_id(competitor, kind, &label);
         // MCP servers and model suggestions merge into shared files, so an
-        // existing destination is not a conflict — only single-file copies
+        // existing destination is not a conflict - only single-file copies
         // (skills, commands, rules) can collide.
         let merge_safe = matches!(kind, ImportKind::McpServer | ImportKind::Model);
         let exists = !merge_safe && destination.exists();
         if exists {
             self.warnings.push(format!(
-                "{}: '{}' already exists at {} — will skip",
+                "{}: '{}' already exists at {} - will skip",
                 competitor.display_name(),
                 label,
                 destination.display()
@@ -724,7 +724,7 @@ fn collect_mcp_map(ctx: &mut Ctx, competitor: Competitor, source: &Path, value: 
                             source,
                             &format!("mcp env {}.{}", name, k),
                             &format!(
-                                "MCP server '{}' declares a secret env var — paste it into ZenCode Settings yourself",
+                                "MCP server '{}' declares a secret env var - paste it into ZenCode Settings yourself",
                                 name
                             ),
                         );
@@ -741,7 +741,7 @@ fn collect_mcp_map(ctx: &mut Ctx, competitor: Competitor, source: &Path, value: 
             ImportKind::McpServer,
             source.to_path_buf(),
             name.clone(),
-            format!("{} — imports as Untrusted", command),
+            format!("{} - imports as Untrusted", command),
             ctx.zhome.join("mcp.json"),
         );
     }
@@ -826,7 +826,7 @@ fn collect_rule(ctx: &mut Ctx, competitor: Competitor, path: &Path, label: &str)
 
 fn collect_claude_code(ctx: &mut Ctx) {
     let c = Competitor::ClaudeCode;
-    // ~/.claude.json — MCP servers live here in some versions.
+    // ~/.claude.json - MCP servers live here in some versions.
     let dot_json = ctx.home.join(".claude.json");
     if let Some(v) = read_json(&dot_json) {
         collect_mcp_map(ctx, c, &dot_json, &v);
@@ -835,7 +835,7 @@ fn collect_claude_code(ctx: &mut Ctx) {
         }
     } else if dot_json.exists() {
         ctx.warnings.push(format!(
-            "Claude Code: could not parse {} — skipped",
+            "Claude Code: could not parse {} - skipped",
             dot_json.display()
         ));
     }
@@ -843,7 +843,7 @@ fn collect_claude_code(ctx: &mut Ctx) {
     if !dir.is_dir() {
         return;
     }
-    // settings.json — model + MCP servers.
+    // settings.json - model + MCP servers.
     let settings = dir.join("settings.json");
     if let Some(v) = read_json(&settings) {
         collect_mcp_map(ctx, c, &settings, &v);
@@ -854,7 +854,7 @@ fn collect_claude_code(ctx: &mut Ctx) {
         scan_json_for_secrets(ctx, c, &settings, &v, "settings");
     } else if settings.exists() {
         ctx.warnings.push(format!(
-            "Claude Code: could not parse {} — skipped",
+            "Claude Code: could not parse {} - skipped",
             settings.display()
         ));
     }
@@ -887,7 +887,7 @@ fn collect_codex(ctx: &mut Ctx) {
                     c,
                     &config,
                     key,
-                    "Codex config declares a secret — paste it into ZenCode Settings yourself",
+                    "Codex config declares a secret - paste it into ZenCode Settings yourself",
                 );
             }
         }
@@ -909,7 +909,7 @@ fn collect_codex(ctx: &mut Ctx) {
                         Some(p) => mapping.provider = p,
                         None => {
                             ctx.warnings.push(format!(
-                                "Codex: model '{}' uses custom provider '{}' — kept for manual mapping",
+                                "Codex: model '{}' uses custom provider '{}' - kept for manual mapping",
                                 value,
                                 provider_urls.get(provider_name).map(|s| s.as_str()).unwrap_or(provider_name)
                             ));
@@ -939,7 +939,7 @@ fn collect_codex(ctx: &mut Ctx) {
         }
     } else if config.exists() {
         ctx.warnings.push(format!(
-            "Codex: could not parse {} — skipped",
+            "Codex: could not parse {} - skipped",
             config.display()
         ));
     }
@@ -951,7 +951,7 @@ fn collect_codex(ctx: &mut Ctx) {
             c,
             &auth,
             "OPENAI_API_KEY (auth.json)",
-            "Codex OAuth/API key — sign in again inside ZenCode Settings; it is never copied",
+            "Codex OAuth/API key - sign in again inside ZenCode Settings; it is never copied",
         );
     }
 }
@@ -969,12 +969,12 @@ fn collect_cursor(ctx: &mut Ctx) {
         collect_mcp_map(ctx, c, &mcp, &v);
     } else if mcp.exists() {
         ctx.warnings.push(format!(
-            "Cursor: could not parse {} — skipped",
+            "Cursor: could not parse {} - skipped",
             mcp.display()
         ));
     }
     ctx.warnings.push(
-        "Cursor: project rules live in each project's .muse/rules/ — open the project in ZenCode and import from there"
+        "Cursor: project rules live in each project's .muse/rules/ - open the project in ZenCode and import from there"
             .to_string(),
     );
 }
@@ -1017,7 +1017,7 @@ fn collect_continue_models_json(ctx: &mut Ctx, source: &Path, v: &Value) {
                         source,
                         &format!("{}.{}", name, key),
                         &format!(
-                            "Continue model '{}' declares an apiKey — paste it into ZenCode Settings yourself",
+                            "Continue model '{}' declares an apiKey - paste it into ZenCode Settings yourself",
                             name
                         ),
                     );
@@ -1077,7 +1077,7 @@ fn collect_continue_models_yaml(ctx: &mut Ctx, source: &Path) {
                         source,
                         &format!("{}.{}", name, key),
                         &format!(
-                            "Continue model '{}' declares an apiKey — paste it into ZenCode Settings yourself",
+                            "Continue model '{}' declares an apiKey - paste it into ZenCode Settings yourself",
                             name
                         ),
                     );
@@ -1153,7 +1153,7 @@ fn collect_vscode_agent(ctx: &mut Ctx, competitor: Competitor, storage_dir_name:
                     collect_mcp_map(ctx, competitor, &p, &v);
                 } else {
                     ctx.warnings.push(format!(
-                        "{}: could not parse {} — skipped",
+                        "{}: could not parse {} - skipped",
                         competitor.display_name(),
                         p.display()
                     ));
@@ -1189,7 +1189,7 @@ fn collect_aider(ctx: &mut Ctx) {
                     c,
                     &p,
                     k,
-                    "Aider config declares a secret — paste it into ZenCode Settings yourself",
+                    "Aider config declares a secret - paste it into ZenCode Settings yourself",
                 );
                 continue;
             }
@@ -1212,7 +1212,7 @@ fn collect_opencode(ctx: &mut Ctx) {
     let Some(v) = read_json(&cfg) else {
         if cfg.exists() {
             ctx.warnings.push(format!(
-                "OpenCode: could not parse {} — skipped",
+                "OpenCode: could not parse {} - skipped",
                 cfg.display()
             ));
         }
@@ -1260,7 +1260,7 @@ fn scan_value_for_secrets(
                             source,
                             &child,
                             &format!(
-                                "{} declares a secret ('{}') — paste it into ZenCode Settings yourself",
+                                "{} declares a secret ('{}') - paste it into ZenCode Settings yourself",
                                 owner, child
                             ),
                         );
@@ -1298,7 +1298,7 @@ fn scan_json_for_secrets(
                             source,
                             &format!("{}.{}", where_, k),
                             &format!(
-                                "{} declares '{}' — paste it into ZenCode Settings yourself",
+                                "{} declares '{}' - paste it into ZenCode Settings yourself",
                                 competitor.display_name(),
                                 k
                             ),
@@ -1319,7 +1319,7 @@ fn scan_json_for_secrets(
 }
 
 // ---------------------------------------------------------------------------
-// plan() — the dry run
+// plan() - the dry run
 // ---------------------------------------------------------------------------
 
 /// Scan the machine and build the full dry-run plan.
@@ -1349,7 +1349,7 @@ pub fn plan(home: &Path, zhome: &Path) -> Result<ImportPlan> {
     }
     if detected.is_empty() {
         ctx.warnings.push(
-            "No competitor tools detected — nothing to import. Supported: Claude Code, Codex CLI, Cursor, Continue, Cline, Roo Code, Aider, OpenCode.".to_string(),
+            "No competitor tools detected - nothing to import. Supported: Claude Code, Codex CLI, Cursor, Continue, Cline, Roo Code, Aider, OpenCode.".to_string(),
         );
     }
     // Deterministic order for stable UI rendering and tests.
@@ -1368,7 +1368,7 @@ pub fn plan(home: &Path, zhome: &Path) -> Result<ImportPlan> {
 }
 
 // ---------------------------------------------------------------------------
-// apply() — execute the user's selection
+// apply() - execute the user's selection
 // ---------------------------------------------------------------------------
 
 /// One item that was actually imported.
@@ -1409,12 +1409,12 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
 
     for item in plan.selected_items() {
         // MCP servers and model suggestions merge into shared files, so an
-        // existing destination must not skip them — the merge logic below
+        // existing destination must not skip them - the merge logic below
         // never overwrites existing entries.
         let merge_safe = matches!(item.kind, ImportKind::McpServer | ImportKind::Model);
         if !merge_safe && item.destination.exists() {
             report.skipped.push(format!(
-                "{}: destination {} already exists — skipped (your file wins)",
+                "{}: destination {} already exists - skipped (your file wins)",
                 item.label,
                 item.destination.display()
             ));
@@ -1453,7 +1453,7 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
                     );
                 } else {
                     report.skipped.push(format!(
-                        "mcp server '{}': could not re-read config — skipped",
+                        "mcp server '{}': could not re-read config - skipped",
                         item.label
                     ));
                 }
@@ -1498,7 +1498,7 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
             fs::write(
                 &dest,
                 serde_json::to_string_pretty(&serde_json::json!({
-                    "_note": "Suggestions from competitor config import. Activate one in ZenCode Settings → Providers; paste your own API key there — keys are never imported.",
+                    "_note": "Suggestions from competitor config import. Activate one in ZenCode Settings → Providers; paste your own API key there - keys are never imported.",
                     "suggestions": suggestions,
                 }))
                 .expect("json! macro values always serialize"),
@@ -1512,7 +1512,7 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
             });
         } else {
             report.skipped.push(
-                "imported-providers.json already exists — model suggestions not overwritten; review it in Settings".to_string(),
+                "imported-providers.json already exists - model suggestions not overwritten; review it in Settings".to_string(),
             );
         }
     }
@@ -1556,7 +1556,7 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
     let mut root: Value = read_json(dest).unwrap_or_else(|| serde_json::json!({}));
     if !root.is_object() {
         anyhow::bail!(
-            "{} is not a JSON object — refusing to merge",
+            "{} is not a JSON object - refusing to merge",
             dest.display()
         );
     }
@@ -1575,7 +1575,7 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
             if mcp_obj.contains_key(&name) {
                 continue; // existing entry wins
             }
-            // Strip secret env values before writing: defense in depth — the
+            // Strip secret env values before writing: defense in depth - the
             // planner already reported them, but a hand-edited plan could slip.
             if let Some(env) = cfg.get_mut("env").and_then(|e| e.as_object_mut()) {
                 let secret_keys: Vec<String> = env

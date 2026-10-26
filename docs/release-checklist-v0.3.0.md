@@ -3,7 +3,7 @@
 Tag v0.3.0 per PLAN.md when: **g5 eval ≥5/10 passes + CI green on 3 OS**.
 Owner of merges: Z App (ZD Leader never merges). All PRs below are open on `7enlab/zencode-desktop`.
 
-## 1. Pre-conditions — PRs that must merge first
+## 1. Pre-conditions - PRs that must merge first
 
 | Roadmap step | PR | What it proves |
 |---|---|---|
@@ -25,22 +25,22 @@ Gate checks before tagging:
 
 ## 2. Blockers to resolve
 
-- [ ] **Z App review queue** — 41 open PRs; the 8 in §1 are release-critical
-- [ ] **atzenn/zencode#10** (RateGate placement) — #33 is engine-side; if CLI team claims it, drop #33 from the release
-- [ ] **PR #4 CI fix** — commit `4715479` (`scrub_duration_ms`) must be pushed to `lead/claude-learnings` or the insta snapshot flakes on CI
-- [ ] **PR #17 workflow push** — the supply-chain CI job commit exists locally only; needs a token with `workflow` scope (Z App) or it stays out of v0.3.0
+- [ ] **Z App review queue** - 41 open PRs; the 8 in §1 are release-critical
+- [ ] **atzenn/zencode#10** (RateGate placement) - #33 is engine-side; if CLI team claims it, drop #33 from the release
+- [ ] **PR #4 CI fix** - commit `4715479` (`scrub_duration_ms`) must be pushed to `lead/claude-learnings` or the insta snapshot flakes on CI
+- [ ] **PR #17 workflow push** - the supply-chain CI job commit exists locally only; needs a token with `workflow` scope (Z App) or it stays out of v0.3.0
 
 ## 3. Release steps
 
 1. Bump `engine/Cargo.toml`: `0.3.0-dev` → `0.3.0`. (`core` 0.1.0 and `rebuild` 0.2.0 keep their own versions.)
 2. CHANGELOG entry under `## [0.3.0] - YYYY-MM-DD`: g2/g3/g4/g5 features, `:free`-only policy, eval results.
-3. `git tag -a v0.3.0 -m "v0.3.0: agent engine on ZenCode CLI"` and push the tag — the existing `release.yml` builds binaries for linux-x86_64, macos-arm64, windows-x86_64.
+3. `git tag -a v0.3.0 -m "v0.3.0: agent engine on ZenCode CLI"` and push the tag - the existing `release.yml` builds binaries for linux-x86_64, macos-arm64, windows-x86_64.
 4. GitHub Release notes template:
-   > **v0.3.0** — `zencode run` + `zencode eval` on free-only models.
+   > **v0.3.0** - `zencode run` + `zencode eval` on free-only models.
    > Includes: prompt budget (1200 tokens), RateGate daily quota, session persistence.
    > Requires no API keys for `:free` models. See `docs/troubleshooting.md`.
 
-## 4. D3 requirement — updater keypair BEFORE v0.3.0
+## 4. D3 requirement - updater keypair BEFORE v0.3.0
 
 Per `docs/research/d3-plugins-updater-2026-10-17.md` (PR #18): `tauri-plugin-updater`
 verifies artifacts against a public key baked into the binary. Shipping v0.3.0
@@ -50,7 +50,7 @@ without the real keypair strands every install on manual downloads forever.
 - [ ] Private key → GitHub Actions secret `TAURI_SIGNING_PRIVATE_KEY` (never in git)
 - [ ] Public key → `tauri.conf.json` (`plugins.updater.pubkey`); fingerprint recorded in `docs/` + Notion
 
-## 5. Post-release — v0.4.0 starts with
+## 5. Post-release - v0.4.0 starts with
 
 Already implemented (awaiting review, merge after the tag): #31 checkpoints,
 #32 verify loop, #34 atomic writes, #36 plan mode, #39 compaction,

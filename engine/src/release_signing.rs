@@ -1,4 +1,4 @@
-//! R15: signed releases — offline Ed25519 (minisign) verification.
+//! R15: signed releases - offline Ed25519 (minisign) verification.
 //!
 //! Every ZenCode Desktop release artifact ships with a `.minisig` signature.
 //! This module verifies a file against the release public key without any
@@ -32,7 +32,7 @@ impl fmt::Display for VerifyError {
             VerifyError::BadSignature(e) => write!(f, "bad signature file: {e}"),
             VerifyError::Io(e) => write!(f, "io error: {e}"),
             VerifyError::InvalidSignature => {
-                write!(f, "INVALID signature — do not install this artifact")
+                write!(f, "INVALID signature - do not install this artifact")
             }
         }
     }
@@ -153,7 +153,7 @@ pub fn updater_public_key(tauri_conf_json: &str) -> Option<String> {
 }
 
 /// Returns true if the Tauri updater config does NOT carry a usable public key
-/// (missing, empty, placeholder or malformed) — i.e. releases CANNOT be
+/// (missing, empty, placeholder or malformed) - i.e. releases CANNOT be
 /// verified yet. The `release_key_is_wired` test fails the build in that case.
 pub fn updater_pubkey_is_placeholder(tauri_conf_json: &str) -> bool {
     updater_public_key(tauri_conf_json).is_none()
@@ -417,7 +417,7 @@ mod tests {
     #[test]
     fn wrong_key_fails() {
         // A different, valid-format public key must not verify the signature.
-        // (Random key: "Ed" + 40 random bytes, base64 — valid structure, wrong key.)
+        // (Random key: "Ed" + 40 random bytes, base64 - valid structure, wrong key.)
         let other = "RWTGCiWTINb+iEMIQnVXTJ64+XVBCJj4UUGls0PrzSC0dqttm2vxwZ/0";
         assert_eq!(
             verify_bytes(other, TEST_FILE_BYTES, TEST_MINISIG),

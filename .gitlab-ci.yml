@@ -1,4 +1,4 @@
-# .gitlab-ci.yml — ZenCode Desktop CI.
+# .gitlab-ci.yml - ZenCode Desktop CI.
 #
 # Pipelines run on push and merge-request events only. No schedules are
 # defined here, and none denser than hourly may be added.

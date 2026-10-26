@@ -1,17 +1,17 @@
-//! ZenCode Desktop — Tauri 2 shell with engine wiring (g6).
+//! ZenCode Desktop - Tauri 2 shell with engine wiring (g6).
 //!
 //! Tauri commands (see `docs/ipc-bridge.md` for the frontend pipeline):
-//! - `run_task` — starts an engine run in the background, streaming
+//! - `run_task` - starts an engine run in the background, streaming
 //!   [`IpcEnvelope`]s to the UI over a `tauri::ipc::Channel` (one per run).
-//! - `list_sessions` — sessions persisted by `SessionStore`.
-//! - `get_log_since` — reconnect replay: envelopes after `seq`, live or from disk.
-//! - `get_timeline` — R2 undo timeline: plain-language action entries +
+//! - `list_sessions` - sessions persisted by `SessionStore`.
+//! - `get_log_since` - reconnect replay: envelopes after `seq`, live or from disk.
+//! - `get_timeline` - R2 undo timeline: plain-language action entries +
 //!   checkpoints for a session.
-//! - `restore_checkpoint` — R2: restore a checkpoint into the session's
+//! - `restore_checkpoint` - R2: restore a checkpoint into the session's
 //!   workspace (auto-checkpoints first, so the restore is itself undoable).
 //!
 //! The engine runs as a library (`zencode_engine`, path dependency). Only
-//! `:free` models are accepted — the desktop never spends money.
+//! `:free` models are accepted - the desktop never spends money.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -39,7 +39,7 @@ struct AppState {
     sinks: Mutex<HashMap<String, Arc<BridgeSink>>>,
 }
 
-/// Only `:free` models are allowed — ZenCode Desktop never uses paid models.
+/// Only `:free` models are allowed - ZenCode Desktop never uses paid models.
 fn ensure_free_model(model: &str) -> Result<(), String> {
     let m = model.trim();
     if m.is_empty() {
@@ -253,7 +253,7 @@ fn get_timeline(session_id: String) -> Result<TimelineResponse, String> {
 /// R2: restore a checkpoint into the session's workspace.
 ///
 /// The checkpoint manager auto-snapshots the current state first, so the
-/// restore itself is undoable — the returned `safety_checkpoint_id` can be
+/// restore itself is undoable - the returned `safety_checkpoint_id` can be
 /// restored to get back to "before".
 #[tauri::command]
 fn restore_checkpoint(session_id: String, checkpoint_id: String) -> Result<RestoreOutcome, String> {
@@ -349,7 +349,7 @@ fn main() {
         ])
         .setup(|app| {
             // Register the "View" / "Dismiss" action buttons (D10 content spec).
-            // A failure here is non-fatal — notifications still work without actions.
+            // A failure here is non-fatal - notifications still work without actions.
             if let Err(e) = notifications::register_actions(app.handle()) {
                 eprintln!("warning: could not register notification actions: {e}");
             }

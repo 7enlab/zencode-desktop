@@ -1,16 +1,16 @@
-# D5 — Checkpoints timeline + per-hunk diff (design)
+# D5 - Checkpoints timeline + per-hunk diff (design)
 
 Status: design only, for Z App's implementation. Verified against `origin/main` 2026-10-17.
 
 ## Research
 
 **What exists today (verified on main):** nothing. Searched `core/` and `engine/src/` for
-`checkpoint`/`shadow`/`undo`/`rewind` — zero matches. The engine registers the CLI's
+`checkpoint`/`shadow`/`undo`/`rewind` - zero matches. The engine registers the CLI's
 `zen_tools::EditTool`/`WriteTool` directly (`engine/src/lib.rs:62-63`) with no snapshot hook.
 
 **What the architecture already decided** (`docs/desktop-architecture.md:17`):
-- `gix` — git status, checkpoint/undo.
-- `similar` — per-hunk diff, accept/reject per part.
+- `gix` - git status, checkpoint/undo.
+- `similar` - per-hunk diff, accept/reject per part.
 
 **Competitor evidence** (`docs/research/competitors-2026-10-17.md`):
 - Cline Desktop: checkpoint snapshots (secondary source).
@@ -36,9 +36,9 @@ File copies remain the fallback if `gix` proves too heavy.
 
 ## Ideas
 
-**When to snapshot.** Before every mutating tool call (Write, Edit) — automatic, no user
+**When to snapshot.** Before every mutating tool call (Write, Edit) - automatic, no user
 action. Plus on-demand (`Checkpoint` command) and before Bash commands that look
-destructive (heuristic: `rm -rf`, `git checkout .`, etc. — best-effort, documented as such).
+destructive (heuristic: `rm -rf`, `git checkout .`, etc. - best-effort, documented as such).
 Each snapshot records the triggering `tool_use_id` so the timeline can link a checkpoint
 to the exact agent action that caused it.
 
@@ -52,7 +52,7 @@ turn number). The user's own `.git` is never touched.
 
 **Per-hunk diff.** Use `similar` (already chosen) to compute line diffs between the
 checkpoint commit and its parent (or working tree for "uncommitted changes" view).
-Hunks map to tool calls via the `tool_use_id` in the commit message — one checkpoint =
+Hunks map to tool calls via the `tool_use_id` in the commit message - one checkpoint =
 one tool call, so mapping is 1:1, no guessing.
 
 **Restore semantics.**

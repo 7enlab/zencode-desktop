@@ -27,13 +27,13 @@ ollama pull qwen2.5-coder:14b   # fetch a coding model (once, then offline)
 **In scope** (what Sovereign Mode defends against):
 
 - Accidental misconfiguration sending prompts to a cloud endpoint.
-- A compromised or curious model gateway logging your code — there is no
+- A compromised or curious model gateway logging your code - there is no
   gateway; inference is local.
-- Telemetry exfiltration by the agent harness itself — combined with the
+- Telemetry exfiltration by the agent harness itself - combined with the
   zero-telemetry network log (R14), every outbound request is both
   policy-checked and audited.
 
-**Out of scope** (honest limits — do not promise these):
+**Out of scope** (honest limits - do not promise these):
 
 - The OS, browser, or other applications exfiltrating data. Sovereign Mode
   is enforced at the *application layer* of this engine. Full assurance
@@ -55,7 +55,7 @@ Sovereign Mode is designed for the strictest reading of the GDPR:
 
 | GDPR concept | How Sovereign Mode addresses it |
 |---|---|
-| Art. 5(1)(c) data minimisation | No personal data leaves the device at all — minimisation by architecture, not policy |
+| Art. 5(1)(c) data minimisation | No personal data leaves the device at all - minimisation by architecture, not policy |
 | Art. 25 data protection by design | Loopback-only egress is structural: the code path for remote inference does not exist while the mode is on |
 | Art. 28 processors | There is no processor and no sub-processor, because there is no transfer |
 | Art. 32 security of processing | Local-only processing + attestation log of blocked egress attempts |
@@ -68,7 +68,7 @@ Sovereign Mode is designed for the strictest reading of the GDPR:
 ## Enabling / disabling
 
 1. Start Ollama: `ollama serve` (the mode probes `127.0.0.1:11434` and
-   refuses to engage if nothing listens — it will not promise local
+   refuses to engage if nothing listens - it will not promise local
    inference it cannot deliver).
 2. In the desktop UI, toggle **Sovereign Mode** ON.
 3. The preflight check runs first:
@@ -78,7 +78,7 @@ Sovereign Mode is designed for the strictest reading of the GDPR:
      is on, but you must tick "I understand" (a key implies a remote
      account you might have expected to be used).
    - **Ollama unreachable** → must be fixed; start Ollama.
-4. Disabling the mode downloads the session attestation JSON — keep it as
+4. Disabling the mode downloads the session attestation JSON - keep it as
    your compliance receipt.
 
 ## Verifying an attestation offline

@@ -1,4 +1,4 @@
-# ZenCode Desktop — Tauri Shell (g6, engine wired)
+# ZenCode Desktop - Tauri Shell (g6, engine wired)
 
 Minimal Tauri 2 application shell with the engine connected via Tauri
 commands (`run_task`, `list_sessions`, `get_log_since`) and event streaming
@@ -31,22 +31,22 @@ desktop/
 | Command | Args | Returns |
 |---------|------|---------|
 | `run_task` | `prompt`, `model` (`:free` only), `base_url`, `cwd`, `on_event: Channel` | `session_id` (run continues in background) |
-| `list_sessions` | — | `Vec<SessionMeta>` (newest first) |
+| `list_sessions` | - | `Vec<SessionMeta>` (newest first) |
 | `get_log_since` | `session_id`, `since: u64` | `Vec<IpcEnvelope>` with `seq > since` |
 
 `run_task` refuses non-`:free` models and empty `base_url` with a clear
-error — nothing is faked. Finished runs are persisted via `SessionStore`.
+error - nothing is faked. Finished runs are persisted via `SessionStore`.
 
 ## Plugins
 
 The D3 design (`docs/research/d3-plugins-updater-2026-10-17.md`, PR #18)
 specifies 11 day-one plugins. The g6 scaffold spec additionally requires
 `autostart`, `os`, `clipboard-manager`, and `positioner`. This scaffold
-registers the **union (15)** — Z App may trim:
+registers the **union (15)** - Z App may trim:
 
 | Plugin | Purpose |
 |---|---|
-| updater | auto-update (keypair still TODO — see below) |
+| updater | auto-update (keypair still TODO - see below) |
 | dialog | open/save file dialogs |
 | fs | scoped filesystem access |
 | notification | task-complete toasts (D10) |
@@ -63,7 +63,7 @@ registers the **union (15)** — Z App may trim:
 | positioner | tray-window positioning (D11) |
 
 > **Note:** `tauri-plugin-deep-link` (D3 day-one) is excluded from this
-> scaffold: deep-link 2.6.2 (latest 2.x) does not compile — it requires
+> scaffold: deep-link 2.6.2 (latest 2.x) does not compile - it requires
 > `rust-ini 0.21` but constructs `ini::ParseOption` without the fields added
 > in 0.21 (E0063). The `zencode://` scheme stays declared in
 > `tauri.conf.json`; re-add the plugin when upstream ships a fixed 2.x.
@@ -72,12 +72,12 @@ registers the **union (15)** — Z App may trim:
 
 - [ ] `tauri signer generate -w` → minisign keypair. Private key → CI secret
       `TAURI_SIGNING_PRIVATE_KEY`. **Replace the `PLACEHOLDER` pubkey in
-      `tauri.conf.json`** — shipping with the placeholder means updates can
+      `tauri.conf.json`** - shipping with the placeholder means updates can
       never be verified, and every install is stuck on manual downloads.
 - [ ] Real app icons in `src-tauri/icons/` (currently solid-color PNG
-      placeholders + stub .icns/.ico — replace with real branded icons
+      placeholders + stub .icns/.ico - replace with real branded icons
       before `tauri build`; `cargo check` only needs the files to exist).
-- [ ] `tauri-action` workflow for signed per-OS builds (Z App — needs
+- [ ] `tauri-action` workflow for signed per-OS builds (Z App - needs
       `workflow` scope; the 7enlab token lacks it).
 
 ## What's next (engine wiring)

@@ -3,8 +3,8 @@
 ## What
 
 A visual, scrubable timeline of every agent action in a session. Each entry is
-one plain-language row — "Edited `src/main.rs`", "Ran `cargo test`", "Blocked:
-Bash needed your approval" — with the files touched and a short outcome. Any
+one plain-language row - "Edited `src/main.rs`", "Ran `cargo test`", "Blocked:
+Bash needed your approval" - with the files touched and a short outcome. Any
 entry covered by an auto-checkpoint gets **"↩ Undo just this"**; every
 checkpoint in the session's shadow repo gets **"⟲ Restore to this point"**.
 
@@ -88,8 +88,8 @@ message right after each snapshot.
 
 ## Verification
 
-- `cargo test --lib timeline` — 6 tests (entry building, checkpoint linkage,
+- `cargo test --lib timeline` - 6 tests (entry building, checkpoint linkage,
   malformed notes, blocked/error states, arg parsing, serialization).
-- `cargo clippy --locked --all-targets -- -D warnings` — clean.
-- `cargo fmt --check` — clean.
-- `node --check` on `timeline.js` and `app.js` — clean.
+- `cargo clippy --locked --all-targets -- -D warnings` - clean.
+- `cargo fmt --check` - clean.
+- `node --check` on `timeline.js` and `app.js` - clean.

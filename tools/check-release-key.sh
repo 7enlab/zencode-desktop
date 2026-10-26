@@ -1,5 +1,5 @@
 #!/bin/sh
-# tools/check-release-key.sh — verify the updater public key is wired correctly.
+# tools/check-release-key.sh - verify the updater public key is wired correctly.
 #
 # Compares docs/keys/zencode-release.pub with the updater pubkey embedded in
 # desktop/src-tauri/tauri.conf.json (stored base64-encoded there).

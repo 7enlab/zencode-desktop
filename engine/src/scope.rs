@@ -57,17 +57,17 @@ impl ApprovalReason {
     pub fn message(&self) -> String {
         match self {
             ApprovalReason::WildcardPattern(p) => {
-                format!("declaration contains wildcard pattern '{p}' — confirm the real file list")
+                format!("declaration contains wildcard pattern '{p}' - confirm the real file list")
             }
             ApprovalReason::PathEscape(p) => {
-                format!("declaration contains path escape '{p}' — confirm this is intentional")
+                format!("declaration contains path escape '{p}' - confirm this is intentional")
             }
             ApprovalReason::OutsideRoot(p) => {
                 format!("declaration contains path outside the project root: '{p}'")
             }
             ApprovalReason::TooManyFiles(n) => {
                 format!(
-                    "declaration touches {n} files (limit {MAX_AUTO_FILES}) — confirm the scope"
+                    "declaration touches {n} files (limit {MAX_AUTO_FILES}) - confirm the scope"
                 )
             }
         }
@@ -223,7 +223,7 @@ impl ScopeGuard {
         self.violations.lock().unwrap().push(v);
         self.emit(
             "scope_violation",
-            &format!("agent tried to {tool} '{target}' — not in declared scope ({reason})"),
+            &format!("agent tried to {tool} '{target}' - not in declared scope ({reason})"),
         );
         PermissionDecision::Deny(format!(
             "Blocked by scope guard: {tool} '{target}' is outside the declared scope. {reason}"
@@ -337,7 +337,7 @@ pub fn emit_scope_declared(sink: &Arc<dyn EventSink>, decl: &ScopeDecl) {
     sink.emit(AgentEvent::SystemMessage {
         event: "scope_declared".to_string(),
         text: format!(
-            "agent declared scope: {} — files: [{}], dirs: [{}]",
+            "agent declared scope: {} - files: [{}], dirs: [{}]",
             decl.description,
             files.join(", "),
             dirs.join(", ")

@@ -1,4 +1,4 @@
-# D1 — StreamEmitter: engine→UI event streaming (design)
+# D1 - StreamEmitter: engine→UI event streaming (design)
 
 Design for the trait the Desktop UI (Tauri, g6) uses to receive engine events live.
 Docs-only; no implementation. Targets `origin/main` (schema v1, no SessionEnd yet).
@@ -16,11 +16,11 @@ Docs-only; no implementation. Targets `origin/main` (schema v1, no SessionEnd ye
   every event into the sink synchronously.
 
 Gap: `RecordingSink` is pull-based (the UI reads `events()` after the run). A live
-chat UI needs push — each event forwarded to the frontend the moment it happens.
+chat UI needs push - each event forwarded to the frontend the moment it happens.
 
 ### Tauri 2 streaming primitives
 - `tauri::ipc::Channel<T: Serialize>`: created in JS, passed into a Rust command;
-  `channel.send(value)` pushes to the frontend. One channel per command invocation —
+  `channel.send(value)` pushes to the frontend. One channel per command invocation -
   a natural fit for one agent run. `send` returning `Err` is the disconnect signal.
 - `app.emit("event", payload)`: global broadcast; simpler, but every window gets
   every run's events (needs run-id filtering) and offers no backpressure signal.
@@ -29,7 +29,7 @@ Recommendation: one `Channel<Envelope>` per run.
 
 ## 2. Ideas
 
-### The trait — minimal, object-safe, synchronous
+### The trait - minimal, object-safe, synchronous
 ```rust
 pub trait StreamEmitter: Send + Sync {
     /// Forward one UI-facing event. Must never panic, and must not block the
@@ -47,7 +47,7 @@ every UI consumer sees gapless `seq` even when events fan out to several emitter
 `RecordingSink::record(&self, event: DesktopEvent) -> Envelope` (assigns `seq`,
 stores, returns the envelope); `EventSink::emit` is refactored to call it.
 
-### Composition — one sink for the agent loop
+### Composition - one sink for the agent loop
 ```rust
 pub struct BroadcastSink { emitters: Vec<Arc<dyn StreamEmitter>> }
 
@@ -66,7 +66,7 @@ the NDJSON log and the live stream with zero engine changes.
 Deltas arrive per token; forwarding each over IPC floods the frontend.
 `BatchingEmitter` wraps any emitter: it accumulates `TextDelta` text and flushes
 when the buffer reaches 200 chars, 50ms elapse, or a non-delta event arrives
-(flush-before-other). Non-delta events pass through immediately. Lossless — the
+(flush-before-other). Non-delta events pass through immediately. Lossless - the
 full text always arrives in the terminal `AssistantMessage`; only intermediate
 rendering is coalesced.
 
@@ -92,6 +92,6 @@ Concrete deliverables for the implementer (Z App, g6):
 1. One `Channel` per run vs one global event bus with `run_id` filtering? I
    recommend per-run channels; flag if multi-window needs the bus.
 2. Should TextDelta batching live in Rust (`BatchingEmitter`) or purely in the
-   frontend (rAF)? Both is harmless — where do you want the 50ms/200-char knobs?
-3. `SessionEnd`/cost events (unmerged PR #4) are outside schema v1 — extend this
+   frontend (rAF)? Both is harmless - where do you want the 50ms/200-char knobs?
+3. `SessionEnd`/cost events (unmerged PR #4) are outside schema v1 - extend this
    design to v1+SessionEnd now, or keep D1 to main's schema and follow up?

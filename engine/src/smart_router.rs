@@ -7,14 +7,14 @@
 //!   (code, chat, reasoning, vision).
 //! - [`ModelRegistry`] holds the curated list of *verified* free models
 //!   (every entry is either `:free`-suffixed or on the cost firewall
-//!   allowlist — the same rule [`cost_firewall`] enforces structurally).
+//!   allowlist - the same rule [`cost_firewall`] enforces structurally).
 //! - [`HealthTracker`] marks models dead after consecutive failures so the
 //!   router stops sending traffic to them. The `freetoken-bots-daily-scan`
 //!   cron refreshes liveness out of band; this tracker handles the
 //!   in-session view.
 //! - [`SmartRouter::route`] returns a [`RoutePlan`] (primary + ordered
 //!   fallbacks) for one task. Every candidate is validated by
-//!   [`cost_firewall::FreeOnlyPolicy`] *before* it can be used — a paid
+//!   [`cost_firewall::FreeOnlyPolicy`] *before* it can be used - a paid
 //!   model can only appear when [`CostMode::BringYourOwnKey`] is active,
 //!   and even then only ids the user explicitly configured.
 //!
@@ -33,7 +33,7 @@ use crate::cost_firewall::{self, CostFirewallError, FreeOnlyPolicy};
 /// [`CostMode::FreeOnly`] (the default) means the router may only emit
 /// provably-free model ids. [`CostMode::BringYourOwnKey`] means the user
 /// attached their own provider key and explicitly opted into paid models;
-/// ZenCode still never bills — the user's provider does.
+/// ZenCode still never bills - the user's provider does.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CostMode {
     /// Only `:free` / allowlisted models. Structural, not a setting.
@@ -187,7 +187,7 @@ impl ModelEntry {
 ///   `mimo-v2.6-flash:free`, `mimo-v2.5:free` (verified :free ids)
 /// - OpenRouter: `nvidia/nemotron-3-ultra-550b-a55b:free` (Pi default)
 /// - Experiential Labs: `deepseek-v4.1-flash-uncensored`
-///   (verified via chat call, usage.cost = 0.0 — on the firewall allowlist)
+///   (verified via chat call, usage.cost = 0.0 - on the firewall allowlist)
 /// - Kilo gateway: `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
 ///   (anonymous keyless, 200 req/hour/IP)
 ///
@@ -302,7 +302,7 @@ pub enum HealthState {
     Healthy,
     /// Some recent failures, still worth trying after healthier options.
     Degraded,
-    /// Consecutively failed too often — skipped until it recovers.
+    /// Consecutively failed too often - skipped until it recovers.
     Dead,
 }
 
@@ -354,7 +354,7 @@ impl HealthTracker {
 
 /// What the router decided for one task: try `primary` first, then each of
 /// `fallbacks` in order. All entries are validated for the active
-/// [`CostMode`] — see [`SmartRouter::route`].
+/// [`CostMode`] - see [`SmartRouter::route`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RoutePlan {
     pub kind: TaskKind,

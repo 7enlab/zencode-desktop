@@ -1,4 +1,4 @@
-//! R2: Time-Travel / Undo-Everything — timeline model.
+//! R2: Time-Travel / Undo-Everything - timeline model.
 //!
 //! [`build_timeline`] turns a session's [`Envelope`] log into a list of
 //! [`TimelineEntry`]: one plain-language row per agent action, in order.
@@ -71,7 +71,7 @@ pub struct TimelineResponse {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RestoreOutcome {
     pub restored_files: Vec<String>,
-    /// Auto-checkpoint taken before restoring — the restore is itself undoable.
+    /// Auto-checkpoint taken before restoring - the restore is itself undoable.
     pub safety_checkpoint_id: String,
 }
 
@@ -140,7 +140,7 @@ pub fn build_timeline(envelopes: &[Envelope]) -> Vec<TimelineEntry> {
                     seq: env.seq,
                     kind: "blocked".to_string(),
                     title: format!("Blocked: {tool_name} needed your approval"),
-                    detail: "the agent did not run this — waiting on you".to_string(),
+                    detail: "the agent did not run this - waiting on you".to_string(),
                     files: vec![],
                     checkpoint_id: None,
                     undoable: false,

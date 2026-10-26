@@ -1,5 +1,5 @@
-/* ZenCode Desktop — RateGate UI wireup mock (W-10, 0.4-3 part 3).
- * Simulates a quota-state backend with fake data — NO real API calls, no
+/* ZenCode Desktop - RateGate UI wireup mock (W-10, 0.4-3 part 3).
+ * Simulates a quota-state backend with fake data - NO real API calls, no
  * network, no Tauri invoke. Feeds synthetic `quota_state` envelopes into
  * RateGateUI.onEnvelope on a timer so the D8 RateGate UI wiring can be
  * developed and demoed before the engine exposes the real endpoint

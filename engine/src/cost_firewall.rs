@@ -1,6 +1,6 @@
 //! Structural zero-cost firewall: the engine can never call a paid model.
 //!
-//! ZenCode Desktop has no payment rails — there is nowhere to enter a credit
+//! ZenCode Desktop has no payment rails - there is nowhere to enter a credit
 //! card, no billing API, no paid-model key store. This module turns that
 //! product fact into a *structural* property of the engine: every model id the
 //! engine accepts must either end with `:free` (the OpenAI-compatible
@@ -10,13 +10,13 @@
 //! Anything else is rejected with [`CostFirewallError::NonFreeModelBlocked`]
 //! **before any network call is made**. The check runs at three points:
 //!
-//! 1. Engine startup / config load — [`FreeOnlyPolicy::validate_all`] on the
+//! 1. Engine startup / config load - [`FreeOnlyPolicy::validate_all`] on the
 //!    [`RunOptions`](crate::RunOptions) at the top of
 //!    [`run_task_with_sink`](crate::run_task_with_sink), before the HTTP
 //!    client is even constructed.
-//! 2. Per-task model selection — same call, same place: no task can start
+//! 2. Per-task model selection - same call, same place: no task can start
 //!    with an unvalidated model.
-//! 3. Model-chain fallback — [`FreeOnlyPolicy::validate_all`] also validates
+//! 3. Model-chain fallback - [`FreeOnlyPolicy::validate_all`] also validates
 //!    every fallback id. (When the RateGate/ModelChain lands, call `validate`
 //!    on each candidate *before* the chain tries it; see the integration note
 //!    on [`FreeOnlyPolicy::validate_all`].)
@@ -38,7 +38,7 @@ pub const FREE_ALLOWLIST: &[&str] = &[
 pub const FREE_SUFFIX: &str = ":free";
 
 /// The loud message shown whenever the firewall blocks a model.
-pub const BLOCKED_MESSAGE: &str = "ZenCode cannot bill you — this is structural, not a setting.";
+pub const BLOCKED_MESSAGE: &str = "ZenCode cannot bill you - this is structural, not a setting.";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CostFirewallError {
@@ -66,14 +66,14 @@ impl fmt::Display for CostFirewallError {
 impl std::error::Error for CostFirewallError {}
 
 /// Returns true if `model` is provably free: `:free` suffix or allowlisted.
-/// Pure function — no I/O, no network.
+/// Pure function - no I/O, no network.
 pub fn is_free_model(model: &str) -> bool {
     let m = model.trim();
     !m.is_empty() && (m.ends_with(FREE_SUFFIX) || FREE_ALLOWLIST.contains(&m))
 }
 
 /// Validate one model id. Pure function: performs no I/O and, in particular,
-/// no network call — rejection happens *before* any HTTP is possible.
+/// no network call - rejection happens *before* any HTTP is possible.
 pub fn validate_model(model: &str) -> Result<(), CostFirewallError> {
     if model.trim().is_empty() {
         return Err(CostFirewallError::EmptyModelId);
@@ -143,7 +143,7 @@ impl FreeOnlyPolicy {
     }
 }
 
-/// Tracks spend. It is always $0.00 — the meter exists so the UI can *show*
+/// Tracks spend. It is always $0.00 - the meter exists so the UI can *show*
 /// the guarantee ("spent $0.00 across N tasks") rather than merely assert it.
 #[derive(Debug, Clone, Default)]
 pub struct SpendMeter {
@@ -164,7 +164,7 @@ impl SpendMeter {
         self.tasks_run
     }
 
-    /// Total spend in USD. Always 0.0 — structurally, not approximately.
+    /// Total spend in USD. Always 0.0 - structurally, not approximately.
     pub fn total_spent_usd(&self) -> f64 {
         0.0
     }

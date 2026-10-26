@@ -1,5 +1,5 @@
 "use strict";
-/* ZenCode Desktop — scope declaration card (R3).
+/* ZenCode Desktop - scope declaration card (R3).
  *
  * Renders the agent's declared scope as a checklist before it starts:
  *   renderScopeCard(container, decl, onDecision)
@@ -113,7 +113,7 @@ function demoScope() {
       description: "Fix the typo in the README",
       files: ["README.md", "docs/guide.md"],
       dirs: ["src"],
-      reasons: ["declaration touches 25 files (limit 20) — confirm the scope"],
+      reasons: ["declaration touches 25 files (limit 20) - confirm the scope"],
     },
     (d) => console.log("scope decision:", d),
   );

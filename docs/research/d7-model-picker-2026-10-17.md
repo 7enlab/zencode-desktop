@@ -1,4 +1,4 @@
-# D7 — Free-Only Model Picker
+# D7 - Free-Only Model Picker
 
 **Date:** 2026-10-17 · **Status:** Design (for Z App's g6 UI work)
 **Constraint:** FREE-ONLY is a locked project decision. Paid usage needs Zen's approval.
@@ -28,11 +28,11 @@ without checking anything.
 The `:free` suffix is the de-facto convention across OpenAI-compatible
 gateways (OpenRouter, Kilo, TokenRouter):
 
-- `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` — free tier
-- `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning` — paid (same model!)
+- `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` - free tier
+- `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning` - paid (same model!)
 
 The suffix is the ONLY machine-readable marker. Names without it are treated
-as paid unless explicitly allowlisted — fail closed.
+as paid unless explicitly allowlisted - fail closed.
 
 ### Why the picker must enforce, not just filter
 
@@ -66,7 +66,7 @@ Each entry needs `verified_by` + `verified_at`. Empty by default.
 - Each row shows: display name, provider badge, context window
   (e.g., "128k"), and a green "verified" check when `known_good`.
 - Unverified-but-free models appear in a separate "Untested" section.
-- **Paid models never appear.** There is no "show paid" toggle — that would
+- **Paid models never appear.** There is no "show paid" toggle - that would
   defeat the purpose. (If Zen ever approves paid use, that's a separate
   gated flow, not a picker option.)
 
@@ -134,7 +134,7 @@ engine `ensure_free_model` hard-blocks before any network call.
 3. `fallback_models` entries are checked with the same rule.
 4. Violation → `anyhow::Error`, no network call, message cites the free-only
    policy.
-5. The registry file is data, not policy — the `:free` suffix check does not
+5. The registry file is data, not policy - the `:free` suffix check does not
    depend on the registry being present or fresh.
 
 ### Open questions for Z App
@@ -145,4 +145,4 @@ engine `ensure_free_model` hard-blocks before any network call.
    tiers change silently; stale data risks 402s mid-task.)
 3. **Multi-provider same model:** if `x:free` exists on two providers with
    different rate limits, does the picker show both or pick the better one?
-   (Suggest: show both, annotate limits — but needs a limits field.)
+   (Suggest: show both, annotate limits - but needs a limits field.)

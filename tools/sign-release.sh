@@ -1,5 +1,5 @@
 #!/bin/bash
-# tools/sign-release.sh — sign all release artifacts with minisign.
+# tools/sign-release.sh - sign all release artifacts with minisign.
 #
 # Usage: MINISIGN_KEY=/secure/path/zencode-release.key tools/sign-release.sh <version> <dist-dir>
 # Example: MINISIGN_KEY=~/.signing/zencode-release.key tools/sign-release.sh v0.4.0 dist/

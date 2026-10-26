@@ -1,14 +1,14 @@
-/* ZenCode Desktop — embedded terminal tab (D6).
+/* ZenCode Desktop - embedded terminal tab (D6).
  *
  * Frontend: xterm.js v6.0.0 (package @xterm/xterm) loaded from CDN.
  *   <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/lib/xterm.js"></script>
  *   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/css/xterm.css" />
  * Backend (not yet wired): portable-pty per tab, bytes over a Tauri
- * ipc::Channel — see terminal-README.md. Until then, DEMO_MODE provides
+ * ipc::Channel - see terminal-README.md. Until then, DEMO_MODE provides
  * a fake shell so the UI is testable standalone.
  *
  * SECURITY: terminals are user-driven ONLY. The agent never types into
- * them — every byte sent to the backend comes from the user's keyboard.
+ * them - every byte sent to the backend comes from the user's keyboard.
  */
 
 'use strict';
@@ -163,16 +163,16 @@ class FakeShell {
       return;
     }
     // Unknown command: echo it back so the demo visibly "runs" user input.
-    this._emit(`$ ${line}\r\n(executed in demo mode — wire portable-pty for a real shell)\r\n`);
+    this._emit(`$ ${line}\r\n(executed in demo mode - wire portable-pty for a real shell)\r\n`);
   }
 
   greet() {
-    this._emit('ZenCode terminal (demo shell — no real backend yet)\r\n');
+    this._emit('ZenCode terminal (demo shell - no real backend yet)\r\n');
     this._emit('Type `help` for demo commands. The agent cannot type here.\r\n$ ');
   }
 }
 
-/** Demo backend factory — replaced by the Tauri portable-pty wiring later. */
+/** Demo backend factory - replaced by the Tauri portable-pty wiring later. */
 function createBackend(session) {
   if (TERMINAL_DEMO_MODE) return new FakeShell(session);
   // Real backend: see terminal-README.md. Throws until implemented.

@@ -14,11 +14,11 @@
 //!    for remote endpoints and API keys *before* the mode engages, and
 //!    reports findings the user must acknowledge or fix first.
 //! 3. **Attestation.** [`AttestationLog`] is a hash-chained session log proving
-//!    — to an auditor — that the session ran under sovereign policy. Each
+//!    - to an auditor - that the session ran under sovereign policy. Each
 //!    entry commits to the previous entry's hash; [`verify_attestation`]
 //!    recomputes the whole chain offline with any SHA-256 tool.
 //!
-//! ## Honest limits — read before promising anyone compliance
+//! ## Honest limits - read before promising anyone compliance
 //!
 //! Sovereign Mode is enforced at the **application layer** of this engine:
 //!
@@ -62,7 +62,7 @@ pub const OLLAMA_LOOPBACK_URL: &str = "http://localhost:11434/v1";
 pub const OLLAMA_DEFAULT_PORT: u16 = 11434;
 /// Policy identifier recorded in attestations.
 pub const POLICY_VERSION: &str = "sovereign-policy-v1";
-/// Attestation chain scheme. Hash-chained, NOT asymmetrically signed —
+/// Attestation chain scheme. Hash-chained, NOT asymmetrically signed -
 /// see the module docs for the honest limits.
 pub const ATTESTATION_SCHEME: &str = "hash-chain-v1";
 
@@ -149,7 +149,7 @@ fn split_host_port(url: &str) -> Option<(String, Option<u16>)> {
 ///
 /// `0.0.0.0` is treated as loopback-equivalent: a TCP connect to it never
 /// leaves the machine on any supported OS (it resolves to localhost).
-/// Hostnames other than `localhost` are NOT trusted — DNS could resolve them
+/// Hostnames other than `localhost` are NOT trusted - DNS could resolve them
 /// anywhere, and Sovereign Mode does not do DNS resolution to check.
 pub fn is_loopback_host(host: &str) -> bool {
     let h = host.trim().trim_end_matches('.').to_lowercase();
@@ -501,7 +501,7 @@ impl SovereignMode {
     /// Runs the preflight check (pure part) and probes Ollama on loopback.
     /// Returns the first blocking error; non-blocking findings (API key
     /// present) are recorded in the attestation log but do not stop
-    /// engagement — the key is simply never used while the mode is on.
+    /// engagement - the key is simply never used while the mode is on.
     pub fn enable(session_id: &str) -> Result<Self, SovereignError> {
         Self::enable_with_probe(session_id, OLLAMA_LOOPBACK_URL, true)
     }
@@ -515,7 +515,7 @@ impl SovereignMode {
     ) -> Result<Self, SovereignError> {
         // 1. The endpoint itself must be sovereign.
         validate_llm_config(ollama_base_url, None)?;
-        // 2. Ollama must actually be listening — otherwise we would promise
+        // 2. Ollama must actually be listening - otherwise we would promise
         //    local inference we cannot deliver.
         if probe && !probe_ollama_running(OLLAMA_DEFAULT_PORT) {
             return Err(SovereignError::OllamaUnreachable {
@@ -746,7 +746,7 @@ mod tests {
         let kinds: Vec<&str> = findings.iter().map(|f| f.kind.as_str()).collect();
         assert!(kinds.contains(&"remote-endpoint"));
         assert!(kinds.contains(&"api-key-present"));
-        // Remote endpoints are NOT acknowledgable — they must be fixed.
+        // Remote endpoints are NOT acknowledgable - they must be fixed.
         assert!(findings
             .iter()
             .filter(|f| f.kind == "remote-endpoint")

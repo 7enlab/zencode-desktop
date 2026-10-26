@@ -1,4 +1,4 @@
-/* ZenCode Desktop — terminal tab styles (matches GitHub-dark theme) */
+/* ZenCode Desktop - terminal tab styles (matches GitHub-dark theme) */
 
 /* View switching: chat pane vs terminal pane */
 #main-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }

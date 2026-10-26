@@ -1,5 +1,5 @@
 "use strict";
-/* R14 zero-telemetry Network tab — vanilla JS.
+/* R14 zero-telemetry Network tab - vanilla JS.
  * Shows the auditable network log: every outbound request the engine made,
  * the hosts contacted, and the zero-telemetry verdict.
  *
@@ -132,7 +132,7 @@ function renderNetwork() {
 
   const note = document.createElement("p");
   note.className = "net-note";
-  note.textContent = "Auditable proof: this log is the complete record of engine-initiated network traffic. ZenCode operates no telemetry servers — there is nothing to phone home to.";
+  note.textContent = "Auditable proof: this log is the complete record of engine-initiated network traffic. ZenCode operates no telemetry servers - there is nothing to phone home to.";
   panel.appendChild(note);
 }
 

@@ -1,7 +1,7 @@
 //! Convergence guard (v0.4.0 "Trust" roadmap, R6): detects repair loops and forces a
 //! re-plan instead of silently burning tokens.
 //!
-//! Motivation: runaway token burn is the universal complaint about coding agents — a Cline
+//! Motivation: runaway token burn is the universal complaint about coding agents - a Cline
 //! user burned $187 overnight in one stuck session, a Roo Code user $47 in a single
 //! afternoon, and repair loops of 20-40 iterations "leave the workspace in a worse state".
 //!
@@ -15,7 +15,7 @@
 //! stops the loop, records a `loop_detected` system event via
 //! [`LoopDetector::emit_loop_detected`], and hands the agent the forced re-plan prompt from
 //! [`LoopDetector::replan_prompt`]. The optional `restore_point` is a checkpoint id from
-//! PR #31's `CheckpointManager` — this crate does not depend on it, the caller passes the
+//! PR #31's `CheckpointManager` - this crate does not depend on it, the caller passes the
 //! id through so the re-plan prompt can reference it.
 
 use std::collections::HashMap;

@@ -1,5 +1,5 @@
 "use strict";
-/* R8 onboarding — unit tests for the pure-logic state machine.
+/* R8 onboarding - unit tests for the pure-logic state machine.
  * Run: node --test desktop/src/onboarding.test.js
  * (No DOM required; UI class is intentionally not covered here.)
  */
@@ -32,7 +32,7 @@ function fakeStorage() {
   };
 }
 
-describe("OnboardingStateMachine — happy path", () => {
+describe("OnboardingStateMachine - happy path", () => {
   test("WELCOME -> MODEL_SELECT -> DEMO_TASK -> DONE", () => {
     const m = new OnboardingStateMachine();
     assert.equal(m.step, OnboardingStep.WELCOME);
@@ -57,7 +57,7 @@ describe("OnboardingStateMachine — happy path", () => {
   });
 });
 
-describe("OnboardingStateMachine — BYOK detour", () => {
+describe("OnboardingStateMachine - BYOK detour", () => {
   test("MODEL_SELECT -> BYOK_SETUP -> DEMO_TASK with ban-risk lookup", () => {
     const m = new OnboardingStateMachine();
     m.begin();
@@ -90,7 +90,7 @@ describe("OnboardingStateMachine — BYOK detour", () => {
   });
 });
 
-describe("OnboardingStateMachine — skip & invalid transitions", () => {
+describe("OnboardingStateMachine - skip & invalid transitions", () => {
   test("skip works from any unfinished step", () => {
     for (const setup of [
       (m) => {},

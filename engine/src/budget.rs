@@ -2,14 +2,14 @@
 //! and duration budgets with a hard stop.
 //!
 //! The community's unanimous advice for runaway agents is "set hard spend
-//! limits". For ZenCode — where every model is `:free` — the budget stretches
+//! limits". For ZenCode - where every model is `:free` - the budget stretches
 //! free-tier quotas and kills runaway loops before they burn turns.
 //!
 //! Wiring (see [`wire`] and `run_task_with_sink` in `lib.rs`):
 //! - [`BudgetedBackend`] wraps the [`LlmBackend`]: it records prompt/completion
 //!   tokens after every model call and refuses the next call once any budget is
 //!   exceeded. The agent loop turns that refusal into an error result, so the
-//!   task stops — no further model calls, no further turns.
+//!   task stops - no further model calls, no further turns.
 //! - [`BudgetedPermissions`] wraps the [`PermissionChecker`]: it counts every
 //!   attempted tool call and denies (rather than runs) calls past the limit.
 //! - On the first exceedance, a `budget_exceeded` [`SystemMessage`] event is
@@ -131,7 +131,7 @@ impl TaskBudget {
     }
 }
 
-/// Live counters for one task. Not `Sync` by itself — share via
+/// Live counters for one task. Not `Sync` by itself - share via
 /// [`BudgetEnforcer`].
 #[derive(Debug)]
 pub struct BudgetTracker {
@@ -190,7 +190,7 @@ impl BudgetTracker {
     }
 
     /// `Ok` while every dimension is within its limit; otherwise the first
-    /// tripped dimension (input, output, tool calls, duration — in that order).
+    /// tripped dimension (input, output, tool calls, duration - in that order).
     pub fn check(&self) -> Result<(), BudgetExceeded> {
         let b = &self.budget;
         if self.input_tokens > b.max_input_tokens {

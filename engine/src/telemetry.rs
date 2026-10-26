@@ -8,21 +8,21 @@
 //!
 //! This module makes that claim auditable instead of merely asserted:
 //!
-//! - [`TelemetryGuard`] — built from the run's `base_url` at the same
+//! - [`TelemetryGuard`] - built from the run's `base_url` at the same
 //!   enforcement point as the R1 cost firewall (top of
 //!   [`run_task_with_sink`](crate::run_task_with_sink), before any network
 //!   call). Any destination outside the user-configured host is rejected with
 //!   [`TelemetryError::BlockedHost`].
-//! - [`NetworkLog`] — append-only local log of every outbound request
+//! - [`NetworkLog`] - append-only local log of every outbound request
 //!   (timestamp, host, path, purpose, bytes). The user can view, export and
 //!   delete it; nothing ever leaves the machine.
-//! - [`TelemetryBackend`] — wraps the [`LlmBackend`](zen_core::LlmBackend)
+//! - [`TelemetryBackend`] - wraps the [`LlmBackend`](zen_core::LlmBackend)
 //!   exactly like R12's `BudgetedBackend` wraps it, recording each model call
 //!   into the [`NetworkLog`].
-//! - [`ZeroTelemetryProof`] — turns a [`NetworkLog`] into a
+//! - [`ZeroTelemetryProof`] - turns a [`NetworkLog`] into a
 //!   [`TelemetryReport`] the user can read: every host ever contacted, and a
 //!   verdict that no ZenCode-owned endpoint was reached (there are none to
-//!   reach — the proof is the empty set, verified against the log).
+//!   reach - the proof is the empty set, verified against the log).
 //!
 //! Honest limits (documented, not hidden): this is application-layer
 //! enforcement. It cannot see traffic from the Tauri webview itself or from
@@ -105,7 +105,7 @@ pub struct TelemetryGuard {
 
 impl TelemetryGuard {
     /// Build the guard from a run's model `base_url`. Fails when the URL is
-    /// not a usable `http(s)` URL — same enforcement point as the R1 cost
+    /// not a usable `http(s)` URL - same enforcement point as the R1 cost
     /// firewall, before any network call is made.
     pub fn from_base_url(base_url: &str) -> Result<Self, TelemetryError> {
         let url = base_url.trim();
@@ -349,7 +349,7 @@ impl ZeroTelemetryProof {
             )
         } else {
             format!(
-                "VIOLATION: contacted ZenCode-owned host(s): {}. This must never happen — please report it.",
+                "VIOLATION: contacted ZenCode-owned host(s): {}. This must never happen - please report it.",
                 zencode_hosts_contacted.join(", ")
             )
         };
@@ -596,7 +596,7 @@ mod tests {
     #[test]
     fn zencode_owned_hosts_is_empty_by_design() {
         // If ZenCode ever ships a server, this test forces a conscious update
-        // of the proof logic — it must never silently gain entries.
+        // of the proof logic - it must never silently gain entries.
         assert!(ZENCODE_OWNED_HOSTS.is_empty());
     }
 }

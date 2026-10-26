@@ -1,4 +1,4 @@
-# ZenCode Desktop — Research / Ideas / Results (log)
+# ZenCode Desktop - Research / Ideas / Results (log)
 ## 2026-10-16
 ### Research
 - Competitors: Neo-cowsay (Go): word-wrap, go-runewidth, cowfiles embedded in binary, --random, colors (--rainbow/--aurora), usable as library. charasay (Rust): textwrap + unicode-width, defaults to terminal width, --think, many colored charas. ferris-says (Rust): library API say(text,width,writer). gowsay/nmyk cowsay (Go): stdlib-first, full-width.
@@ -13,18 +13,18 @@
 - Result: library API say(text, &Options) (learned from ferris-says/Neo-cowsay), -W auto from $COLUMNS (learned from charasay), CI GitHub Actions 3 OS (not pushed yet). Tests: unit 6/6, doctest 1/1, golden 21/21; Windows/macOS cargo check OK; binary 508 KB.
 - Next ideas: measure real terminal width via ioctl/WinAPI (still std-only via FFI), optional ANSI colors (--rainbow like Neo-cowsay), push private repo to GitHub for real CI on macOS/Windows.
 
-## 2026-10-16 — GitHub + Real CI
+## 2026-10-16 - GitHub + Real CI
 - **Research**: Windows checkout defaults `core.autocrlf=true` turning golden `.out` and cowfiles into CRLF → parity fail on Windows (21 cases). The GitHub App has contents/workflows/actions write on all repos but no administration (cannot create repo, cannot edit description/topics).
 - **Ideas**: `.gitattributes` force LF for golden/cowfiles; later add release job (tag → build binary 3 OS → GitHub Release), commit `Cargo.lock`, clippy/fmt job.
 - **Result**: private repo `7enlab/zencode-desktop`, 2 commits on `main`. CI run 38897073575: ubuntu ✅ macOS ✅ windows ✅ (first Windows fail due to CRLF, fixed). Artifacts binary for 3 OS. Added LICENSE, CHANGELOG, .editorconfig, Cargo metadata, CI runs only on push main/PR/dispatch, read-only permissions, concurrency.
 
-## 2026-10-16 19:04 — Real Terminal Width + Release
+## 2026-10-16 19:04 - Real Terminal Width + Release
 - **Research**: `TIOCGWINSZ` differs by OS (Linux 0x5413, macOS/BSD 0x40087468); Windows gets `srWindow.Right-Left+1` from `GetConsoleScreenBufferInfo`. Done via std `extern "C"/"system"`, no `libc`/`windows-sys` crate needed.
 - **Ideas**: Priority `$COLUMNS` → real terminal → 40 to keep golden tests stable; release on tag `v*` for Linux x86_64, macOS arm64, Windows x86_64.
 - **Result**: commit cc20b2b, CI run 38897812171 green on Ubuntu/macOS/Windows. Release workflow ready, tag not pushed yet.
 
 
-## 2026-10-17 — Lint Gate + ANSI Colour
+## 2026-10-17 - Lint Gate + ANSI Colour
 
 ### Research
 - Neo-cowsay (Go) has `--rainbow`/`--aurora`/`--bold`; charasay (Rust) colors via external crate. Community standards: NO_COLOR (no-color.org: non-empty var = disable colors) and CLICOLOR_FORCE (bixense.com/clicolors: non-`0` = force colors).
@@ -41,7 +41,7 @@
 - CI adds a lint job: `cargo fmt --check` + `cargo clippy -D warnings` for Linux, Windows, macOS; build/test use `--locked`; commit `Cargo.lock`.
 - Module `color.rs` (std-only, with Windows FFI), flags `--cow-color`, `--color=WHEN`; 2 unit tests + 1 new integration test; golden 21/21 unchanged (default no color when piped).
 
-## 2026-10-17 — Competitor: DeepSeek Harness (dsh)
+## 2026-10-17 - Competitor: DeepSeek Harness (dsh)
 
 ### Research
 - dsh: MIT open-source agent harness from DeepSeek (released 13/08/2026, developer preview, source version 0.1.5-alpha.1), TypeScript monorepo on Cordis (plugin framework). Run `npx @deepseek-ai/dsh web` (Web UI 127.0.0.1:3080), has Desktop app, `headless` profile for one-shot tasks, Python SDK via JSON-RPC over stdio.
@@ -56,14 +56,14 @@
 ### Idea for ZenCode Desktop
 - "seam" architecture: split traits `Llm`, `Tool`, `Sandbox`, `SessionLog` in Rust; plugin = crate/feature or subprocess via JSON-RPC stdio (safer than dsh because plugin out-of-process).
 - Session log append-only JSONL + replay/fork; invariant "everything the model sees is logged".
-- Cross-platform std-first sandbox: Landlock syscalls (Linux), sandbox-exec profile (macOS), Job Object/restricted token (Windows) — fail-closed, honestly report partial.
+- Cross-platform std-first sandbox: Landlock syscalls (Linux), sandbox-exec profile (macOS), Job Object/restricted token (Windows) - fail-closed, honestly report partial.
 - Minimal mode (shell + str_replace) serves as baseline for evaluating free model; avoid duplicating CLAUDE.md/AGENTS.md (hash content, dedupe).
 - Token saving is a competitive advantage because we only use the free model.
 
 ### Results
 - Not yet installed dsh (requires Node + DeepSeek API key; DeepSeek API is paid → not used). Could try later with a free OpenAI-compatible endpoint via relay.
 
-## 2026-10-17 — Aurora gradient (truecolor / 256 colors)
+## 2026-10-17 - Aurora gradient (truecolor / 256 colors)
 
 ### Research
 - Neo-cowsay `--aurora`: color gradient along diagonal per character. Common truecolor detection standard: `COLORTERM=truecolor|24bit` (termstandard/colors); if absent, use xterm 256-color table (6x6x6 cube, codes 16–231).
@@ -75,7 +75,7 @@
 ### Result
 - `--cow-color aurora` + `Depth` (`COLORTERM`), API `paint_depth`; 2 unit tests + integration test (truecolor and 256 colors, strip = original). fmt/clippy clean, all tests pass, golden unchanged.
 
-## 2026-10-17 — Agent core: crate `core/` (seam traits)
+## 2026-10-17 - Agent core: crate `core/` (seam traits)
 
 ### Research
 - From dsh: everything (model, tool, sandbox, session log, loop) is a plugin connected through a seam; the session log is append-only with the invariant "model-visible means logged", enabling resume/fork/replay. Pi keeps the loop minimal, using few tokens.
@@ -89,7 +89,7 @@
 - Crate `zencode_core` 0.1.0 std-only, 6 integration tests pass; fmt/clippy `-D warnings` clean; `rebuild/` unchanged (golden parity pass). CI runs the `rebuild` + `core` crate matrix.
 - Next step: `JsonlLog` (append-only JSONL on disk, std-only JSON encode/decode) + hash-based dedupe of AGENTS.md/CLAUDE.md.
 
-## 2026-10-17 — Research on 13 competitors (details: docs/research/competitors-2026-10-17.md)
+## 2026-10-17 - Research on 13 competitors (details: docs/research/competitors-2026-10-17.md)
 
 ### Research
 - Claude Code, Codex CLI, OpenCode, Crush, Aider, Gemini CLI, Pi, Goose, Cline/Kilo, Zed, Amp, Cursor CLI + Terminal-Bench/SWE-bench.

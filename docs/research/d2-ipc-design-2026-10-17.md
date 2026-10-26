@@ -1,8 +1,8 @@
-# D2 — IPC event flow: engine → Tauri frontend (design)
+# D2 - IPC event flow: engine → Tauri frontend (design)
 
 Design for the IPC bridge carrying live engine events to the Desktop UI (Tauri 2, g6).
 Docs-only; no implementation. Companion to D1 (engine-side `StreamEmitter`, PR #13);
-this doc starts where D1 ends — at the Tauri `Channel` boundary.
+this doc starts where D1 ends - at the Tauri `Channel` boundary.
 
 ## 1. Research
 
@@ -17,7 +17,7 @@ this doc starts where D1 ends — at the Tauri `Channel` boundary.
 `Channel` is the right primitive: it is created in JS, passed into the Rust command,
 and `channel.send(value)` pushes to the frontend. A `send` error is the disconnect
 signal. Global `emit` would force every window to receive every run's events and
-filter by `run_id` — workable, but strictly worse than one channel per run.
+filter by `run_id` - workable, but strictly worse than one channel per run.
 
 ### Why the frontend still needs batching
 
@@ -31,7 +31,7 @@ depth, not duplication.
 ### Gap detection
 
 D1's `Envelope { v, seq, event }` already carries a per-run sequence number. The
-webview IPC bridge delivers channel messages in order, so a gap should never happen —
+webview IPC bridge delivers channel messages in order, so a gap should never happen -
 but the check is one integer comparison and turns a silent corruption into a loud,
 debuggable warning.
 
@@ -40,7 +40,7 @@ debuggable warning.
 ### One `Channel<Envelope>` per run
 
 The JS side creates the channel and invokes the command; the channel callback closes
-over the `run_id`, so the envelope itself needs no `run_id` field — D1's wire format
+over the `run_id`, so the envelope itself needs no `run_id` field - D1's wire format
 (`{v, seq, type, ...}`) is unchanged, and the NDJSON log stays the single source of
 truth for persistence.
 
@@ -78,7 +78,7 @@ The UI polls it in "follow" mode until the run's `SessionEnd` (schema v1+…) ar
 ### Wiring sketch (pseudo-code, not compiled)
 
 ```rust
-// Rust — Tauri command (one channel per run, D1's BroadcastSink plugs in unchanged)
+// Rust - Tauri command (one channel per run, D1's BroadcastSink plugs in unchanged)
 #[tauri::command]
 async fn run_agent(prompt: String, on_event: Channel<Envelope>) -> Result<RunSummary, String> {
     let recording = Arc::new(RecordingSink::new());
@@ -90,7 +90,7 @@ async fn run_agent(prompt: String, on_event: Channel<Envelope>) -> Result<RunSum
 ```
 
 ```ts
-// Frontend — rAF-batched consumer with gap detection
+// Frontend - rAF-batched consumer with gap detection
 import { Channel, invoke } from '@tauri-apps/api/core';
 
 const onEvent = new Channel<Envelope>();

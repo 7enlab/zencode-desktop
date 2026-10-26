@@ -1,4 +1,4 @@
-# D10 — Completion Notifications
+# D10 - Completion Notifications
 
 **Date:** 2026-10-17 · **Status:** design proposal for Z App (g6) · **Docs only**
 
@@ -12,9 +12,9 @@ KDE: yes, minimal WMs: no). Fallback: in-app toast when the OS API is unavailabl
 
 **What deserves a notification.** Long agent runs happen in the background while the
 user does other work. Notify on: (a) run finished (success/failure), (b) approval
-needed (agent blocked waiting on the user — see D6), (c) run failed with an error
+needed (agent blocked waiting on the user - see D6), (c) run failed with an error
 that needs attention, (d) milestone for very long runs (e.g. every 15 min). Never
-notify on routine progress (TextDelta, ToolResult) — that's notification spam.
+notify on routine progress (TextDelta, ToolResult) - that's notification spam.
 
 ## Ideas
 
@@ -24,15 +24,15 @@ engine change required.
 
 | `DesktopEvent` | Notify? | Condition |
 |---|---|---|
-| `SessionEnd` (PR #4, unmerged) | ✅ | Always — success or failure |
-| `PermissionDenied` | ✅ | Always — agent is blocked, needs user |
+| `SessionEnd` (PR #4, unmerged) | ✅ | Always - success or failure |
+| `PermissionDenied` | ✅ | Always - agent is blocked, needs user |
 | `ToolResult { is_error: true }` | ⚠️ | Only if it ends the run (check following events) |
-| `ApiRetry { error_status: 429 }` | ⚠️ | Only after 3rd retry — "rate-limited, still trying" |
-| `SystemMessage` | ❌ | No — too noisy |
+| `ApiRetry { error_status: 429 }` | ⚠️ | Only after 3rd retry - "rate-limited, still trying" |
+| `SystemMessage` | ❌ | No - too noisy |
 | `AssistantMessage`, `TextDelta` | ❌ | Never |
 
-**Content.** Title: `ZenCode — task finished` / `ZenCode — approval needed` / `ZenCode — task failed`.
-Body: one line — first 80 chars of the result summary or the tool name awaiting approval.
+**Content.** Title: `ZenCode - task finished` / `ZenCode - approval needed` / `ZenCode - task failed`.
+Body: one line - first 80 chars of the result summary or the tool name awaiting approval.
 Actions: `View` (focus window, open session), `Dismiss`. On click-through, deep-link
 to the session id so the right conversation opens.
 
@@ -52,7 +52,7 @@ assuming the app hung.
 {
   "id": "notif-<uuid>",
   "kind": "task_finished | task_failed | approval_needed | still_working",
-  "title": "ZenCode — task finished",
+  "title": "ZenCode - task finished",
   "body": "Refactored auth.ts (12 files changed)",
   "session_id": "ses_abc123",
   "actions": ["view", "dismiss"],
@@ -62,10 +62,10 @@ assuming the app hung.
 
 **Rules (v1):**
 1. Max 1 notification per run, except `approval_needed` (repeat max every 5 min while blocked).
-2. Never notify when the app window is focused — use the in-app event feed instead.
+2. Never notify when the app window is focused - use the in-app event feed instead.
 3. `approval_needed` always plays the default sound; others are silent by default.
 
 **Open questions for Z App:**
 1. Should `still_working` milestones be configurable (interval, on/off), or fixed at 15 min?
-2. Linux action-button support is DE-dependent — acceptable to degrade to click-to-open?
+2. Linux action-button support is DE-dependent - acceptable to degrade to click-to-open?
 3. Do we need notification history in-app, or is the session list sufficient?

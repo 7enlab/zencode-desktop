@@ -22,7 +22,7 @@
 
   var SCENARIOS = ["healthy", "approaching", "at_limit", "cooldown"];
 
-  
+
   function makeRng(seed) {
     var a = seed >>> 0;
     return function () {
@@ -37,7 +37,7 @@
     return new Date(Date.now() + minutes * 60000).toISOString();
   }
 
-  
+
   function buildQuota(name, rng) {
     var minuteLimit = 20, dailyLimit = 50;
     var minuteUsed, dailyUsed, queueDepth = 0, fallback = null, cooldownUntil = null;
@@ -90,7 +90,7 @@
     }
   }
 
-  
+
   function tick() {
     if (!current) current = buildQuota("healthy", rng);
 
@@ -133,7 +133,7 @@
     current = null;
   }
 
-  
+
   function scenario(name) {
     if (SCENARIOS.indexOf(name) < 0) return null;
     current = buildQuota(name, rng);

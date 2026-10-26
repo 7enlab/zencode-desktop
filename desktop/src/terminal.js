@@ -33,7 +33,7 @@ class TerminalSession {
     this._disposed = false;
   }
 
-  
+
   attach(el) {
     if (typeof Terminal === 'undefined') {
       el.innerHTML = '<div class="term-error">xterm.js failed to load from CDN.</div>';
@@ -70,10 +70,10 @@ class TerminalSession {
     this.term.focus();
   }
 
-  
+
   onData(cb) { this._dataHandlers.push(cb); }
 
-  
+
   write(data) {
     if (this.term && !this._disposed) this.term.write(data);
   }

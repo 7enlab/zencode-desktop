@@ -24,7 +24,7 @@
     return (s.used / s.limit) * 100;
   }
 
-  
+
   function computeState(qs) {
     if (!qs) return STATES.HEALTHY;
     if (qs.cooldown_until && new Date(qs.cooldown_until).getTime() > Date.now())
@@ -52,7 +52,7 @@
     return e;
   }
 
-  
+
   function createQuotaMeter(doc, host) {
     var wrap = el(doc, "span", "quota-meter");
     var label = el(doc, "span", "qm-label", "⚡ -/-");
@@ -97,7 +97,7 @@
     };
   }
 
-  
+
   function createFallbackBanner(doc, host) {
     var banner = el(doc, "div", "fallback-banner hidden");
     var msg = el(doc, "span", "fb-msg");
@@ -130,7 +130,7 @@
     };
   }
 
-  
+
   function createCooldownOverlay(doc, composerEl, inputEl) {
     var overlay = el(doc, "div", "cooldown-overlay hidden");
     var txt = el(doc, "span", "cd-text");
@@ -167,7 +167,7 @@
     };
   }
 
-  
+
   function updateQueueChip(doc, qs) {
     var chip = doc.getElementById("status-queue");
     if (!chip) return;
@@ -181,7 +181,7 @@
     }
   }
 
-  
+
   var meter = null, banner = null, overlay = null;
 
   function init(doc) {
@@ -211,12 +211,12 @@
     updateQueueChip(meter.el.ownerDocument, qs);
   }
 
-  
+
   function onEnvelope(env) {
     if (env && env.type === "quota_state" && env.quota) update(env.quota);
   }
 
-  
+
   function isoPlus(minutes) {
     return new Date(Date.now() + minutes * 60000).toISOString();
   }

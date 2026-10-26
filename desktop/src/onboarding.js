@@ -117,14 +117,14 @@ class OnboardingStateMachine {
     }
   }
 
-  
+
   begin() {
     if (this.step !== OnboardingStep.WELCOME) return false;
     this.step = OnboardingStep.MODEL_SELECT;
     return true;
   }
 
-  
+
   selectModel(model) {
     if (this.step !== OnboardingStep.MODEL_SELECT) return false;
     if (!model || typeof model.id !== "string" || !model.id) return false;
@@ -133,14 +133,14 @@ class OnboardingStateMachine {
     return true;
   }
 
-  
+
   chooseByok() {
     if (this.step !== OnboardingStep.MODEL_SELECT) return false;
     this.step = OnboardingStep.BYOK_SETUP;
     return true;
   }
 
-  
+
   setByok(provider, keyRef) {
     if (this.step !== OnboardingStep.BYOK_SETUP) return false;
     if (!provider || !keyRef) return false;
@@ -149,7 +149,7 @@ class OnboardingStateMachine {
     return true;
   }
 
-  
+
   completeDemo() {
     if (this.step !== OnboardingStep.DEMO_TASK) return false;
     this.demoCompleted = true;
@@ -157,7 +157,7 @@ class OnboardingStateMachine {
     return true;
   }
 
-  
+
   skip() {
     if (this.step === OnboardingStep.DONE || this.step === OnboardingStep.SKIPPED) return false;
     this.step = OnboardingStep.SKIPPED;
@@ -168,7 +168,7 @@ class OnboardingStateMachine {
     return this.step === OnboardingStep.DONE || this.step === OnboardingStep.SKIPPED;
   }
 
-  
+
   elapsedSeconds() {
     return Math.floor((Date.now() - this.startedAt) / 1000);
   }

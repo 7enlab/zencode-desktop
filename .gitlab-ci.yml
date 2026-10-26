@@ -33,8 +33,8 @@ workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "push"
-    
-    
+
+
     - if: $CI_PIPELINE_SOURCE == "web"
     - if: $CI_PIPELINE_SOURCE == "api"
 
@@ -126,7 +126,7 @@ cargo-deny:
     - cargo install --locked cargo-deny
     - cargo deny --version
   script:
-    
+
     - cargo deny --manifest-path engine/Cargo.toml check licenses advisories bans
 
 release-key-check:

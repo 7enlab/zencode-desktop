@@ -316,7 +316,7 @@ function mockRespond(text) {
   renderSessions();
   if (state.sessions.length) selectSession(state.sessions[0].id);
 
-  
+
   try {
     if (typeof maybeStartOnboarding === "function" && typeof localStorage !== "undefined") {
       maybeStartOnboarding({

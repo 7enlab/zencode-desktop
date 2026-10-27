@@ -40,7 +40,6 @@ pub struct SessionStore {
 }
 
 impl SessionStore {
-
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self { root: root.into() }
     }
@@ -276,7 +275,6 @@ fn validate_session_id(id: &str) -> anyhow::Result<()> {
 }
 
 fn sort_newest_first(sessions: &mut [SessionMeta]) {
-
     sessions.sort_by(|a, b| {
         b.updated_at
             .cmp(&a.updated_at)

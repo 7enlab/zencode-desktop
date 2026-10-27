@@ -7,7 +7,6 @@ use zen_core::{AgentEvent, EventSink};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ClaimKind {
-
     TestRun,
 
     FileWritten,
@@ -21,7 +20,6 @@ pub enum ClaimKind {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Evidence {
-
     pub kind: String,
 
     pub detail: String,
@@ -53,7 +51,6 @@ impl Evidence {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ClaimStatus {
-
     Unverified,
 
     Verified,
@@ -221,7 +218,6 @@ pub fn detect_claims(text: &str) -> Vec<(ClaimKind, String)> {
     let mut out = Vec::new();
     for (kind, patterns) in PATTERNS {
         if let Some(hit) = patterns.iter().find(|p| lower.contains(*p)) {
-
             let statement = sentence_around(&lower, hit).unwrap_or_else(|| (*hit).to_string());
             out.push((*kind, statement));
         }
@@ -354,7 +350,6 @@ impl EventSink for ClaimingSink {
                         None
                     };
                     if let Some(kind) = kind {
-
                         let supported = outcome_from_output(content).unwrap_or(!is_error);
                         let detail: String = content
                             .chars()

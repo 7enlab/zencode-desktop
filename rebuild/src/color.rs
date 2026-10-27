@@ -1,6 +1,5 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Paint {
-
     Solid(u8),
 
     Rainbow,
@@ -10,7 +9,6 @@ pub enum Paint {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Depth {
-
     Ansi256,
 
     TrueColor,
@@ -122,7 +120,6 @@ pub fn paint_depth(s: &str, p: Paint, d: Depth) -> String {
                 let mut last = None;
                 for (j, ch) in body.chars().enumerate() {
                     if ch != ' ' {
-
                         let rgb = hue_rgb(((i + j / 2) * 12) as f32);
                         if last != Some(rgb) {
                             sgr_rgb(&mut out, rgb, d);
@@ -173,7 +170,6 @@ mod imp {
     }
     const ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 = 0x0004;
     pub fn enable_vt() -> bool {
-
         unsafe {
             let h = GetStdHandle(-11i32 as u32);
             let mut mode = 0u32;

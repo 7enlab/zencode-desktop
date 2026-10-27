@@ -4,7 +4,6 @@ use std::path::Path;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VerifyError {
-
     BadPublicKey(String),
 
     BadSignature(String),
@@ -125,10 +124,12 @@ pub fn updater_pubkey_is_placeholder(tauri_conf_json: &str) -> bool {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UpdateRejection {
-
     BadVersion(String),
 
-    NotNewer { current: String, offered: String },
+    NotNewer {
+        current: String,
+        offered: String,
+    },
 
     BadManifest(String),
 
@@ -354,7 +355,6 @@ mod tests {
 
     #[test]
     fn wrong_key_fails() {
-
         let other = "RWTGCiWTINb+iEMIQnVXTJ64+XVBCJj4UUGls0PrzSC0dqttm2vxwZ/0";
         assert_eq!(
             verify_bytes(other, TEST_FILE_BYTES, TEST_MINISIG),
@@ -511,7 +511,6 @@ mod tests {
 
     #[test]
     fn update_manifest_with_mismatched_version_is_rejected() {
-
         let sig = tauri_signature("ZenCode Desktop_0.3.1_amd64.AppImage");
         let m = manifest("0.3.2", URL_031, &sig);
         assert_eq!(
@@ -568,7 +567,6 @@ mod tests {
 
     #[test]
     fn update_signature_must_name_a_file() {
-
         let sig = encode_base64(TEST_MINISIG.as_bytes());
         assert_eq!(
             check_update_offer("0.3.0", "0.3.1", URL_031, &sig),
@@ -590,7 +588,6 @@ mod tests {
 
     #[test]
     fn real_tauri_signature_binds_the_version() {
-
         let sig_text = String::from_utf8(decode_base64(FIXTURE_SIG_B64).unwrap()).unwrap();
         let comment = verify_bytes_with_comment(FIXTURE_PUBKEY, FIXTURE_BYTES, &sig_text).unwrap();
         assert!(comment.ends_with("file:zencode-desktop_0.3.1_amd64.AppImage"));

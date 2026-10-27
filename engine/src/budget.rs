@@ -89,7 +89,6 @@ impl Default for TaskBudget {
 }
 
 impl TaskBudget {
-
     pub fn unlimited() -> Self {
         Self {
             max_input_tokens: u64::MAX,
@@ -421,7 +420,6 @@ mod tests {
 
     #[test]
     fn duration_exceeded() {
-
         let Some(start) = Instant::now().checked_sub(Duration::from_secs(601)) else {
             return;
         };

@@ -70,7 +70,6 @@ mod imp {
     }
     pub fn columns() -> Option<usize> {
         for n in [-11i32 as u32, -12i32 as u32] {
-
             let mut info = Csbi::default();
 
             let ok = unsafe { GetConsoleScreenBufferInfo(GetStdHandle(n), &mut info) };

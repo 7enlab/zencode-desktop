@@ -5,7 +5,6 @@ use crate::cost_firewall::{self, CostFirewallError, FreeOnlyPolicy};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CostMode {
-
     #[default]
     FreeOnly,
 
@@ -14,7 +13,6 @@ pub enum CostMode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TaskKind {
-
     Code,
 
     Chat,
@@ -38,7 +36,6 @@ impl fmt::Display for TaskKind {
 pub struct TaskClassifier;
 
 impl TaskClassifier {
-
     pub fn classify(task: &str) -> TaskKind {
         let t = task.to_lowercase();
         let has = |words: &[&str]| words.iter().any(|w| t.contains(w));
@@ -103,7 +100,6 @@ impl TaskClassifier {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModelEntry {
-
     pub id: String,
 
     pub provider: String,
@@ -143,12 +139,10 @@ pub struct ModelRegistry {
 }
 
 impl ModelRegistry {
-
     pub fn verified_free() -> Self {
         let all_kinds = vec![TaskKind::Code, TaskKind::Chat, TaskKind::Reasoning];
         let code_chat = vec![TaskKind::Code, TaskKind::Chat];
         let models = vec![
-
             ModelEntry::new(
                 "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
                 "tokenrouter",
@@ -191,7 +185,6 @@ impl ModelRegistry {
                 code_chat.clone(),
                 60,
             ),
-
             ModelEntry::new(
                 "deepseek-v4.1-flash-uncensored",
                 "experientiallabs",
@@ -199,7 +192,6 @@ impl ModelRegistry {
                 all_kinds.clone(),
                 70,
             ),
-
             ModelEntry::new(
                 "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
                 "kilo",
@@ -236,7 +228,6 @@ impl ModelRegistry {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum HealthState {
-
     #[default]
     Healthy,
 
@@ -251,7 +242,6 @@ pub struct HealthTracker {
 }
 
 impl HealthTracker {
-
     pub const DEAD_AFTER: u32 = 3;
 
     pub fn new() -> Self {
@@ -289,7 +279,6 @@ pub struct RoutePlan {
 }
 
 impl RoutePlan {
-
     pub fn attempt_order(&self) -> Vec<&ModelEntry> {
         std::iter::once(&self.primary)
             .chain(self.fallbacks.iter())
@@ -303,8 +292,10 @@ impl RoutePlan {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RouterError {
-
-    NoModelAvailable { kind: TaskKind, mode: CostMode },
+    NoModelAvailable {
+        kind: TaskKind,
+        mode: CostMode,
+    },
 
     PaidModelBlocked {
         model: String,
@@ -337,7 +328,6 @@ pub struct SmartRouter {
 }
 
 impl SmartRouter {
-
     pub fn free_only() -> Self {
         Self {
             registry: ModelRegistry::verified_free(),
@@ -463,7 +453,6 @@ mod tests {
 
     #[test]
     fn classifier_vision_wins() {
-
         assert_eq!(
             TaskClassifier::classify("look at this screenshot and fix the bug in the code"),
             TaskKind::Vision

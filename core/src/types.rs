@@ -43,7 +43,6 @@ pub struct ToolCall {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Reply {
-
     Text(String),
 
     Call(ToolCall),

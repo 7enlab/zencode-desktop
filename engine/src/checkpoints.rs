@@ -6,7 +6,6 @@ use anyhow::{bail, Context, Result};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CheckpointInfo {
-
     pub id: String,
 
     pub message: String,
@@ -16,7 +15,6 @@ pub struct CheckpointInfo {
 
 #[derive(Clone, Debug)]
 pub struct RestoreReport {
-
     pub restored_files: Vec<String>,
 
     pub new_checkpoint_id: String,
@@ -28,7 +26,6 @@ pub struct CheckpointManager {
 }
 
 impl CheckpointManager {
-
     pub fn new(workdir: impl AsRef<Path>) -> Result<Self> {
         let workdir = workdir.as_ref().to_path_buf();
         let repo = workdir.join(".zencode").join("checkpoints");
@@ -66,7 +63,6 @@ impl CheckpointManager {
         }
         let mut args = vec!["commit", "-m", message];
         if !self.head_exists()? {
-
             args.push("--allow-empty");
         }
         git(&self.repo, &args).with_context(|| format!("git commit: {message}"))?;

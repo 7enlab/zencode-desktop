@@ -149,7 +149,6 @@ async fn looping_tool_triggers_replan_then_stop() {
 #[cfg(unix)]
 #[tokio::test]
 async fn guard_is_opt_in_and_quiet_on_progress() {
-
     assert!(RunOptions::new("http://x", "m", ".").convergence.is_none());
 
     let dir = tmpdir("progress");
@@ -179,7 +178,6 @@ async fn guard_is_opt_in_and_quiet_on_progress() {
 #[cfg(unix)]
 #[tokio::test]
 async fn repeating_the_same_probe_is_still_stagnant() {
-
     let dir = tmpdir("probe");
     let fp = dir.join("notes.txt");
     std::fs::write(&fp, "same content\n").unwrap();

@@ -23,7 +23,6 @@ fn env_or(key: &str, default: &str) -> String {
 }
 
 fn base_opts(model: &str, cwd: PathBuf, max_turns: usize) -> RunOptions {
-
     let cwd = std::fs::canonicalize(&cwd).unwrap_or(cwd);
     let mut opts = RunOptions::new(env_or("ZENCODE_BASE_URL", DEFAULT_BASE_URL), model, cwd);
     opts.api_key = std::env::var("ZENCODE_API_KEY").ok();

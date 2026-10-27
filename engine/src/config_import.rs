@@ -87,7 +87,6 @@ pub fn detect(home: &Path) -> Vec<DetectedInstall> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MappedProvider {
-
     Anthropic { base_url: String },
 
     OpenAiCompatible { base_url: String, label: String },
@@ -99,7 +98,6 @@ pub enum MappedProvider {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelMapping {
-
     pub original: String,
     pub provider: MappedProvider,
 
@@ -161,7 +159,6 @@ pub fn map_model(raw: &str) -> ModelMapping {
             label: "qwen".to_string(),
         },
         _ => {
-
             if model.starts_with("claude") {
                 MappedProvider::Anthropic {
                     base_url: "https://api.anthropic.com".to_string(),
@@ -258,7 +255,6 @@ fn model_name_part(raw: &str) -> &str {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecretFinding {
-
     pub name: String,
 
     pub source: PathBuf,
@@ -286,7 +282,6 @@ fn looks_like_secret_key(key: &str) -> bool {
     ]
     .iter()
     .any(|pat| k.contains(pat))
-
         || k == "token"
         || k.ends_with("_token")
         || k.ends_with("-token")
@@ -342,7 +337,6 @@ pub fn is_secret_pair(key: &str, value: &str) -> bool {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ImportKind {
-
     Model,
 
     Skill,
@@ -368,7 +362,6 @@ impl ImportKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportItem {
-
     pub id: String,
     pub kind: ImportKind,
     pub competitor: Competitor,
@@ -590,7 +583,6 @@ fn collect_mcp_map(ctx: &mut Ctx, competitor: Competitor, source: &Path, value: 
         .and_then(|v| v.as_object());
     let Some(map) = map else { return };
     for (name, cfg) in map {
-
         if let Some(env) = cfg.get("env").and_then(|e| e.as_object()) {
             for (k, v) in env {
                 if let Some(vs) = v.as_str() {
@@ -743,7 +735,6 @@ fn collect_codex(ctx: &mut Ctx) {
     }
     let config = dir.join("config.toml");
     if let Some(entries) = read_toml_flat(&config) {
-
         let mut provider_urls: BTreeMap<String, String> = BTreeMap::new();
         for (section, key, value) in &entries {
             if section.starts_with("model_providers.") && key == "base_url" {
@@ -962,7 +953,6 @@ fn collect_continue_models_yaml(ctx: &mut Ctx, source: &Path) {
             let was_in_models = in_models;
             in_models = line == "models:";
             if was_in_models && !in_models && !current.is_empty() {
-
                 flush(ctx, &current);
                 current.clear();
             }
@@ -1233,7 +1223,6 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
     let mut model_mappings: Vec<(String, ModelMapping)> = Vec::new();
 
     for item in plan.selected_items() {
-
         let merge_safe = matches!(item.kind, ImportKind::McpServer | ImportKind::Model);
         if !merge_safe && item.destination.exists() {
             report.skipped.push(format!(
@@ -1268,7 +1257,6 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
                 });
             }
             ImportKind::McpServer => {
-
                 if let Some(cfg) = mcp_server_config(&item.source, &item.label) {
                     mcp_servers.insert(
                         namespaced_server_name(item.competitor, &item.label),
@@ -1599,7 +1587,6 @@ mod tests {
 
     #[test]
     fn secret_value_heuristics() {
-
         assert!(looks_like_secret_value("sk-testvalue00000000000000000001"));
         assert!(looks_like_secret_value("ghp_testvalue000000000000000001"));
         assert!(looks_like_secret_value("AKIATESTVALUE0000000001"));
@@ -1939,7 +1926,6 @@ mod tests {
 
     #[test]
     fn key_refusal_invariant_end_to_end() {
-
         let (_base, home, zhome) = home_and_zhome("refusal");
         write(
             &home.join(".continue/config.yaml"),

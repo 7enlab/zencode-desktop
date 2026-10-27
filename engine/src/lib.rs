@@ -30,7 +30,6 @@ use crate::events::RecordingSink;
 
 #[derive(Clone, Debug)]
 pub struct RunOptions {
-
     pub base_url: String,
 
     pub api_key: Option<String>,

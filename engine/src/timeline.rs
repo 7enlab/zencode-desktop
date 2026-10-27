@@ -5,7 +5,6 @@ use crate::events::{DesktopEvent, Envelope};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimelineEntry {
-
     pub step: u64,
 
     pub seq: u64,
@@ -47,7 +46,6 @@ pub struct RestoreOutcome {
 }
 
 pub fn build_timeline(envelopes: &[Envelope]) -> Vec<TimelineEntry> {
-
     let mut checkpoint_for_seq: HashMap<u64, String> = HashMap::new();
     for env in envelopes {
         if let DesktopEvent::SystemMessage { event, text } = &env.event {
@@ -114,7 +112,6 @@ pub fn build_timeline(envelopes: &[Envelope]) -> Vec<TimelineEntry> {
             }
             DesktopEvent::SystemMessage { event, text } => {
                 if event == "checkpoint" {
-
                     continue;
                 }
                 if event == "session_start" || event == "session_end" {

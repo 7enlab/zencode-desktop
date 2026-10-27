@@ -1,9 +1,6 @@
 use std::fmt;
 
-pub const FREE_ALLOWLIST: &[&str] = &[
-
-    "deepseek-v4.1-flash-uncensored",
-];
+pub const FREE_ALLOWLIST: &[&str] = &["deepseek-v4.1-flash-uncensored"];
 
 pub const FREE_SUFFIX: &str = ":free";
 
@@ -11,7 +8,6 @@ pub const BLOCKED_MESSAGE: &str = "ZenCode cannot bill you - this is structural,
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CostFirewallError {
-
     NonFreeModelBlocked { model: String },
 
     EmptyModelId,
@@ -54,12 +50,10 @@ pub fn validate_model(model: &str) -> Result<(), CostFirewallError> {
 
 #[derive(Debug, Clone, Default)]
 pub struct FreeOnlyPolicy {
-
     extra_allowlist: Vec<String>,
 }
 
 impl FreeOnlyPolicy {
-
     pub fn with_extra_allowlist(extra: impl IntoIterator<Item = impl Into<String>>) -> Self {
         Self {
             extra_allowlist: extra.into_iter().map(Into::into).collect(),
@@ -200,7 +194,6 @@ mod tests {
 
     #[test]
     fn validation_is_pure_and_runs_before_any_network_use() {
-
         let policy = FreeOnlyPolicy::default();
         let err = policy
             .validate("gpt-4")

@@ -195,7 +195,6 @@ async fn empty_base_url_and_model_are_rejected() {
 
 #[tokio::test]
 async fn tools_denied_without_explicit_opt_in() {
-
     let dir = tmpdir("deny");
     let (url, _) = serve(vec![
         tool_reply("c1", "Read", json!({"path": "a.txt"})),

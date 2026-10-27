@@ -17,7 +17,6 @@ pub struct IpcEnvelope {
 }
 
 impl IpcEnvelope {
-
     pub fn new(seq: u64, event: &DesktopEvent) -> anyhow::Result<Self> {
         let mut value = serde_json::to_value(event)
             .map_err(|e| anyhow::anyhow!("event not serializable: {e}"))?;
@@ -193,7 +192,6 @@ mod tests {
 
     #[test]
     fn event_type_of_covers_all_variants() {
-
         let variants = vec![
             DesktopEvent::AssistantMessage {
                 text: None,

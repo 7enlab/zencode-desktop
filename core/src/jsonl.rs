@@ -148,7 +148,6 @@ pub struct JsonlLog {
 }
 
 impl JsonlLog {
-
     pub fn open(path: &Path) -> Result<Self, Error> {
         let text = match std::fs::read(path) {
             Ok(b) => String::from_utf8_lossy(&b).into_owned(),
@@ -182,7 +181,6 @@ impl JsonlLog {
             .open(path)
             .map_err(|e| Error::Log(format!("open {}: {e}", path.display())))?;
         if bad.is_some() {
-
             OpenOptions::new()
                 .write(true)
                 .open(path)

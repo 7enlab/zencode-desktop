@@ -15,7 +15,6 @@ pub const ATTESTATION_SCHEME: &str = "hash-chain-v1";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EgressDecision {
-
     Allow,
 
     Block { url: String, reason: String },
@@ -23,7 +22,6 @@ pub enum EgressDecision {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SovereignError {
-
     BlockedUrl { url: String, reason: String },
 
     NonSovereignConfig { detail: String },
@@ -141,7 +139,6 @@ pub fn validate_llm_config(base_url: &str, api_key: Option<&str>) -> Result<(), 
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PreflightFinding {
-
     pub kind: String,
 
     pub detail: String,
@@ -279,7 +276,6 @@ pub struct AttestationLog {
 }
 
 impl AttestationLog {
-
     pub fn new(session_id: &str) -> Self {
         let genesis_detail = format!(
             "session {session_id} started under {POLICY_VERSION}; inference pinned to {OLLAMA_LOOPBACK_URL}"
@@ -397,7 +393,6 @@ pub struct SovereignMode {
 }
 
 impl SovereignMode {
-
     pub fn enable(session_id: &str) -> Result<Self, SovereignError> {
         Self::enable_with_probe(session_id, OLLAMA_LOOPBACK_URL, true)
     }
@@ -407,7 +402,6 @@ impl SovereignMode {
         ollama_base_url: &str,
         probe: bool,
     ) -> Result<Self, SovereignError> {
-
         validate_llm_config(ollama_base_url, None)?;
 
         if probe && !probe_ollama_running(OLLAMA_DEFAULT_PORT) {
@@ -612,7 +606,6 @@ mod tests {
     fn validate_rejects_any_api_key() {
         let err = validate_llm_config("http://localhost:11434/v1", Some("sk-abc")).unwrap_err();
         assert!(matches!(err, SovereignError::NonSovereignConfig { .. }));
-
     }
 
     #[test]
@@ -716,7 +709,6 @@ mod tests {
 
     #[test]
     fn enable_probes_ollama_liveness() {
-
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind test listener");
         let port = listener.local_addr().expect("local addr").port();
         assert!(probe_ollama_running(port));

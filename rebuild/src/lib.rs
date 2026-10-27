@@ -8,7 +8,6 @@ pub mod wrap;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Wrap {
-
     None,
 
     Hard(usize),

@@ -59,7 +59,6 @@ fn main() {
             s if s.starts_with("-T") => tongue = val(s, &mut args),
             s if s.starts_with("-f") => file = val(s, &mut args),
             s if s.starts_with('-') && s.len() > 1 && !s.starts_with("--") => {
-
                 for c in s[1..].chars() {
                     match c {
                         'n' => wrap_on = false,
@@ -67,7 +66,6 @@ fn main() {
                         'l' => list = true,
                         'h' => usage(0),
                         c if cow::MODES.iter().any(|m| m.0 == c) => {
-
                             let rank = |x: char| cow::MODES.iter().position(|m| m.0 == x).unwrap();
                             if mode.is_none_or(|m| rank(c) < rank(m)) {
                                 mode = Some(c);
@@ -129,7 +127,6 @@ fn main() {
         think,
     };
     match cowsay_bubble::say(&text, &opts) {
-
         Ok(s) => {
             let env = |k: &str| std::env::var(k).ok();
             let s = match paint {

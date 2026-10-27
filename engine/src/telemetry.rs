@@ -14,7 +14,6 @@ pub const ZENCODE_OWNED_HOSTS: &[&str] = &[];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TelemetryError {
-
     BlockedHost { host: String, allowed: String },
 
     InvalidBaseUrl { url: String, reason: &'static str },
@@ -63,7 +62,6 @@ pub struct TelemetryGuard {
 }
 
 impl TelemetryGuard {
-
     pub fn from_base_url(base_url: &str) -> Result<Self, TelemetryError> {
         let url = base_url.trim();
         if url.is_empty() {
@@ -120,7 +118,6 @@ impl TelemetryGuard {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NetworkPurpose {
-
     ModelChat,
 
     UserOptIn,
@@ -137,7 +134,6 @@ impl fmt::Display for NetworkPurpose {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NetworkEntry {
-
     pub ts_ms: u64,
     pub host: String,
     pub path: String,
@@ -241,7 +237,6 @@ impl NetworkLog {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TelemetryReport {
-
     pub hosts_contacted: Vec<String>,
 
     pub zencode_hosts_contacted: Vec<String>,
@@ -253,7 +248,6 @@ pub struct TelemetryReport {
 }
 
 impl TelemetryReport {
-
     pub fn is_clean(&self) -> bool {
         self.zencode_hosts_contacted.is_empty()
     }
@@ -525,7 +519,6 @@ mod tests {
 
     #[test]
     fn zencode_owned_hosts_is_empty_by_design() {
-
         assert!(ZENCODE_OWNED_HOSTS.is_empty());
     }
 }

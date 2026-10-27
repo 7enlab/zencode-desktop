@@ -27,7 +27,6 @@ pub fn wrap(text: &str, width: Option<usize>) -> Vec<String> {
     let mut lines = Vec::new();
     let last = text.matches('\n').count();
     for (i, seg) in text.split('\n').enumerate() {
-
         let is_last = i == last;
         if seg.is_empty() {
             if !is_last {

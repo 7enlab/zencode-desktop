@@ -2,7 +2,6 @@ use crate::types::{Error, Message, Role, ToolCall};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
-
     Context(Message),
 
     Call(ToolCall),
@@ -11,7 +10,6 @@ pub enum Event {
 }
 
 impl Event {
-
     pub fn as_context(&self) -> Option<&Message> {
         match self {
             Event::Context(m) => Some(m),

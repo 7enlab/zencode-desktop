@@ -6,7 +6,6 @@ use zen_core::{AgentEvent, EventSink};
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum LoopPattern {
-
     SameFileFailingEdits { path: String, attempts: u32 },
 
     RepeatingError { signature: String, attempts: u32 },
@@ -15,7 +14,6 @@ pub enum LoopPattern {
 }
 
 impl LoopPattern {
-
     pub fn describe(&self) -> String {
         match self {
             LoopPattern::SameFileFailingEdits { path, attempts } => format!(
@@ -33,7 +31,6 @@ impl LoopPattern {
 
 #[derive(Debug, Clone)]
 pub struct ConvergencePolicy {
-
     pub max_same_file_edits: u32,
 
     pub max_same_error: u32,
@@ -128,7 +125,6 @@ impl LoopDetector {
 
     pub fn record_verify(&mut self, passed: bool, error: Option<&str>) {
         if passed {
-
             for path in self.pending_paths.drain(..) {
                 self.failing_edits.remove(&path);
             }
@@ -307,7 +303,6 @@ fn truncate(s: &str, limit: usize) -> String {
     if s.len() <= limit {
         s.to_string()
     } else {
-
         let mut end = limit;
         while end > 0 && !s.is_char_boundary(end) {
             end -= 1;
@@ -759,7 +754,6 @@ mod tests {
 
     #[test]
     fn error_normalization_folds_numbers() {
-
         let mut d = detector();
         let files = ["a.rs", "b.rs", "c.rs"];
         for (i, f) in files.iter().enumerate() {

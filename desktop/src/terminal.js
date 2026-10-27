@@ -1,27 +1,6 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 'use strict';
 
-
 const TERMINAL_DEMO_MODE = true;
-
-
-
-
-
-
-
 
 class TerminalSession {
   constructor(id, label, backend) {
@@ -32,7 +11,6 @@ class TerminalSession {
     this._dataHandlers = [];
     this._disposed = false;
   }
-
 
   attach(el) {
     if (typeof Terminal === 'undefined') {
@@ -53,26 +31,21 @@ class TerminalSession {
     });
     this.term.open(el);
 
-
     this.backend.onData((data) => {
       if (!this._disposed) this.term.write(data);
     });
-
 
     this.term.onData((data) => {
       this.backend.write(data);
       for (const h of this._dataHandlers) h(data);
     });
 
-
     this._fit();
     new ResizeObserver(() => this._fit()).observe(el);
     this.term.focus();
   }
 
-
   onData(cb) { this._dataHandlers.push(cb); }
-
 
   write(data) {
     if (this.term && !this._disposed) this.term.write(data);
@@ -102,10 +75,6 @@ class TerminalSession {
     this.resize(cols, rows);
   }
 }
-
-
-
-
 
 class FakeShell {
   constructor(session) {
@@ -172,13 +141,11 @@ class FakeShell {
   }
 }
 
-
 function createBackend(session) {
   if (TERMINAL_DEMO_MODE) return new FakeShell(session);
 
   throw new Error('portable-pty backend not wired yet');
 }
-
 
 class TerminalManager {
   constructor(tabsEl, panesEl) {
@@ -242,7 +209,6 @@ class TerminalManager {
   }
 }
 
-
 let _termManager = null;
 function initTerminal() {
   if (_termManager) return _termManager;
@@ -256,7 +222,6 @@ function initTerminal() {
 }
 
 if (typeof module !== 'undefined') module.exports = { TerminalSession, FakeShell, TerminalManager, TERMINAL_DEMO_MODE };
-
 
 function showTerminalTab() {
   document.getElementById("messages").classList.add("hidden");

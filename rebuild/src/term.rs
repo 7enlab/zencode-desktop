@@ -1,7 +1,3 @@
-
-
-
-
 pub fn terminal_columns() -> Option<usize> {
     imp::columns().filter(|&c| c > 0)
 }

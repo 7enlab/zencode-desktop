@@ -1,22 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const isTauri = typeof window !== "undefined" && !!window.__TAURI__;
 
 let invokeFn = null;
@@ -31,10 +12,6 @@ if (isTauri) {
     });
 }
 
-
-
-
-
 function ensureToastContainer() {
   let el = document.getElementById("zc-toast-container");
   if (!el) {
@@ -47,10 +24,6 @@ function ensureToastContainer() {
   }
   return el;
 }
-
-
-
-
 
 export function showToast(title, body, kind = "info") {
   const container = ensureToastContainer();
@@ -86,10 +59,6 @@ function escapeHtml(s) {
   });
 }
 
-
-
-
-
 async function invokeOrToast(command, args, toastTitle, toastBody, toastKind) {
   if (invokeFn) {
     try {
@@ -101,7 +70,6 @@ async function invokeOrToast(command, args, toastTitle, toastBody, toastKind) {
   }
   showToast(toastTitle, toastBody, toastKind);
 }
-
 
 export function notifySessionEnd(envelope) {
   const payload = envelope.payload || {};
@@ -117,7 +85,6 @@ export function notifySessionEnd(envelope) {
   );
 }
 
-
 export function notifyApprovalNeeded(toolName, sessionId) {
   return invokeOrToast(
     "cmd_notify_approval_needed",
@@ -127,17 +94,6 @@ export function notifyApprovalNeeded(toolName, sessionId) {
     "approval",
   );
 }
-
-
-
-
-
-
-
-
-
-
-
 
 export function routeEvent(envelope, opts = {}) {
   const type = envelope.type || "";
@@ -163,11 +119,6 @@ export function routeEvent(envelope, opts = {}) {
 
   return false;
 }
-
-
-
-
-
 
 export function demoNotifications() {
   const sessionId = "demo-" + Math.floor(Math.random() * 1000);

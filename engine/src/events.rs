@@ -1,12 +1,7 @@
-
-
-
-
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 use zen_core::{AgentEvent, EventSink, RunResult};
-
 
 pub const SCHEMA_VERSION: u32 = 1;
 
@@ -55,12 +50,9 @@ pub enum DesktopEvent {
         text: String,
     },
 
-
-
     Unknown {
         variant: String,
     },
-
 
     SessionEnd {
         success: bool,
@@ -77,7 +69,6 @@ pub enum DesktopEvent {
         claims_contradicted: u64,
     },
 }
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Envelope {
@@ -159,7 +150,6 @@ impl From<AgentEvent> for DesktopEvent {
     }
 }
 
-
 #[derive(Default)]
 pub struct RecordingSink {
     inner: Mutex<Vec<Envelope>>,
@@ -186,14 +176,9 @@ impl RecordingSink {
         Ok(out)
     }
 
-
-
-
     pub fn emit_session_end(&self, result: &RunResult) {
         self.emit_session_end_with_claims(result, &crate::claims::ClaimCounts::default());
     }
-
-
 
     pub fn emit_session_end_with_claims(
         &self,
@@ -233,7 +218,6 @@ impl EventSink for RecordingSink {
         });
     }
 }
-
 
 pub fn parse_ndjson(s: &str) -> anyhow::Result<Vec<Envelope>> {
     let mut out = vec![];

@@ -1,6 +1,3 @@
-
-
-
 pub fn normalize(text: &str) -> String {
     let t = text.strip_prefix('\u{FEFF}').unwrap_or(text);
     let mut out = String::with_capacity(t.len());
@@ -20,8 +17,6 @@ pub fn normalize(text: &str) -> String {
     }
     out
 }
-
-
 
 pub fn wrap(text: &str, width: Option<usize>) -> Vec<String> {
     let text = normalize(text);
@@ -55,9 +50,6 @@ pub fn wrap(text: &str, width: Option<usize>) -> Vec<String> {
     }
     lines
 }
-
-
-
 
 pub fn wrap_words(text: &str, width: usize) -> Vec<String> {
     let text = normalize(text);

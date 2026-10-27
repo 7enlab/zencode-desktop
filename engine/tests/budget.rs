@@ -1,6 +1,3 @@
-
-
-
 use std::sync::Arc;
 
 use serde_json::{json, Value};
@@ -9,7 +6,6 @@ use tokio::net::TcpListener;
 use zencode_engine::budget::TaskBudget;
 use zencode_engine::events::RecordingSink;
 use zencode_engine::{run_task_with_sink, RunOptions};
-
 
 async fn serve(replies: Vec<Value>) -> (String, Arc<std::sync::Mutex<Vec<Value>>>) {
     let l = TcpListener::bind("127.0.0.1:0").await.unwrap();

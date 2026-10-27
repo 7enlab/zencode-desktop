@@ -1,8 +1,5 @@
 "use strict";
 
-
-
-
 const SCHEMA_VERSION = 1;
 const state = {
   mode: "mock",
@@ -15,18 +12,15 @@ const state = {
   log: [],
 };
 
-
 const MOCK_SESSIONS = [
   { id: "2026-10-17-a1b2c3", title: "Refactor rate_gate.rs", preview: "extract quota persistence…", model: "nemotron-3-nano:free", updated: "17:20" },
   { id: "2026-10-17-d4e5f6", title: "Debug checkpoint restore", preview: "auto-checkpoint before restore…", model: "nemotron-3-nano:free", updated: "16:02" },
   { id: "2026-10-16-9a8b7c", title: "Plan mode spike", preview: "PlanGuardedTool intercepts…", model: "nemotron-3-nano:free", updated: "yesterday" },
 ];
 
-
 const TAURI = (typeof window !== "undefined" && window.__TAURI__) || null;
 const invoke = TAURI ? TAURI.core.invoke : null;
 const Channel = TAURI ? TAURI.core.Channel : null;
-
 
 const LIVE_DEFAULTS = {
   model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
@@ -74,14 +68,12 @@ function selectSession(id) {
   if (state.mode === "live") replaySession(id); else playDemo();
 }
 
-
 document.getElementById("tab-chat").onclick = () => showChatTab();
 document.getElementById("tab-timeline").onclick = () => showTimelineTab();
 
 document.getElementById("tab-network").onclick = () => showNetworkTab();
 
 document.getElementById("tab-terminal").onclick = () => showTerminalTab();
-
 
 async function replaySession(id) {
   try {
@@ -93,7 +85,6 @@ async function replaySession(id) {
     setStatus("conn", "● live (replay failed)");
   }
 }
-
 
 function onEnvelope(env) {
   if (env.v !== SCHEMA_VERSION) { console.warn("unsupported schema v", env.v); return; }
@@ -135,7 +126,6 @@ document.getElementById("gap-replay").onclick = async () => {
 
   hideGap(); state.expectedSeq = state.log.length;
 };
-
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -200,7 +190,6 @@ function wrapMsg(cls, role, text) {
   return m;
 }
 
-
 async function sendInput() {
   const input = document.getElementById("input");
   const text = input.value.trim();
@@ -258,7 +247,6 @@ function setStatus(part, text) {
   document.getElementById("status-" + part).textContent = text;
 }
 
-
 let demoTimers = [];
 
 let quotaDemoTimers = [];
@@ -303,7 +291,6 @@ function mockRespond(text) {
   reply.forEach((env, i) => { env.seq = base + i; setTimeout(() => onEnvelope(env), 300 * (i + 1)); });
 }
 
-
 (async function boot() {
   if (TAURI && invoke) {
     state.mode = "live";
@@ -315,7 +302,6 @@ function mockRespond(text) {
   }
   renderSessions();
   if (state.sessions.length) selectSession(state.sessions[0].id);
-
 
   try {
     if (typeof maybeStartOnboarding === "function" && typeof localStorage !== "undefined") {

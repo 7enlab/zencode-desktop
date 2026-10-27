@@ -5,8 +5,6 @@ description = "ZenCode Desktop - Tauri 2 shell (g6 scaffold, engine not yet wire
 authors = ["7enlab"]
 edition = "2021"
 
-
-
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -14,9 +12,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-
-
 
 tauri-plugin-updater = "2"
 tauri-plugin-dialog = "2"
@@ -28,26 +23,17 @@ tauri-plugin-store = "2"
 tauri-plugin-log = "2"
 tauri-plugin-window-state = "2"
 
-
-
-
-
 tauri-plugin-single-instance = "2"
 tauri-plugin-autostart = "2"
 tauri-plugin-os = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-positioner = "2"
 
-
-
 rust-ini = "0.20"
-
-
 
 zencode_engine = { path = "../../engine" }
 zen-core = { git = "https://gitlab.com/atzenn/zencode.git", rev = "250e8d4" }
 
 [features]
-
 
 custom-protocol = ["tauri/custom-protocol"]

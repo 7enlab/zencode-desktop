@@ -1,6 +1,3 @@
-
-
-
 pub static COWS: &[(&str, &str)] = &[
     ("C3PO", include_str!("../cows/C3PO.cow")),
     ("R2-D2", include_str!("../cows/R2-D2.cow")),

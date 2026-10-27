@@ -1,18 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -39,14 +24,10 @@ fn env_or(key: &str, default: &str) -> String {
 
 fn base_opts(model: &str, cwd: PathBuf, max_turns: usize) -> RunOptions {
 
-
     let cwd = std::fs::canonicalize(&cwd).unwrap_or(cwd);
     let mut opts = RunOptions::new(env_or("ZENCODE_BASE_URL", DEFAULT_BASE_URL), model, cwd);
     opts.api_key = std::env::var("ZENCODE_API_KEY").ok();
     opts.max_turns = max_turns;
-
-
-
 
     opts.scope = Some(ScopeDecl {
         files: vec![],
@@ -109,7 +90,6 @@ async fn cmd_run(mut args: std::iter::Skip<std::env::Args>) -> anyhow::Result<()
     let sink = Arc::new(RecordingSink::new());
     let result = run_task_recorded(&opts, &task, sink.clone()).await?;
 
-
     let dir = session_dir.unwrap_or_else(|| cwd.join(".zencode").join("sessions"));
     std::fs::create_dir_all(&dir)?;
     let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
@@ -129,7 +109,6 @@ async fn cmd_run(mut args: std::iter::Skip<std::env::Args>) -> anyhow::Result<()
     }
     Ok(())
 }
-
 
 struct EvalTask {
     name: &'static str,

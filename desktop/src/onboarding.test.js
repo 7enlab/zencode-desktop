@@ -1,8 +1,5 @@
 "use strict";
 
-
-
-
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 
@@ -22,7 +19,6 @@ const {
   DEMO_PROMPT,
   buildDemoRequest,
 } = require("./onboarding.js");
-
 
 function fakeStorage() {
   const map = new Map();

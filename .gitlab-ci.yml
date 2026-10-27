@@ -1,39 +1,9 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 workflow:
   auto_cancel:
     on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "push"
-
 
     - if: $CI_PIPELINE_SOURCE == "web"
     - if: $CI_PIPELINE_SOURCE == "api"
@@ -92,8 +62,6 @@ node-test-ui:
     - node --version
     - node --test desktop/src/*.test.js
 
-
-
 desktop-check:
   stage: test
   image: rust:latest
@@ -136,12 +104,6 @@ release-key-check:
   cache: {}
   script:
     - sh tools/check-release-key.sh
-
-
-
-
-
-
 
 release-linux:
   stage: release

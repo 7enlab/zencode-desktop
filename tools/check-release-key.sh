@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 set -eu
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -19,7 +8,6 @@ CONF="$ROOT/desktop/src-tauri/tauri.conf.json"
 [ -f "$CONF" ] || { echo "FAIL: missing $CONF"; exit 1; }
 
 expected="$(cat "$PUB_FILE")"
-
 
 b64="$(sed -n 's/.*"pubkey"[[:space:]]*:[[:space:]]*"\([^"]\{10,\}\)".*/\1/p' "$CONF" | head -n 1)"
 [ -n "$b64" ] || { echo "FAIL: no updater pubkey found in $CONF"; exit 1; }

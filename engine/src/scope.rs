@@ -1,28 +1,10 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::path::{Component, Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use serde_json::Value;
 use zen_core::{AgentEvent, EventSink, PermissionChecker, PermissionDecision, ToolContext};
 
-
 pub const MAX_AUTO_FILES: usize = 20;
-
 
 const DESTRUCTIVE_PATTERNS: &[&str] = &[
     "rm -rf /",
@@ -36,14 +18,12 @@ const DESTRUCTIVE_PATTERNS: &[&str] = &[
     ":(){",
 ];
 
-
 #[derive(Clone, Debug, Default)]
 pub struct ScopeDecl {
     pub files: Vec<PathBuf>,
     pub dirs: Vec<PathBuf>,
     pub description: String,
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ApprovalReason {
@@ -74,9 +54,6 @@ impl ApprovalReason {
     }
 }
 
-
-
-
 pub fn needs_approval(decl: &ScopeDecl, root: &Path) -> Vec<ApprovalReason> {
     let mut reasons = Vec::new();
     let mut count = 0;
@@ -99,12 +76,9 @@ pub fn needs_approval(decl: &ScopeDecl, root: &Path) -> Vec<ApprovalReason> {
     reasons
 }
 
-
 fn has_escape(p: &Path) -> bool {
     p.components().any(|c| matches!(c, Component::ParentDir))
 }
-
-
 
 fn resolve(root: &Path, target: &str) -> Option<PathBuf> {
     let joined = if Path::new(target).is_absolute() {
@@ -131,16 +105,12 @@ fn resolve(root: &Path, target: &str) -> Option<PathBuf> {
     }
 }
 
-
-
 #[derive(Clone, Debug)]
 pub struct ScopeViolation {
     pub tool: String,
     pub target: String,
     pub reason: String,
 }
-
-
 
 pub struct ScopeGuard {
     root: PathBuf,
@@ -159,13 +129,9 @@ impl ScopeGuard {
         }
     }
 
-
     pub fn violations(&self) -> Vec<ScopeViolation> {
         self.violations.lock().unwrap().clone()
     }
-
-
-
 
     pub fn expand_scope(&self, files: &[PathBuf], dirs: &[PathBuf]) -> usize {
         let mut scope = self.scope.lock().unwrap();
@@ -189,7 +155,6 @@ impl ScopeGuard {
         );
         added
     }
-
 
     pub fn in_scope(&self, target: &str) -> bool {
         let Some(abs) = resolve(&self.root, target) else {
@@ -329,8 +294,6 @@ impl PermissionChecker for ScopeGuard {
     }
 }
 
-
-
 pub fn emit_scope_declared(sink: &Arc<dyn EventSink>, decl: &ScopeDecl) {
     let files: Vec<String> = decl.files.iter().map(|p| p.display().to_string()).collect();
     let dirs: Vec<String> = decl.dirs.iter().map(|p| p.display().to_string()).collect();
@@ -432,7 +395,6 @@ mod tests {
             false,
             &ctx(),
         );
-
 
         assert!(matches!(d, PermissionDecision::Deny(_)));
         let d2 = g.check("Bash", &json!({"command": "rm -rf /"}), false, &ctx());

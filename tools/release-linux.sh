@@ -1,26 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 TAG="${1:?usage: $0 <tag vX.Y.Z> <dist-dir>}"

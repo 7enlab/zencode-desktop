@@ -1,23 +1,8 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{bail, Context, Result};
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CheckpointInfo {
@@ -29,7 +14,6 @@ pub struct CheckpointInfo {
     pub timestamp: i64,
 }
 
-
 #[derive(Clone, Debug)]
 pub struct RestoreReport {
 
@@ -37,7 +21,6 @@ pub struct RestoreReport {
 
     pub new_checkpoint_id: String,
 }
-
 
 pub struct CheckpointManager {
     workdir: PathBuf,
@@ -64,14 +47,9 @@ impl CheckpointManager {
         .context("git config user.email")?;
         git(&repo, &["config", "commit.gpgsign", "false"]).context("git config commit.gpgsign")?;
 
-
         git(&repo, &["config", "core.autocrlf", "false"]).context("git config core.autocrlf")?;
         Ok(Self { workdir, repo })
     }
-
-
-
-
 
     pub fn snapshot(&self, message: &str) -> Result<String> {
         if message.contains('\n') {
@@ -95,7 +73,6 @@ impl CheckpointManager {
         self.short_head()
     }
 
-
     pub fn list(&self) -> Result<Vec<CheckpointInfo>> {
         if !self.head_exists()? {
             return Ok(vec![]);
@@ -116,10 +93,6 @@ impl CheckpointManager {
         }
         Ok(infos)
     }
-
-
-
-
 
     pub fn restore(&self, id: &str) -> Result<RestoreReport> {
         let full = git(
@@ -152,7 +125,6 @@ impl CheckpointManager {
             new_checkpoint_id,
         })
     }
-
 
     fn sync_workdir_to_repo(&self) -> Result<()> {
         for entry in fs::read_dir(&self.repo).context("read shadow repo")? {
@@ -221,7 +193,6 @@ impl CheckpointManager {
     }
 }
 
-
 fn git(dir: &Path, args: &[&str]) -> Result<String> {
     let out = Command::new("git")
         .args(args)
@@ -237,7 +208,6 @@ fn git(dir: &Path, args: &[&str]) -> Result<String> {
     }
     Ok(String::from_utf8_lossy(&out.stdout).into_owned())
 }
-
 
 fn git_bytes(dir: &Path, args: &[&str]) -> Result<Vec<u8>> {
     let out = Command::new("git")
@@ -283,11 +253,9 @@ mod tests {
         let id1 = mgr.snapshot("first").expect("snapshot 1");
         assert!(!id1.is_empty());
 
-
         let id1b = mgr.snapshot("first again").expect("snapshot 1b");
         assert_eq!(id1, id1b);
         assert_eq!(mgr.list().expect("list").len(), 1);
-
 
         fs::write(wd.join("a.txt"), "v2").unwrap();
         fs::write(wd.join("new.txt"), "brand new").unwrap();
@@ -302,9 +270,7 @@ mod tests {
         assert_eq!(list[0].message, "second");
         assert!(list[0].timestamp >= list[1].timestamp);
 
-
         fs::write(wd.join("a.txt"), "v3").unwrap();
-
 
         let report = mgr.restore(&id1).expect("restore");
         assert_eq!(fs::read_to_string(wd.join("a.txt")).unwrap(), "v1");
@@ -320,13 +286,10 @@ mod tests {
             .iter()
             .any(|f| f.starts_with(".zencode")));
 
-
         let list2 = mgr.list().expect("list after restore");
         assert_eq!(list2.len(), 3);
         assert_eq!(list2[0].id, report.new_checkpoint_id);
         assert!(list2[0].message.contains("before restore"));
-
-
 
         mgr.restore(&report.new_checkpoint_id)
             .expect("undo restore");

@@ -1,13 +1,10 @@
-
 use crate::cows_gen::COWS;
-
 
 pub struct Face {
     pub eyes: String,
     pub tongue: String,
     pub thoughts: &'static str,
 }
-
 
 pub const MODES: &[(char, &str, &str)] = &[
     ('b', "==", "  "),
@@ -20,11 +17,9 @@ pub const MODES: &[(char, &str, &str)] = &[
     ('y', "..", "  "),
 ];
 
-
 pub fn names() -> Vec<&'static str> {
     COWS.iter().map(|c| c.0).collect()
 }
-
 
 pub fn load(name: &str) -> Result<String, String> {
     if name.contains('/') || name.contains('\\') {
@@ -36,7 +31,6 @@ pub fn load(name: &str) -> Result<String, String> {
         .map(|c| c.1.to_string())
         .ok_or_else(|| format!("Could not find {} cowfile!", name))
 }
-
 
 fn extract(cow: &str) -> String {
     let c = cow
@@ -68,7 +62,6 @@ fn extract(cow: &str) -> String {
         .replace("\\@", "@")
         .replace("\\$", "$")
 }
-
 
 pub fn render(cow: &str, f: &Face) -> String {
     let mut s = if cow.contains("$the_cow") {

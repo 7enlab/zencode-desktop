@@ -1,9 +1,3 @@
-
-
-
-
-
-
 pub mod bubble;
 pub mod color;
 pub mod cow;
@@ -11,7 +5,6 @@ mod cows_gen;
 pub mod term;
 pub mod width;
 pub mod wrap;
-
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Wrap {
@@ -22,7 +15,6 @@ pub enum Wrap {
 
     Words(usize),
 }
-
 
 #[derive(Clone, Debug)]
 pub struct Options {
@@ -45,7 +37,6 @@ impl Default for Options {
     }
 }
 
-
 pub fn say(text: &str, o: &Options) -> Result<String, String> {
     let lines = match o.wrap {
         Wrap::None => wrap::wrap(text, None),
@@ -65,8 +56,6 @@ pub fn say(text: &str, o: &Options) -> Result<String, String> {
         cow::render(&template, &face)
     ))
 }
-
-
 
 pub fn auto_width() -> usize {
     std::env::var("COLUMNS")

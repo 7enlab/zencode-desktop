@@ -1,20 +1,5 @@
 "use strict";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const SCOPE_CSS = `
 .scope-card {
   border: 1px solid #30363d; border-left: 3px solid #58a6ff;

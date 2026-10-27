@@ -1,28 +1,7 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use zen_core::{AgentEvent, EventSink};
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -51,7 +30,6 @@ impl LoopPattern {
         }
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct ConvergencePolicy {
@@ -88,14 +66,12 @@ impl ConvergencePolicy {
     }
 }
 
-
 #[derive(Debug, Clone)]
 struct AttemptRecord {
     path: String,
     verify_passed: bool,
     error_preview: Option<String>,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LoopDetectedPayload {
@@ -106,13 +82,9 @@ pub struct LoopDetectedPayload {
     pub restore_point: Option<String>,
 }
 
-
 pub const LOOP_DETECTED_EVENT: &str = "loop_detected";
 
-
 pub const ERROR_PREVIEW_LIMIT: usize = 500;
-
-
 
 pub struct LoopDetector {
     policy: ConvergencePolicy,
@@ -144,7 +116,6 @@ impl LoopDetector {
         })
     }
 
-
     pub fn record_edit(&mut self, path: &str) {
         let path = normalize_path(path);
         *self.failing_edits.entry(path.clone()).or_insert(0) += 1;
@@ -154,10 +125,6 @@ impl LoopDetector {
 
         self.stagnant_rounds = 0;
     }
-
-
-
-
 
     pub fn record_verify(&mut self, passed: bool, error: Option<&str>) {
         if passed {
@@ -189,18 +156,13 @@ impl LoopDetector {
         }
     }
 
-
     pub fn record_stagnant_round(&mut self) {
         self.stagnant_rounds += 1;
     }
 
-
-
     pub fn record_progress_round(&mut self) {
         self.stagnant_rounds = 0;
     }
-
-
 
     pub fn check(&mut self) -> Option<LoopPattern> {
         if self.triggered {
@@ -240,7 +202,6 @@ impl LoopDetector {
         None
     }
 
-
     pub fn reset(&mut self) {
         self.failing_edits.clear();
         self.error_counts.clear();
@@ -249,9 +210,6 @@ impl LoopDetector {
         self.pending_paths.clear();
         self.triggered = false;
     }
-
-
-
 
     pub fn replan_prompt(&self, pattern: &LoopPattern, restore_point: Option<&str>) -> String {
         let mut out = String::from(
@@ -291,8 +249,6 @@ impl LoopDetector {
         out
     }
 
-
-
     pub fn emit_loop_detected(
         &self,
         pattern: &LoopPattern,
@@ -321,12 +277,9 @@ impl LoopDetector {
     }
 }
 
-
 fn normalize_path(p: &str) -> String {
     p.trim().replace('\\', "/")
 }
-
-
 
 fn normalize_error(raw: &str) -> String {
     let first = raw
@@ -367,11 +320,7 @@ fn first_line(s: &str) -> &str {
     s.lines().next().unwrap_or("").trim()
 }
 
-
-
-
 pub const CONVERGENCE_STOP_EVENT: &str = "convergence_stop";
-
 
 struct MonitorState {
     detector: LoopDetector,
@@ -380,9 +329,7 @@ struct MonitorState {
     round_had_tools: bool,
     round_had_edits: bool,
 
-
     round_had_progress: bool,
-
 
     seen_outputs: std::collections::HashSet<u64>,
 
@@ -392,23 +339,6 @@ struct MonitorState {
 
     stopped: Option<String>,
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 pub struct ConvergenceMonitor {
     state: std::sync::Mutex<MonitorState>,
@@ -439,11 +369,9 @@ impl ConvergenceMonitor {
         }))
     }
 
-
     pub fn times_fired(&self) -> u32 {
         self.state.lock().unwrap().fired
     }
-
 
     pub fn stop_reason(&self) -> Option<String> {
         self.state.lock().unwrap().stopped.clone()
@@ -512,7 +440,6 @@ impl ConvergenceMonitor {
         }
     }
 
-
     fn end_round(&self) {
         let mut st = self.state.lock().unwrap();
         if st.round_had_tools {
@@ -556,7 +483,6 @@ impl ConvergenceMonitor {
         }
     }
 
-
     fn gate_tool_call(&self) -> Option<String> {
         let mut st = self.state.lock().unwrap();
         if let Some(reason) = &st.stopped {
@@ -565,7 +491,6 @@ impl ConvergenceMonitor {
         st.pending_replan.take()
     }
 }
-
 
 pub struct ConvergenceSink {
     inner: std::sync::Arc<dyn EventSink>,
@@ -587,7 +512,6 @@ impl EventSink for ConvergenceSink {
         self.inner.emit(ev);
     }
 }
-
 
 pub struct ConvergenceBackend {
     inner: std::sync::Arc<dyn zen_core::LlmBackend>,
@@ -613,7 +537,6 @@ impl zen_core::LlmBackend for ConvergenceBackend {
         self.inner.chat(req).await
     }
 }
-
 
 pub struct ConvergencePermissions {
     inner: std::sync::Arc<dyn zen_core::PermissionChecker>,

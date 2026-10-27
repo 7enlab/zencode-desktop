@@ -1,19 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
   else root.RateGateWireupMock = factory();
@@ -21,7 +5,6 @@
   "use strict";
 
   var SCENARIOS = ["healthy", "approaching", "at_limit", "cooldown"];
-
 
   function makeRng(seed) {
     var a = seed >>> 0;
@@ -36,7 +19,6 @@
   function isoPlus(minutes) {
     return new Date(Date.now() + minutes * 60000).toISOString();
   }
-
 
   function buildQuota(name, rng) {
     var minuteLimit = 20, dailyLimit = 50;
@@ -90,7 +72,6 @@
     }
   }
 
-
   function tick() {
     if (!current) current = buildQuota("healthy", rng);
 
@@ -132,7 +113,6 @@
     if (timer) { clearInterval(timer); timer = null; }
     current = null;
   }
-
 
   function scenario(name) {
     if (SCENARIOS.indexOf(name) < 0) return null;

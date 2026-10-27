@@ -1,6 +1,5 @@
 use crate::types::{Error, Message, Role, ToolCall};
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
 
@@ -21,11 +20,9 @@ impl Event {
     }
 }
 
-
 pub trait SessionLog {
     fn append(&mut self, event: Event) -> Result<(), Error>;
     fn events(&self) -> &[Event];
-
 
     fn replay_context(&self) -> Vec<Message> {
         self.events()
@@ -36,7 +33,6 @@ pub trait SessionLog {
     }
 }
 
-
 #[derive(Debug, Default, Clone)]
 pub struct MemoryLog {
     events: Vec<Event>,
@@ -46,7 +42,6 @@ impl MemoryLog {
     pub fn new() -> Self {
         Self::default()
     }
-
 
     pub fn fork(&self, upto: usize) -> MemoryLog {
         let n = upto.min(self.events.len());
@@ -65,8 +60,6 @@ impl SessionLog for MemoryLog {
         &self.events
     }
 }
-
-
 
 pub(crate) fn see(
     log: &mut dyn SessionLog,

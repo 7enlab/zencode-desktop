@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 [graph]
 targets = [
 
@@ -20,9 +13,6 @@ yanked = "deny"
 ignore = []
 
 [licenses]
-
-
-
 
 allow = [
     "MIT",
@@ -57,9 +47,6 @@ ignore = false
 
 multiple-versions = "warn"
 
-
-
-
 wildcards = "warn"
 
 [sources]
@@ -67,10 +54,6 @@ unknown-registry = "warn"
 unknown-git = "warn"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 allow-git = ["https://gitlab.com/atzenn/zencode.git"]
-
-
-
-
 
 [[licenses.clarify]]
 crate = "zen-core"

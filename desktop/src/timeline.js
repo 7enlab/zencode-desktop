@@ -1,11 +1,5 @@
 "use strict";
 
-
-
-
-
-
-
 const TL = {
   entries: [],
   checkpoints: [],
@@ -14,8 +8,6 @@ const TL = {
 
 const TAURI_TL = (typeof window !== "undefined" && window.__TAURI__) || null;
 const invokeTl = TAURI_TL ? TAURI_TL.core.invoke : null;
-
-
 
 function tlKindForTool(name) {
   const n = (name || "").toLowerCase();
@@ -66,7 +58,6 @@ function tlParseCheckpointNote(text) {
   const m = /^checkpoint ([0-9a-f]+) before seq (\d+)\s*$/.exec(String(text || "").trim());
   return m ? { id: m[1], seq: Number(m[2]) } : null;
 }
-
 
 function tlBuildFromEnvelopes(envs) {
   const cpForSeq = new Map();
@@ -121,8 +112,6 @@ function tlBuildFromEnvelopes(envs) {
   return entries;
 }
 
-
-
 async function loadTimeline(sessionId) {
   TL.sessionId = sessionId;
   if (invokeTl) {
@@ -153,8 +142,6 @@ async function loadTimeline(sessionId) {
   }
   renderTimeline();
 }
-
-
 
 function tlEl(tag, cls, text) {
   const e = document.createElement(tag);
@@ -227,8 +214,6 @@ function renderTimeline() {
   panel.append(note);
 }
 
-
-
 async function undoEntry(entry) {
   if (!entry.checkpoint_id) return;
   const ok = confirm("Undo \"" + entry.title + "\"?\n\nThis reverts the files via checkpoint " +
@@ -270,8 +255,6 @@ async function doRestore(checkpointId, doneMsg) {
   }
 }
 
-
-
 function showTimelineTab() {
   document.getElementById("messages").classList.add("hidden");
   document.getElementById("composer").classList.add("hidden");
@@ -292,7 +275,6 @@ function showChatTab() {
   document.getElementById("tab-timeline").classList.remove("active");
   document.getElementById("tab-chat").classList.add("active");
 }
-
 
 function timelineSessionChanged(sessionId) {
   TL.sessionId = sessionId;

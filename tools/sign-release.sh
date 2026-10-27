@@ -1,12 +1,3 @@
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 VERSION="${1:?usage: MINISIGN_KEY=<keyfile> $0 <version> <dist-dir>}"
@@ -25,7 +16,6 @@ if ! command -v minisign >/dev/null 2>&1; then
   echo "ERROR: minisign not installed (apt install minisign)" >&2
   exit 1
 fi
-
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TAURI_CONF="$REPO_ROOT/desktop/src-tauri/tauri.conf.json"
@@ -52,7 +42,6 @@ for f in "$DIST"/*; do
     -t "zencode-desktop $VERSION - $(basename "$f")" \
     -x "$f.minisig"
 
-
   minisign -V -q -p "$RELEASE_PUB" -m "$f" -x "$f.minisig"
   echo "  signed: $(basename "$f")"
   count=$((count + 1))
@@ -62,7 +51,6 @@ if [ "$count" -eq 0 ]; then
   echo "ERROR: no artifacts found in $DIST" >&2
   exit 1
 fi
-
 
 (
   cd "$DIST"

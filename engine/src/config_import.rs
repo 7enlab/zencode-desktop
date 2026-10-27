@@ -1,41 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -43,11 +5,6 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
-
-
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Competitor {
@@ -88,8 +45,6 @@ impl Competitor {
         }
     }
 
-
-
     fn roots(&self, home: &Path) -> Vec<PathBuf> {
         match self {
             Competitor::ClaudeCode => vec![home.join(".claude"), home.join(".claude.json")],
@@ -110,17 +65,12 @@ impl Competitor {
     }
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DetectedInstall {
     pub competitor: Competitor,
 
     pub root: PathBuf,
 }
-
-
-
-
 
 pub fn detect(home: &Path) -> Vec<DetectedInstall> {
     let mut out = Vec::new();
@@ -135,14 +85,6 @@ pub fn detect(home: &Path) -> Vec<DetectedInstall> {
     out
 }
 
-
-
-
-
-
-
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MappedProvider {
 
@@ -152,10 +94,8 @@ pub enum MappedProvider {
 
     Ollama,
 
-
     Unknown,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelMapping {
@@ -166,10 +106,6 @@ pub struct ModelMapping {
     pub suggested_name: String,
 }
 
-
-
-
-
 pub fn map_model(raw: &str) -> ModelMapping {
     let raw = raw.trim().trim_matches('"').trim_matches('\'');
     let lower = raw.to_lowercase();
@@ -178,8 +114,6 @@ pub fn map_model(raw: &str) -> ModelMapping {
         Some((p, m)) => (p, m),
         None => ("", lower.as_str()),
     };
-
-
 
     let provider = match prefix {
         "anthropic" => MappedProvider::Anthropic {
@@ -286,11 +220,6 @@ pub fn map_model(raw: &str) -> ModelMapping {
     }
 }
 
-
-
-
-
-
 fn map_base_url(url: &str) -> Option<MappedProvider> {
     let url = url.trim().trim_end_matches('/');
     Some(match url {
@@ -320,23 +249,12 @@ fn map_base_url(url: &str) -> Option<MappedProvider> {
     })
 }
 
-
-
-
 fn model_name_part(raw: &str) -> &str {
     match raw.split_once('/') {
         Some((_, rest)) => rest,
         None => raw,
     }
 }
-
-
-
-
-
-
-
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecretFinding {
@@ -348,7 +266,6 @@ pub struct SecretFinding {
 
     pub hint: String,
 }
-
 
 fn looks_like_secret_key(key: &str) -> bool {
     let k = key.to_lowercase();
@@ -370,14 +287,12 @@ fn looks_like_secret_key(key: &str) -> bool {
     .iter()
     .any(|pat| k.contains(pat))
 
-
         || k == "token"
         || k.ends_with("_token")
         || k.ends_with("-token")
         || k.starts_with("token_")
         || k.starts_with("token-")
 }
-
 
 fn looks_like_secret_value(value: &str) -> bool {
     let v = value.trim().trim_matches('"').trim_matches('\'');
@@ -413,8 +328,6 @@ fn looks_like_secret_value(value: &str) -> bool {
         return true;
     }
 
-
-
     v.len() >= 24
         && !v.contains(' ')
         && !v.contains('/')
@@ -423,16 +336,9 @@ fn looks_like_secret_value(value: &str) -> bool {
         })
 }
 
-
-
 pub fn is_secret_pair(key: &str, value: &str) -> bool {
     looks_like_secret_key(key) || looks_like_secret_value(value)
 }
-
-
-
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ImportKind {
@@ -460,7 +366,6 @@ impl ImportKind {
     }
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportItem {
 
@@ -476,13 +381,11 @@ pub struct ImportItem {
 
     pub destination: PathBuf,
 
-
     pub selected: bool,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model_mapping: Option<ModelMapping>,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportPlan {
@@ -500,11 +403,6 @@ impl ImportPlan {
     }
 }
 
-
-
-
-
-
 fn unquote(s: &str) -> String {
     let s = s.trim();
     if s.len() >= 2
@@ -516,17 +414,10 @@ fn unquote(s: &str) -> String {
     }
 }
 
-
-
 fn read_json(path: &Path) -> Option<Value> {
     let text = fs::read_to_string(path).ok()?;
     serde_json::from_str(&text).ok()
 }
-
-
-
-
-
 
 fn read_toml_flat(path: &Path) -> Option<Vec<(String, String, String)>> {
     let text = fs::read_to_string(path).ok()?;
@@ -554,11 +445,6 @@ fn read_toml_flat(path: &Path) -> Option<Vec<(String, String, String)>> {
     Some(out)
 }
 
-
-
-
-
-
 fn yaml_top_level(path: &Path, keys: &[&str]) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();
     let Ok(text) = fs::read_to_string(path) else {
@@ -581,7 +467,6 @@ fn yaml_top_level(path: &Path, keys: &[&str]) -> BTreeMap<String, String> {
     }
     out
 }
-
 
 fn secret(
     secrets: &mut Vec<SecretFinding>,
@@ -624,10 +509,6 @@ fn item_id(competitor: Competitor, kind: ImportKind, label: &str) -> String {
     )
 }
 
-
-
-
-
 struct Ctx<'a> {
     home: &'a Path,
     zhome: &'a Path,
@@ -647,8 +528,6 @@ impl<'a> Ctx<'a> {
         destination: PathBuf,
     ) {
         let id = item_id(competitor, kind, &label);
-
-
 
         let merge_safe = matches!(kind, ImportKind::McpServer | ImportKind::Model);
         let exists = !merge_safe && destination.exists();
@@ -704,8 +583,6 @@ impl<'a> Ctx<'a> {
     }
 }
 
-
-
 fn collect_mcp_map(ctx: &mut Ctx, competitor: Competitor, source: &Path, value: &Value) {
     let map = value
         .get("mcpServers")
@@ -747,7 +624,6 @@ fn collect_mcp_map(ctx: &mut Ctx, competitor: Competitor, source: &Path, value: 
     }
 }
 
-
 fn collect_skill_dirs(ctx: &mut Ctx, competitor: Competitor, dir: &Path) {
     let Ok(entries) = fs::read_dir(dir) else {
         return;
@@ -775,7 +651,6 @@ fn collect_skill_dirs(ctx: &mut Ctx, competitor: Competitor, dir: &Path) {
     }
 }
 
-
 fn collect_commands(ctx: &mut Ctx, competitor: Competitor, dir: &Path) {
     fn visit(ctx: &mut Ctx, competitor: Competitor, dir: &Path) {
         let Ok(entries) = fs::read_dir(dir) else {
@@ -802,7 +677,6 @@ fn collect_commands(ctx: &mut Ctx, competitor: Competitor, dir: &Path) {
     visit(ctx, competitor, dir);
 }
 
-
 fn collect_rule(ctx: &mut Ctx, competitor: Competitor, path: &Path, label: &str) {
     if !path.is_file() {
         return;
@@ -821,8 +695,6 @@ fn collect_rule(ctx: &mut Ctx, competitor: Competitor, path: &Path, label: &str)
         ctx.zhome.join("imported").join(dest_name),
     );
 }
-
-
 
 fn collect_claude_code(ctx: &mut Ctx) {
     let c = Competitor::ClaudeCode;
@@ -863,8 +735,6 @@ fn collect_claude_code(ctx: &mut Ctx) {
     collect_rule(ctx, c, &dir.join("CLAUDE.md"), "global memory (CLAUDE.md)");
 }
 
-
-
 fn collect_codex(ctx: &mut Ctx) {
     let c = Competitor::Codex;
     let dir = ctx.home.join(".codex");
@@ -894,8 +764,6 @@ fn collect_codex(ctx: &mut Ctx) {
         for (section, key, value) in &entries {
             if section.is_empty() && key == "model" {
                 let mut mapping = map_model(value);
-
-
 
                 if let Some(provider_name) = entries
                     .iter()
@@ -956,8 +824,6 @@ fn collect_codex(ctx: &mut Ctx) {
     }
 }
 
-
-
 fn collect_cursor(ctx: &mut Ctx) {
     let c = Competitor::Cursor;
     let dir = ctx.home.join(".cursor");
@@ -978,8 +844,6 @@ fn collect_cursor(ctx: &mut Ctx) {
             .to_string(),
     );
 }
-
-
 
 fn collect_continue(ctx: &mut Ctx) {
     let dir = ctx.home.join(".continue");
@@ -1043,16 +907,6 @@ fn collect_continue_models_json(ctx: &mut Ctx, source: &Path, v: &Value) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
 fn collect_continue_models_yaml(ctx: &mut Ctx, source: &Path) {
     let c = Competitor::Continue;
     let Ok(text) = fs::read_to_string(source) else {
@@ -1109,7 +963,6 @@ fn collect_continue_models_yaml(ctx: &mut Ctx, source: &Path) {
             in_models = line == "models:";
             if was_in_models && !in_models && !current.is_empty() {
 
-
                 flush(ctx, &current);
                 current.clear();
             }
@@ -1137,8 +990,6 @@ fn collect_continue_models_yaml(ctx: &mut Ctx, source: &Path) {
         flush(ctx, &current);
     }
 }
-
-
 
 fn collect_vscode_agent(ctx: &mut Ctx, competitor: Competitor, storage_dir_name: &str) {
     for root in competitor.roots(ctx.home) {
@@ -1168,8 +1019,6 @@ fn collect_vscode_agent(ctx: &mut Ctx, competitor: Competitor, storage_dir_name:
         competitor.display_name()
     ));
 }
-
-
 
 fn collect_aider(ctx: &mut Ctx) {
     let c = Competitor::Aider;
@@ -1204,8 +1053,6 @@ fn collect_aider(ctx: &mut Ctx) {
     }
 }
 
-
-
 fn collect_opencode(ctx: &mut Ctx) {
     let c = Competitor::OpenCode;
     let cfg = ctx.home.join(".config/opencode/opencode.json");
@@ -1223,7 +1070,6 @@ fn collect_opencode(ctx: &mut Ctx) {
     }
     collect_mcp_map(ctx, c, &cfg, &v);
 
-
     if let Some(providers) = v.get("provider").and_then(|p| p.as_object()) {
         for (name, pcfg) in providers {
             scan_value_for_secrets(
@@ -1238,7 +1084,6 @@ fn collect_opencode(ctx: &mut Ctx) {
     }
     scan_json_for_secrets(ctx, c, &cfg, &v, "config");
 }
-
 
 fn scan_value_for_secrets(
     ctx: &mut Ctx,
@@ -1279,7 +1124,6 @@ fn scan_value_for_secrets(
     }
 }
 
-
 fn scan_json_for_secrets(
     ctx: &mut Ctx,
     competitor: Competitor,
@@ -1317,14 +1161,6 @@ fn scan_json_for_secrets(
         _ => {}
     }
 }
-
-
-
-
-
-
-
-
 
 pub fn plan(home: &Path, zhome: &Path) -> Result<ImportPlan> {
     let detected = detect(home);
@@ -1367,11 +1203,6 @@ pub fn plan(home: &Path, zhome: &Path) -> Result<ImportPlan> {
     })
 }
 
-
-
-
-
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportedItem {
     pub id: String,
@@ -1382,7 +1213,6 @@ pub struct ImportedItem {
     pub trust: String,
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportReport {
     pub imported: Vec<ImportedItem>,
@@ -1391,11 +1221,6 @@ pub struct ImportReport {
 
     pub secrets: Vec<SecretFinding>,
 }
-
-
-
-
-
 
 pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
     let mut report = ImportReport {
@@ -1408,8 +1233,6 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
     let mut model_mappings: Vec<(String, ModelMapping)> = Vec::new();
 
     for item in plan.selected_items() {
-
-
 
         let merge_safe = matches!(item.kind, ImportKind::McpServer | ImportKind::Model);
         if !merge_safe && item.destination.exists() {
@@ -1520,8 +1343,6 @@ pub fn apply(plan: &ImportPlan, zhome: &Path) -> Result<ImportReport> {
     Ok(report)
 }
 
-
-
 fn namespaced_server_name(competitor: Competitor, name: &str) -> String {
     let prefix = match competitor {
         Competitor::ClaudeCode => "claude-code",
@@ -1536,7 +1357,6 @@ fn namespaced_server_name(competitor: Competitor, name: &str) -> String {
     format!("{}-{}", prefix, name)
 }
 
-
 fn mcp_server_config(source: &Path, name: &str) -> Option<Value> {
     let v = read_json(source)?;
     let map = v
@@ -1547,11 +1367,6 @@ fn mcp_server_config(source: &Path, name: &str) -> Option<Value> {
     map.get(name).cloned()
 }
 
-
-
-
-
-
 fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Result<Vec<String>> {
     let mut root: Value = read_json(dest).unwrap_or_else(|| serde_json::json!({}));
     if !root.is_object() {
@@ -1560,7 +1375,6 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
             dest.display()
         );
     }
-
 
     let mut staged: Vec<(String, Value, Value)> = Vec::new();
     {
@@ -1575,7 +1389,6 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
             if mcp_obj.contains_key(&name) {
                 continue;
             }
-
 
             if let Some(env) = cfg.get_mut("env").and_then(|e| e.as_object_mut()) {
                 let secret_keys: Vec<String> = env
@@ -1631,7 +1444,6 @@ fn merge_mcp_json(dest: &Path, servers: BTreeMap<String, (Value, String)>) -> Re
     Ok(added)
 }
 
-
 fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst)?;
     for entry in fs::read_dir(src).with_context(|| format!("reading {}", src.display()))? {
@@ -1647,17 +1459,12 @@ fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
-
-
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicU64, Ordering};
 
     static COUNTER: AtomicU64 = AtomicU64::new(0);
-
 
     fn scratch(name: &str) -> PathBuf {
         let n = COUNTER.fetch_add(1, Ordering::SeqCst);
@@ -1682,8 +1489,6 @@ mod tests {
         fs::create_dir_all(&home).unwrap();
         (base, home, zhome)
     }
-
-
 
     #[test]
     fn detect_empty_home_finds_nothing() {
@@ -1723,8 +1528,6 @@ mod tests {
         assert_eq!(found.len(), 8, "expected all 8, got {:?}", found);
     }
 
-
-
     #[test]
     fn map_model_table() {
         let cases: &[(&str, &str)] = &[
@@ -1763,8 +1566,6 @@ mod tests {
         let _ = map_model("");
         let _ = map_model("\"quoted\"");
     }
-
-
 
     #[test]
     fn secret_key_heuristics() {
@@ -1812,8 +1613,6 @@ mod tests {
         assert!(!looks_like_secret_value("null"));
     }
 
-
-
     #[test]
     fn claude_code_full_fixture() {
         let (_base, home, zhome) = home_and_zhome("claude");
@@ -1847,13 +1646,11 @@ mod tests {
         assert!(kinds.contains(&ImportKind::Command));
         assert!(kinds.contains(&ImportKind::Rule));
 
-
         assert_eq!(plan.secrets.len(), 1, "{:?}", plan.secrets);
         assert!(plan.secrets[0].name.contains("apiKey"));
         assert!(plan.secrets[0]
             .hint
             .contains("paste it into ZenCode Settings"));
-
 
         let model = plan
             .items
@@ -1863,8 +1660,6 @@ mod tests {
         let mapping = model.model_mapping.as_ref().unwrap();
         assert!(matches!(mapping.provider, MappedProvider::Anthropic { .. }));
     }
-
-
 
     #[test]
     fn codex_toml_fixture() {
@@ -1905,8 +1700,6 @@ mod tests {
             MappedProvider::Unknown
         ));
     }
-
-
 
     #[test]
     fn continue_yaml_fixture_with_trailing_section() {
@@ -1949,8 +1742,6 @@ mod tests {
             MappedProvider::Anthropic { .. }
         ));
     }
-
-
 
     #[test]
     fn aider_yaml_fixture() {
@@ -2018,8 +1809,6 @@ mod tests {
             .any(|s| s.name == "mcp env brave.BRAVE_API_KEY"));
     }
 
-
-
     #[test]
     fn apply_copies_skills_commands_rules_and_merges_mcp() {
         let (_base, home, zhome) = home_and_zhome("apply");
@@ -2039,7 +1828,6 @@ mod tests {
         assert!(!plan.items.is_empty());
         let report = apply(&plan, &zhome).unwrap();
 
-
         assert!(zhome.join("skills/pdf/SKILL.md").is_file());
         assert!(zhome.join("skills/pdf/helper.py").is_file());
         let skill = report
@@ -2049,10 +1837,8 @@ mod tests {
             .unwrap();
         assert!(skill.trust.contains("UNTRUSTED"));
 
-
         assert!(zhome.join("commands/review.md").is_file());
         assert!(zhome.join("imported").read_dir().unwrap().count() == 1);
-
 
         let mcp_text = fs::read_to_string(zhome.join("mcp.json")).unwrap();
         let mcp: Value = serde_json::from_str(&mcp_text).unwrap();
@@ -2092,7 +1878,6 @@ mod tests {
             .find(|i| i.kind == ImportKind::Skill)
             .unwrap();
         assert!(!item.selected);
-
 
         let mut forced = plan.clone();
         for i in forced.items.iter_mut() {
@@ -2155,7 +1940,6 @@ mod tests {
     #[test]
     fn key_refusal_invariant_end_to_end() {
 
-
         let (_base, home, zhome) = home_and_zhome("refusal");
         write(
             &home.join(".continue/config.yaml"),
@@ -2169,7 +1953,6 @@ mod tests {
         assert!(!plan.secrets.is_empty());
         let report = apply(&plan, &zhome).unwrap();
         assert!(!report.secrets.is_empty());
-
 
         fn walk(dir: &Path, hits: &mut Vec<PathBuf>) {
             for entry in fs::read_dir(dir).unwrap() {

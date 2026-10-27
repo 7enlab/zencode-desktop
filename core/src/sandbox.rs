@@ -1,6 +1,5 @@
 use std::path::Path;
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Isolation {
 
@@ -11,15 +10,12 @@ pub enum Isolation {
     Full,
 }
 
-
 pub trait Sandbox {
     fn isolation(&self) -> Isolation;
     fn allow_read(&self, path: &Path) -> bool;
     fn allow_write(&self, path: &Path) -> bool;
     fn allow_exec(&self, program: &str) -> bool;
 }
-
-
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct NoSandbox;

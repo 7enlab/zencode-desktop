@@ -1,18 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod notifications;
@@ -34,11 +19,9 @@ use zencode_engine::{
     RunOptions,
 };
 
-
 struct AppState {
     sinks: Mutex<HashMap<String, Arc<BridgeSink>>>,
 }
-
 
 fn ensure_free_model(model: &str) -> Result<(), String> {
     let m = model.trim();
@@ -51,8 +34,6 @@ fn ensure_free_model(model: &str) -> Result<(), String> {
     Ok(())
 }
 
-
-
 struct ForwardingSink {
     bridge: Arc<BridgeSink>,
     channel: Channel<IpcEnvelope>,
@@ -64,14 +45,11 @@ impl zen_core::EventSink for ForwardingSink {
         self.bridge.emit(ev);
         let envs = self.bridge.envelopes();
 
-
         if envs.len() > before {
             let _ = self.channel.send(envs[envs.len() - 1].clone());
         }
     }
 }
-
-
 
 #[tauri::command]
 async fn run_task(
@@ -108,18 +86,12 @@ async fn run_task(
     });
     let mut opts = RunOptions::new(base_url, model.clone(), cwd_path.clone());
 
-
-
-
     opts.scope = Some(ScopeDecl {
         files: vec![],
         dirs: vec![cwd_path.clone()],
         description: "user-selected working directory".to_owned(),
     });
     let sid = session_id.clone();
-
-
-
 
     tauri::async_runtime::spawn(async move {
         let result = zencode_engine::run_task_with_sink(&opts, &prompt, sink).await;
@@ -141,14 +113,11 @@ async fn run_task(
     Ok(session_id)
 }
 
-
 #[tauri::command]
 fn list_sessions() -> Result<Vec<SessionMeta>, String> {
     let store = SessionStore::with_default_root().map_err(|e| e.to_string())?;
     store.list_sessions().map_err(|e| e.to_string())
 }
-
-
 
 #[tauri::command]
 fn get_log_since(
@@ -178,7 +147,6 @@ fn get_log_since(
     Ok(bridge.get_log_since(since))
 }
 
-
 fn validate_session_id_arg(session_id: &str) -> Result<(), String> {
     if session_id.contains('/')
         || session_id.contains('\\')
@@ -190,7 +158,6 @@ fn validate_session_id_arg(session_id: &str) -> Result<(), String> {
     Ok(())
 }
 
-
 fn validate_checkpoint_id_arg(checkpoint_id: &str) -> Result<(), String> {
     let id = checkpoint_id.trim();
     if id.len() < 4 || id.len() > 40 || !id.chars().all(|c| c.is_ascii_hexdigit()) {
@@ -198,7 +165,6 @@ fn validate_checkpoint_id_arg(checkpoint_id: &str) -> Result<(), String> {
     }
     Ok(())
 }
-
 
 fn session_cwd(session_id: &str) -> Result<PathBuf, String> {
     let store = SessionStore::with_default_root().map_err(|e| e.to_string())?;
@@ -214,8 +180,6 @@ fn session_cwd(session_id: &str) -> Result<PathBuf, String> {
     Ok(PathBuf::from(meta.cwd))
 }
 
-
-
 #[tauri::command]
 fn get_timeline(session_id: String) -> Result<TimelineResponse, String> {
     validate_session_id_arg(&session_id)?;
@@ -224,7 +188,6 @@ fn get_timeline(session_id: String) -> Result<TimelineResponse, String> {
     let ndjson = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let envelopes = parse_ndjson(&ndjson).map_err(|e| e.to_string())?;
     let entries = timeline::build_timeline(&envelopes);
-
 
     let checkpoints = match session_cwd(&session_id) {
         Ok(cwd) => CheckpointManager::new(&cwd)
@@ -250,11 +213,6 @@ fn get_timeline(session_id: String) -> Result<TimelineResponse, String> {
     })
 }
 
-
-
-
-
-
 #[tauri::command]
 fn restore_checkpoint(session_id: String, checkpoint_id: String) -> Result<RestoreOutcome, String> {
     validate_session_id_arg(&session_id)?;
@@ -269,10 +227,6 @@ fn restore_checkpoint(session_id: String, checkpoint_id: String) -> Result<Resto
         safety_checkpoint_id: report.new_checkpoint_id,
     })
 }
-
-
-
-
 
 fn signed_version_comparator(current: &str, release: tauri_plugin_updater::RemoteRelease) -> bool {
     let Some(target) = tauri_plugin_updater::target() else {
@@ -300,11 +254,6 @@ fn signed_version_comparator(current: &str, release: tauri_plugin_updater::Remot
 fn main() {
     tauri::Builder::default()
 
-
-
-
-
-
         .plugin(
             tauri_plugin_updater::Builder::new()
                 .default_version_comparator(|current, release| {
@@ -322,8 +271,6 @@ fn main() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
 
         .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {}))
-
-
 
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -348,7 +295,6 @@ fn main() {
             notifications::cmd_notify_still_working,
         ])
         .setup(|app| {
-
 
             if let Err(e) = notifications::register_actions(app.handle()) {
                 eprintln!("warning: could not register notification actions: {e}");

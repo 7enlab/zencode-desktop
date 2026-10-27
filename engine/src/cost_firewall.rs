@@ -1,42 +1,11 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::fmt;
-
-
-
-
-
 
 pub const FREE_ALLOWLIST: &[&str] = &[
 
     "deepseek-v4.1-flash-uncensored",
 ];
 
-
-
 pub const FREE_SUFFIX: &str = ":free";
-
 
 pub const BLOCKED_MESSAGE: &str = "ZenCode cannot bill you - this is structural, not a setting.";
 
@@ -65,14 +34,10 @@ impl fmt::Display for CostFirewallError {
 
 impl std::error::Error for CostFirewallError {}
 
-
-
 pub fn is_free_model(model: &str) -> bool {
     let m = model.trim();
     !m.is_empty() && (m.ends_with(FREE_SUFFIX) || FREE_ALLOWLIST.contains(&m))
 }
-
-
 
 pub fn validate_model(model: &str) -> Result<(), CostFirewallError> {
     if model.trim().is_empty() {
@@ -86,12 +51,6 @@ pub fn validate_model(model: &str) -> Result<(), CostFirewallError> {
         })
     }
 }
-
-
-
-
-
-
 
 #[derive(Debug, Clone, Default)]
 pub struct FreeOnlyPolicy {
@@ -115,7 +74,6 @@ impl FreeOnlyPolicy {
                 || self.extra_allowlist.iter().any(|a| a == m))
     }
 
-
     pub fn validate(&self, model: &str) -> Result<(), CostFirewallError> {
         if model.trim().is_empty() {
             return Err(CostFirewallError::EmptyModelId);
@@ -128,7 +86,6 @@ impl FreeOnlyPolicy {
             })
         }
     }
-
 
     pub fn validate_all(
         &self,
@@ -143,8 +100,6 @@ impl FreeOnlyPolicy {
     }
 }
 
-
-
 #[derive(Debug, Clone, Default)]
 pub struct SpendMeter {
     tasks_run: u64,
@@ -155,7 +110,6 @@ impl SpendMeter {
         Self::default()
     }
 
-
     pub fn record_task(&mut self) {
         self.tasks_run += 1;
     }
@@ -164,16 +118,13 @@ impl SpendMeter {
         self.tasks_run
     }
 
-
     pub fn total_spent_usd(&self) -> f64 {
         0.0
     }
 
-
     pub fn cost_preview(&self, _task: &str) -> String {
         "$0.00".to_string()
     }
-
 
     pub fn summary(&self) -> String {
         format!(
@@ -249,8 +200,6 @@ mod tests {
 
     #[test]
     fn validation_is_pure_and_runs_before_any_network_use() {
-
-
 
         let policy = FreeOnlyPolicy::default();
         let err = policy

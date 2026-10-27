@@ -1,32 +1,7 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::events::{DesktopEvent, Envelope};
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimelineEntry {
@@ -34,7 +9,6 @@ pub struct TimelineEntry {
     pub step: u64,
 
     pub seq: u64,
-
 
     pub kind: String,
 
@@ -51,14 +25,12 @@ pub struct TimelineEntry {
     pub status: String,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimelineCheckpoint {
     pub id: String,
     pub message: String,
     pub timestamp: i64,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimelineResponse {
@@ -67,18 +39,12 @@ pub struct TimelineResponse {
     pub checkpoints: Vec<TimelineCheckpoint>,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RestoreOutcome {
     pub restored_files: Vec<String>,
 
     pub safety_checkpoint_id: String,
 }
-
-
-
-
-
 
 pub fn build_timeline(envelopes: &[Envelope]) -> Vec<TimelineEntry> {
 
@@ -92,7 +58,6 @@ pub fn build_timeline(envelopes: &[Envelope]) -> Vec<TimelineEntry> {
             }
         }
     }
-
 
     let mut entries: Vec<TimelineEntry> = Vec::new();
     let mut by_tool_use: HashMap<String, usize> = HashMap::new();
@@ -184,7 +149,6 @@ pub fn build_timeline(envelopes: &[Envelope]) -> Vec<TimelineEntry> {
     entries
 }
 
-
 fn parse_checkpoint_note(text: &str) -> Option<(String, u64)> {
     let text = text.trim();
     let rest = text.strip_prefix("checkpoint ")?;
@@ -197,7 +161,6 @@ fn parse_checkpoint_note(text: &str) -> Option<(String, u64)> {
     Some((id.to_string(), seq))
 }
 
-
 fn kind_for_tool(name: &str) -> String {
     match name.to_ascii_lowercase().as_str() {
         n if n.contains("write") => "write".to_string(),
@@ -207,7 +170,6 @@ fn kind_for_tool(name: &str) -> String {
         _ => "tool".to_string(),
     }
 }
-
 
 fn files_for_tool(name: &str, arguments: &str) -> Vec<String> {
     let args: serde_json::Value = match serde_json::from_str(arguments) {
@@ -229,7 +191,6 @@ fn files_for_tool(name: &str, arguments: &str) -> Vec<String> {
     }
     files
 }
-
 
 fn title_for_tool(name: &str, files: &[String], arguments: &str) -> String {
     let file = files.first().map(|f| format!("`{f}`")).unwrap_or_default();
@@ -257,7 +218,6 @@ fn title_for_tool(name: &str, files: &[String], arguments: &str) -> String {
         _ => format!("Used {name}"),
     }
 }
-
 
 fn first_line(s: &str, max: usize) -> String {
     let line = s.lines().next().unwrap_or("").trim();

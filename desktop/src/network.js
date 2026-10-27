@@ -1,20 +1,9 @@
 "use strict";
 
-
-
-
-
-
-
-
-
-
 const NW = {
   entries: [],
   verdict: "",
 };
-
-
 
 function showNetworkTab() {
   document.getElementById("messages").classList.add("hidden");
@@ -33,14 +22,10 @@ function showNetworkTab() {
   loadNetworkLog();
 }
 
-
-
 function hideNetworkTab() {
   document.getElementById("network-panel").classList.add("hidden");
   document.getElementById("tab-network").classList.remove("active");
 }
-
-
 
 async function loadNetworkLog() {
   if (typeof invoke === "function" && invoke) {
@@ -70,8 +55,6 @@ function networkVerdict() {
 
   return `Clean: ${NW.entries.length} request(s) to ${hosts.length} host(s) (${hosts.join(", ")}), none owned by ZenCode. No telemetry was sent.`;
 }
-
-
 
 function fmtBytes(n) {
   if (n < 1024) return n + " B";

@@ -2,7 +2,6 @@ use std::collections::VecDeque;
 use std::path::Path;
 use zencode_core::*;
 
-
 struct Scripted {
     replies: VecDeque<Result<Reply, Error>>,
     seen: Vec<Vec<Message>>,
@@ -25,7 +24,6 @@ impl Llm for Scripted {
             .unwrap_or_else(|| Err(Error::Llm("script exhausted".into())))
     }
 }
-
 
 struct Echo;
 impl Tool for Echo {

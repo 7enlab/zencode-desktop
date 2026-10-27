@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
@@ -22,14 +9,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::events::{DesktopEvent, Envelope};
 
-
 const INDEX_VERSION: u32 = 1;
 const INDEX_FILE: &str = "index.json";
 
 const PREVIEW_CHARS: usize = 120;
 
 const TITLE_CHARS: usize = 60;
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SessionMeta {
@@ -50,7 +35,6 @@ struct IndexFile {
     sessions: Vec<SessionMeta>,
 }
 
-
 pub struct SessionStore {
     root: PathBuf,
 }
@@ -61,12 +45,9 @@ impl SessionStore {
         Self { root: root.into() }
     }
 
-
     pub fn with_default_root() -> anyhow::Result<Self> {
         Ok(Self::new(Self::default_root()?))
     }
-
-
 
     pub fn default_root() -> anyhow::Result<PathBuf> {
         std::env::var_os("HOME")
@@ -80,7 +61,6 @@ impl SessionStore {
     pub fn root(&self) -> &Path {
         &self.root
     }
-
 
     pub fn new_session_id() -> String {
         static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -100,12 +80,6 @@ impl SessionStore {
     fn session_path(&self, id: &str) -> PathBuf {
         self.root.join(format!("{id}.ndjson"))
     }
-
-
-
-
-
-
 
     pub fn save_session(
         &self,
@@ -164,15 +138,11 @@ impl SessionStore {
         self.write_index(&idx)
     }
 
-
-
     pub fn list_sessions(&self) -> anyhow::Result<Vec<SessionMeta>> {
         let mut idx = self.load_index()?;
         sort_newest_first(&mut idx.sessions);
         Ok(idx.sessions)
     }
-
-
 
     pub fn search_sessions(&self, query: &str) -> anyhow::Result<Vec<SessionMeta>> {
         let q = query.trim().to_lowercase();
@@ -199,8 +169,6 @@ impl SessionStore {
         Ok(hits.into_iter().map(|(_, m)| m).collect())
     }
 
-
-
     pub fn rename_session(&self, id: &str, new_title: &str) -> anyhow::Result<()> {
         validate_session_id(id)?;
         let new_title = new_title.trim();
@@ -216,8 +184,6 @@ impl SessionStore {
         meta.updated_at = unix_to_rfc3339(now_secs());
         self.write_index(&idx)
     }
-
-
 
     fn load_index(&self) -> anyhow::Result<IndexFile> {
         let path = self.root.join(INDEX_FILE);
@@ -239,8 +205,6 @@ impl SessionStore {
         }
         Ok(idx)
     }
-
-
 
     fn rebuild_index(&self) -> anyhow::Result<IndexFile> {
         fs::create_dir_all(&self.root)?;
@@ -287,7 +251,6 @@ impl SessionStore {
         Ok(idx)
     }
 
-
     fn write_index(&self, idx: &IndexFile) -> anyhow::Result<()> {
         fs::create_dir_all(&self.root)?;
         let text = serde_json::to_string_pretty(idx)?;
@@ -297,8 +260,6 @@ impl SessionStore {
         Ok(())
     }
 }
-
-
 
 fn validate_session_id(id: &str) -> anyhow::Result<()> {
     if id.is_empty() || id.len() > 128 {
@@ -323,8 +284,6 @@ fn sort_newest_first(sessions: &mut [SessionMeta]) {
     });
 }
 
-
-
 fn read_envelopes_best_effort(path: &Path) -> Vec<Envelope> {
     let Ok(text) = fs::read_to_string(path) else {
         return vec![];
@@ -346,7 +305,6 @@ fn first_assistant_text(events: &[Envelope]) -> Option<String> {
         _ => None,
     })
 }
-
 
 fn message_count(events: &[Envelope]) -> u64 {
     events
@@ -383,7 +341,6 @@ fn file_mtime_secs(path: &Path) -> u64 {
         .map(|d| d.as_secs())
         .unwrap_or_else(now_secs)
 }
-
 
 fn unix_to_rfc3339(secs: u64) -> String {
     let days = (secs / 86_400) as i64;
@@ -465,7 +422,6 @@ mod tests {
             )
             .unwrap();
 
-
         let raw = fs::read_to_string(root.join("2026-10-17-aaa.ndjson")).unwrap();
         let parsed = crate::events::parse_ndjson(&raw).unwrap();
         assert_eq!(parsed, events);
@@ -539,7 +495,6 @@ mod tests {
 
         store.rename_session("s1", "New title").unwrap();
 
-
         assert_eq!(fs::read(root.join("s1.ndjson")).unwrap(), before);
         let m = &store.list_sessions().unwrap()[0];
         assert_eq!(m.title, "New title");
@@ -567,13 +522,11 @@ mod tests {
             )
             .unwrap();
 
-
         fs::remove_file(root.join("index.json")).unwrap();
         let list = store.list_sessions().unwrap();
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].id, "2026-10-17-r1");
         assert_eq!(list[0].title, "rebuild me please");
-
 
         fs::write(root.join("index.json"), "{not json").unwrap();
         let list = store.list_sessions().unwrap();

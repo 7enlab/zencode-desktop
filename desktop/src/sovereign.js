@@ -1,28 +1,8 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const SOVEREIGN = Object.freeze({
   OLLAMA_URL: 'http://localhost:11434/v1',
   POLICY_VERSION: 'sovereign-policy-v1',
   ATTESTATION_SCHEME: 'hash-chain-v1',
 });
-
-
-
-
-
 
 export function badgeFor(status) {
   if (!status) return { text: 'Sovereign: unknown', tone: 'muted' };
@@ -39,19 +19,9 @@ export function badgeFor(status) {
   return { text: 'Sovereign OFF', tone: 'muted' };
 }
 
-
-
-
-
-
 export function canEnable(status) {
   return !!status && !status.enabled && !!status.ollama_reachable;
 }
-
-
-
-
-
 
 export function renderPreflight(container, findings) {
   container.innerHTML = '';
@@ -105,13 +75,6 @@ export function renderPreflight(container, findings) {
   container.appendChild(ul);
   return blocking;
 }
-
-
-
-
-
-
-
 
 export function wireSovereignToggle({ toggleBtn, badgeEl, preflightEl, tauri }) {
   async function refresh() {

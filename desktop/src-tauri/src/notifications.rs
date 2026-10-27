@@ -1,12 +1,3 @@
-
-
-
-
-
-
-
-
-
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -14,9 +5,7 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_notification::{Action, ActionType, NotificationExt};
 
-
 pub const SESSION_ACTIONS_ID: &str = "zencode-session";
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NotificationKind {
@@ -26,14 +15,12 @@ pub enum NotificationKind {
     StillWorking,
 }
 
-
 #[derive(Debug, Default)]
 struct RunState {
     notified: bool,
     last_approval: Option<Instant>,
     last_milestone: Option<Instant>,
 }
-
 
 pub struct NotificationManager {
     runs: Mutex<HashMap<String, RunState>>,
@@ -46,7 +33,6 @@ impl NotificationManager {
         }
     }
 
-
     pub fn should_notify<R: Runtime>(app: &AppHandle<R>) -> bool {
         match app.get_webview_window("main") {
             Some(window) => !window.is_focused().unwrap_or(false),
@@ -54,9 +40,6 @@ impl NotificationManager {
             None => true,
         }
     }
-
-
-
 
     fn can_notify_run(&self, session_id: &str, kind: NotificationKind) -> bool {
         let mut runs = self
@@ -93,8 +76,6 @@ impl NotificationManager {
         }
     }
 
-
-
     #[allow(dead_code)]
     pub fn clear_run(&self, session_id: &str) {
         let mut runs = self
@@ -110,8 +91,6 @@ impl Default for NotificationManager {
         Self::new()
     }
 }
-
-
 
 pub fn register_actions<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     let action_type = ActionType::builder(SESSION_ACTIONS_ID)
@@ -133,8 +112,6 @@ fn truncate(text: &str, max_chars: usize) -> String {
         truncated
     }
 }
-
-
 
 pub fn notify_session_end<R: Runtime>(
     app: &AppHandle<R>,
@@ -170,8 +147,6 @@ pub fn notify_session_end<R: Runtime>(
         .map_err(|e| e.to_string())
 }
 
-
-
 pub fn notify_approval_needed<R: Runtime>(
     app: &AppHandle<R>,
     manager: &NotificationManager,
@@ -198,12 +173,6 @@ pub fn notify_approval_needed<R: Runtime>(
         .map_err(|e| e.to_string())
 }
 
-
-
-
-
-
-
 #[tauri::command]
 pub fn cmd_notify_still_working<R: Runtime>(
     app: AppHandle<R>,
@@ -229,7 +198,6 @@ pub fn cmd_notify_still_working<R: Runtime>(
         .map_err(|e| e.to_string())
 }
 
-
 #[tauri::command]
 pub fn cmd_notify_session_end<R: Runtime>(
     app: AppHandle<R>,
@@ -240,7 +208,6 @@ pub fn cmd_notify_session_end<R: Runtime>(
 ) -> Result<(), String> {
     notify_session_end(&app, &manager, &session_id, &summary, success)
 }
-
 
 #[tauri::command]
 pub fn cmd_notify_approval_needed<R: Runtime>(

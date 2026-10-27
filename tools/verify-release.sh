@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 PUBKEY="${1:?usage: $0 <public-key-file> <artifact-file>}"
@@ -30,7 +22,6 @@ if [ ! -f "$SIG" ]; then
   echo "A genuine ZenCode release always ships a .minisig next to each artifact." >&2
   exit 1
 fi
-
 
 if minisign -V -p "$PUBKEY" -m "$FILE" -x "$SIG"; then
   echo "OK: signature valid - $(basename "$FILE") is an authentic ZenCode release artifact."

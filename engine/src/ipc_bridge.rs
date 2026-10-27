@@ -1,21 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
@@ -23,10 +5,6 @@ use serde::{Deserialize, Serialize};
 use zen_core::{AgentEvent, EventSink};
 
 use crate::events::{parse_ndjson, DesktopEvent, Envelope, SCHEMA_VERSION};
-
-
-
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IpcEnvelope {
@@ -58,7 +36,6 @@ impl IpcEnvelope {
         })
     }
 
-
     pub fn event_type_of(event: &DesktopEvent) -> String {
         match event {
             DesktopEvent::AssistantMessage { .. } => "assistant_message",
@@ -74,7 +51,6 @@ impl IpcEnvelope {
         .to_owned()
     }
 
-
     pub fn to_event(&self) -> anyhow::Result<DesktopEvent> {
         let mut value = self.payload.clone();
         let obj = value
@@ -87,7 +63,6 @@ impl IpcEnvelope {
         serde_json::from_value(value).map_err(|e| anyhow::anyhow!("bad event payload: {e}"))
     }
 
-
     pub fn to_envelope(&self) -> anyhow::Result<Envelope> {
         Ok(Envelope {
             v: self.v,
@@ -96,14 +71,10 @@ impl IpcEnvelope {
         })
     }
 
-
     pub fn from_envelope(env: &Envelope) -> anyhow::Result<Self> {
         IpcEnvelope::new(env.seq, &env.event)
     }
 }
-
-
-
 
 pub struct BridgeSink {
     seq: AtomicU64,
@@ -118,13 +89,9 @@ impl BridgeSink {
         }
     }
 
-
     pub fn envelopes(&self) -> Vec<IpcEnvelope> {
         self.log.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
-
-
-
 
     pub fn get_log_since(&self, since: u64) -> Vec<IpcEnvelope> {
         self.log
@@ -135,8 +102,6 @@ impl BridgeSink {
             .cloned()
             .collect()
     }
-
-
 
     pub fn to_ndjson(&self) -> anyhow::Result<String> {
         self.envelopes()
@@ -149,8 +114,6 @@ impl BridgeSink {
             .collect::<anyhow::Result<Vec<_>>>()
             .map(|lines| lines.join("\n"))
     }
-
-
 
     pub fn from_ndjson(s: &str) -> anyhow::Result<Self> {
         let envelopes: Vec<Envelope> = parse_ndjson(s)?;
@@ -178,19 +141,11 @@ impl EventSink for BridgeSink {
         let event = DesktopEvent::from(ev);
         let seq = self.seq.fetch_add(1, Ordering::SeqCst);
 
-
         if let Ok(env) = IpcEnvelope::new(seq, &event) {
             self.log.lock().unwrap_or_else(|e| e.into_inner()).push(env);
         }
     }
 }
-
-
-
-
-
-
-
 
 pub fn detect_gaps(received: &[u64]) -> Vec<u64> {
     let Some(&max) = received.iter().max() else {

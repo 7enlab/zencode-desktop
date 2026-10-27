@@ -23,7 +23,6 @@
 - **Ideas**: Priority `$COLUMNS` → real terminal → 40 to keep golden tests stable; release on tag `v*` for Linux x86_64, macOS arm64, Windows x86_64.
 - **Result**: commit cc20b2b, CI run 38897812171 green on Ubuntu/macOS/Windows. Release workflow ready, tag not pushed yet.
 
-
 ## 2026-10-17 - Lint Gate + ANSI Colour
 
 ### Research

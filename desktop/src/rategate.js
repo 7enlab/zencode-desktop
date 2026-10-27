@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
   else root.RateGateUI = factory();
@@ -23,7 +15,6 @@
     if (!s || !(s.limit > 0)) return 0;
     return (s.used / s.limit) * 100;
   }
-
 
   function computeState(qs) {
     if (!qs) return STATES.HEALTHY;
@@ -51,7 +42,6 @@
     if (text !== undefined && text !== null) e.textContent = text;
     return e;
   }
-
 
   function createQuotaMeter(doc, host) {
     var wrap = el(doc, "span", "quota-meter");
@@ -97,7 +87,6 @@
     };
   }
 
-
   function createFallbackBanner(doc, host) {
     var banner = el(doc, "div", "fallback-banner hidden");
     var msg = el(doc, "span", "fb-msg");
@@ -129,7 +118,6 @@
       },
     };
   }
-
 
   function createCooldownOverlay(doc, composerEl, inputEl) {
     var overlay = el(doc, "div", "cooldown-overlay hidden");
@@ -167,7 +155,6 @@
     };
   }
 
-
   function updateQueueChip(doc, qs) {
     var chip = doc.getElementById("status-queue");
     if (!chip) return;
@@ -180,7 +167,6 @@
       chip.classList.add("hidden");
     }
   }
-
 
   var meter = null, banner = null, overlay = null;
 
@@ -211,11 +197,9 @@
     updateQueueChip(meter.el.ownerDocument, qs);
   }
 
-
   function onEnvelope(env) {
     if (env && env.type === "quota_state" && env.quota) update(env.quota);
   }
-
 
   function isoPlus(minutes) {
     return new Date(Date.now() + minutes * 60000).toISOString();

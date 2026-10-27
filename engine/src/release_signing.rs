@@ -1,17 +1,6 @@
-
-
-
-
-
-
-
-
-
-
 use std::fmt;
 use std::fs;
 use std::path::Path;
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VerifyError {
@@ -39,9 +28,6 @@ impl fmt::Display for VerifyError {
 }
 
 impl std::error::Error for VerifyError {}
-
-
-
 
 fn decode_base64(s: &str) -> Result<Vec<u8>, String> {
     fn val(c: u8) -> Result<u8, String> {
@@ -83,14 +69,6 @@ fn decode_base64(s: &str) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-
-
-
-
-
-
-
-
 pub fn verify_bytes(
     public_key_b64: &str,
     file_bytes: &[u8],
@@ -98,11 +76,6 @@ pub fn verify_bytes(
 ) -> Result<(), VerifyError> {
     verify_bytes_with_comment(public_key_b64, file_bytes, signature_content).map(|_| ())
 }
-
-
-
-
-
 
 pub fn verify_bytes_with_comment(
     public_key_b64: &str,
@@ -119,18 +92,12 @@ pub fn verify_bytes_with_comment(
     Ok(sig.trusted_comment().to_string())
 }
 
-
-
 pub fn verify_file(public_key_b64: &str, path: &Path) -> Result<(), VerifyError> {
     let sig_path = format!("{}.minisig", path.display());
     let file_bytes = fs::read(path).map_err(|e| VerifyError::Io(e.to_string()))?;
     let sig_content = fs::read_to_string(&sig_path).map_err(|e| VerifyError::Io(e.to_string()))?;
     verify_bytes(public_key_b64, &file_bytes, &sig_content)
 }
-
-
-
-
 
 pub fn updater_public_key(tauri_conf_json: &str) -> Option<String> {
     let conf: serde_json::Value = serde_json::from_str(tauri_conf_json).ok()?;
@@ -152,13 +119,9 @@ pub fn updater_public_key(tauri_conf_json: &str) -> Option<String> {
     Some(key_line)
 }
 
-
-
-
 pub fn updater_pubkey_is_placeholder(tauri_conf_json: &str) -> bool {
     updater_public_key(tauri_conf_json).is_none()
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UpdateRejection {
@@ -216,7 +179,6 @@ impl fmt::Display for UpdateRejection {
 
 impl std::error::Error for UpdateRejection {}
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct SemVer {
     core: [u64; 3],
@@ -247,7 +209,6 @@ fn parse_semver(v: &str) -> Result<SemVer, UpdateRejection> {
     Ok(SemVer { core: out, pre })
 }
 
-
 fn semver_cmp(a: &SemVer, b: &SemVer) -> std::cmp::Ordering {
     use std::cmp::Ordering;
     match a.core.cmp(&b.core) {
@@ -274,7 +235,6 @@ fn semver_cmp(a: &SemVer, b: &SemVer) -> std::cmp::Ordering {
     a.pre.len().cmp(&b.pre.len())
 }
 
-
 fn percent_decode(s: &str) -> String {
     let b = s.as_bytes();
     let mut out = Vec::with_capacity(b.len());
@@ -294,13 +254,6 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).into_owned()
 }
 
-
-
-
-
-
-
-
 pub fn signed_file_name(signature_b64: &str) -> Result<String, UpdateRejection> {
     let raw = decode_base64(signature_b64.trim()).map_err(UpdateRejection::BadSignature)?;
     let text = String::from_utf8(raw)
@@ -314,16 +267,6 @@ pub fn signed_file_name(signature_b64: &str) -> Result<String, UpdateRejection> 
         .filter(|f| !f.is_empty())
         .ok_or(UpdateRejection::MissingSignedFile)
 }
-
-
-
-
-
-
-
-
-
-
 
 pub fn check_update_offer(
     current_version: &str,
@@ -361,8 +304,6 @@ pub fn check_update_offer(
     Ok(())
 }
 
-
-
 pub fn check_update_manifest(
     current_version: &str,
     manifest_json: &str,
@@ -391,11 +332,8 @@ mod tests {
     use super::*;
     use std::io::Write;
 
-
-
     const TEST_PUBKEY: &str = "RWQdtwrmteKxjKJr7y54fi1dyz9HDRpXUOghMxrKTduBtg3oOgrttbwi";
     const TEST_FILE_BYTES: &[u8] = b"zencode test artifact\n";
-
 
     const TEST_MINISIG: &str = "untrusted comment: signature from minisign secret key\nRUQdtwrmteKxjP9ZDdQqgLwUFtfreh/grgQpZ2GYWa02vXxwUAUvqgYN2Q2ibdIaxnXzScZ3Hu0ybLl6Lk0yspaZ1lxMeJ9EAA0=\ntrusted comment: test artifact\nmlfo4rsTacWkJlPODc4zGLY0JJxMUyhPHXbYaKQw5QRvMnUzEF7AafTOYbBhx22sedmMuVp0VmaGYS8YXYKaDA==\n";
 
@@ -416,7 +354,6 @@ mod tests {
 
     #[test]
     fn wrong_key_fails() {
-
 
         let other = "RWTGCiWTINb+iEMIQnVXTJ64+XVBCJj4UUGls0PrzSC0dqttm2vxwZ/0";
         assert_eq!(
@@ -483,7 +420,6 @@ mod tests {
         assert!(updater_pubkey_is_placeholder(r#"{"plugins":{}}"#));
         assert!(updater_pubkey_is_placeholder("not json"));
 
-
         let bare = r#"{"plugins":{"updater":{"pubkey":"RWQdtwrmteKxjKJr7y54fi1dyz9HDRpXUOghMxrKTduBtg3oOgrttbwi"}}}"#;
         assert!(updater_pubkey_is_placeholder(bare));
 
@@ -507,8 +443,6 @@ mod tests {
         );
     }
 
-
-
     #[test]
     fn release_key_is_wired() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
@@ -517,7 +451,6 @@ mod tests {
         let expected = pub_file.lines().nth(1).unwrap().trim();
         assert_eq!(updater_public_key(&conf).as_deref(), Some(expected));
     }
-
 
     fn encode_base64(data: &[u8]) -> String {
         const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -541,9 +474,6 @@ mod tests {
         }
         out
     }
-
-
-
 
     fn tauri_signature(file: &str) -> String {
         let comment = format!("trusted comment: timestamp:1760745600\tfile:{file}");
@@ -581,7 +511,6 @@ mod tests {
 
     #[test]
     fn update_manifest_with_mismatched_version_is_rejected() {
-
 
         let sig = tauri_signature("ZenCode Desktop_0.3.1_amd64.AppImage");
         let m = manifest("0.3.2", URL_031, &sig);
@@ -655,9 +584,6 @@ mod tests {
         ));
     }
 
-
-
-
     const FIXTURE_PUBKEY: &str = "RWRaSFNcTx6H8ZYC0RLy36GJrvXrYulwmLlKBha1lbiHmm5NTpdKidsO";
     const FIXTURE_BYTES: &[u8] = b"zencode updater fixture\n";
     const FIXTURE_SIG_B64: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSYVNGTmNUeDZIOGRjZ3ZtQTJYMG9wWWhuZFdsanZMdTBEcXpCWkxyOTVpR05wMVZBYUM1d3huTVp6YUN5SmJDTmY3TlJSWEYwZHR4cUFDRTZ5MWVSdGFlenJRemoxNVFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMzEyMTk3CWZpbGU6emVuY29kZS1kZXNrdG9wXzAuMy4xX2FtZDY0LkFwcEltYWdlCnpJTWlUZ0tUT1BjZEdVcU02aTdocDRRWFV5VkVWN2M4di9TRDlsd2ZsanlPcDVMTGR3elRnVWxmRnh1WVdhSHFraVpxSGNFOGpEYjloemNXSExOcUJ3PT0K";
@@ -678,7 +604,6 @@ mod tests {
             Err(UpdateRejection::VersionNotSigned { .. })
         ));
     }
-
 
     #[test]
     fn updater_uses_only_the_gitlab_endpoint() {

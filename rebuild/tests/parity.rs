@@ -1,11 +1,9 @@
-
 use std::{
     fs,
     io::Write,
     path::Path,
     process::{Command, Stdio},
 };
-
 
 fn parse_args(s: &str) -> Vec<String> {
     let mut out = Vec::new();
@@ -71,8 +69,6 @@ fn golden_cases() {
     }
     assert_eq!(n, 21);
 }
-
-
 
 #[test]
 fn color_extension() {

@@ -1,34 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::fmt;
 use std::fs;
 use std::path::Path;
@@ -39,15 +8,9 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use zen_core::{AgentEvent, ChatRequest, EventSink, LlmBackend};
 
-
-
 pub const TELEMETRY_READY_EVENT: &str = "telemetry_guard_ready";
 
-
-
-
 pub const ZENCODE_OWNED_HOSTS: &[&str] = &[];
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TelemetryError {
@@ -73,8 +36,6 @@ impl fmt::Display for TelemetryError {
 
 impl std::error::Error for TelemetryError {}
 
-
-
 pub fn host_of(url: &str) -> Option<String> {
     let rest = url
         .strip_prefix("https://")
@@ -88,14 +49,12 @@ pub fn host_of(url: &str) -> Option<String> {
     Some(host.to_ascii_lowercase())
 }
 
-
 pub fn now_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_millis() as u64)
         .unwrap_or(0)
 }
-
 
 #[derive(Debug, Clone)]
 pub struct TelemetryGuard {
@@ -104,8 +63,6 @@ pub struct TelemetryGuard {
 }
 
 impl TelemetryGuard {
-
-
 
     pub fn from_base_url(base_url: &str) -> Result<Self, TelemetryError> {
         let url = base_url.trim();
@@ -133,22 +90,17 @@ impl TelemetryGuard {
         }
     }
 
-
     pub fn allowed_host(&self) -> &str {
         &self.allowed_host
     }
-
 
     pub fn base_url(&self) -> &str {
         &self.base_url
     }
 
-
-
     pub fn allows(&self, host: &str) -> bool {
         host.trim().to_ascii_lowercase() == self.allowed_host
     }
-
 
     pub fn check_url(&self, url: &str) -> Result<(), TelemetryError> {
         match host_of(url) {
@@ -165,13 +117,11 @@ impl TelemetryGuard {
     }
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NetworkPurpose {
 
     ModelChat,
-
 
     UserOptIn,
 }
@@ -185,7 +135,6 @@ impl fmt::Display for NetworkPurpose {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NetworkEntry {
 
@@ -197,8 +146,6 @@ pub struct NetworkEntry {
     pub bytes_down: u64,
 }
 
-
-
 #[derive(Debug, Clone, Default)]
 pub struct NetworkLog {
     entries: Arc<Mutex<Vec<NetworkEntry>>>,
@@ -208,7 +155,6 @@ impl NetworkLog {
     pub fn new() -> Self {
         Self::default()
     }
-
 
     pub fn record(
         &self,
@@ -229,7 +175,6 @@ impl NetworkLog {
         self.entries.lock().expect("network log mutex").push(entry);
     }
 
-
     pub fn entries(&self) -> Vec<NetworkEntry> {
         self.entries.lock().expect("network log mutex").clone()
     }
@@ -241,7 +186,6 @@ impl NetworkLog {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
 
     pub fn distinct_hosts(&self) -> Vec<String> {
         let mut hosts: Vec<String> = self
@@ -255,18 +199,15 @@ impl NetworkLog {
         hosts
     }
 
-
     pub fn total_bytes(&self) -> (u64, u64) {
         self.entries().iter().fold((0, 0), |(up, down), e| {
             (up + e.bytes_up, down + e.bytes_down)
         })
     }
 
-
     pub fn clear(&self) {
         self.entries.lock().expect("network log mutex").clear();
     }
-
 
     pub fn save_to(&self, path: &Path) -> anyhow::Result<()> {
         let mut out = String::new();
@@ -280,8 +221,6 @@ impl NetworkLog {
         fs::write(path, out)?;
         Ok(())
     }
-
-
 
     pub fn load_from(path: &Path) -> Self {
         let log = Self::new();
@@ -300,13 +239,10 @@ impl NetworkLog {
     }
 }
 
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TelemetryReport {
 
     pub hosts_contacted: Vec<String>,
-
 
     pub zencode_hosts_contacted: Vec<String>,
     pub entry_count: usize,
@@ -318,12 +254,10 @@ pub struct TelemetryReport {
 
 impl TelemetryReport {
 
-
     pub fn is_clean(&self) -> bool {
         self.zencode_hosts_contacted.is_empty()
     }
 }
-
 
 pub struct ZeroTelemetryProof;
 
@@ -363,8 +297,6 @@ impl ZeroTelemetryProof {
         }
     }
 }
-
-
 
 pub struct TelemetryBackend {
     inner: Arc<dyn LlmBackend>,
@@ -410,8 +342,6 @@ impl LlmBackend for TelemetryBackend {
         Ok(resp)
     }
 }
-
-
 
 pub fn emit_telemetry_ready(sink: &Arc<dyn EventSink>, guard: &TelemetryGuard) {
     sink.emit(AgentEvent::SystemMessage {
@@ -595,7 +525,6 @@ mod tests {
 
     #[test]
     fn zencode_owned_hosts_is_empty_by_design() {
-
 
         assert!(ZENCODE_OWNED_HOSTS.is_empty());
     }

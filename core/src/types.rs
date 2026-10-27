@@ -1,7 +1,6 @@
 use crate::sandbox::Sandbox;
 use std::fmt;
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Role {
     System,
@@ -21,7 +20,6 @@ impl Role {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Message {
     pub role: Role,
@@ -37,13 +35,11 @@ impl Message {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ToolCall {
     pub name: String,
     pub input: String,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Reply {
@@ -53,13 +49,11 @@ pub enum Reply {
     Call(ToolCall),
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ToolSpec {
     pub name: String,
     pub description: String,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -84,13 +78,9 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-
-
-
 pub trait Llm {
     fn complete(&mut self, context: &[Message], tools: &[ToolSpec]) -> Result<Reply, Error>;
 }
-
 
 pub trait Tool {
     fn spec(&self) -> ToolSpec;

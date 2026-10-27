@@ -1,16 +1,9 @@
-
-
-
 use std::sync::{Arc, Mutex};
 
 use serde_json::{json, Value};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 use zencode_engine::{events::RecordingSink, run_task, RunOptions};
-
-
-
-
 
 fn scrub_duration_ms(s: &str) -> String {
     let key = "\"duration_ms\":";
@@ -145,7 +138,6 @@ async fn agent_reads_then_edits_file_through_real_tools() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-
 #[cfg(unix)]
 #[tokio::test]
 async fn bash_tool_runs_in_cwd() {
@@ -245,8 +237,6 @@ async fn server_error_surfaces_as_error_result() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-
-
 #[tokio::test]
 async fn event_stream_contract_v1() {
     use zencode_engine::events::{parse_ndjson, RecordingSink, SCHEMA_VERSION};
@@ -271,8 +261,6 @@ async fn event_stream_contract_v1() {
     let evs = parse_ndjson(&nd).unwrap();
     assert!(evs.iter().all(|e| e.v == SCHEMA_VERSION));
     assert!(evs.iter().enumerate().all(|(i, e)| e.seq == i as u64));
-
-
 
     let raw = dir.to_string_lossy().to_string();
     let esc1 = raw.replace('\\', "\\\\");

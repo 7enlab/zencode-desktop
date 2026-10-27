@@ -1,23 +1,5 @@
 "use strict";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const OnboardingStep = Object.freeze({
   WELCOME: "welcome",
   MODEL_SELECT: "model_select",
@@ -28,10 +10,6 @@ const OnboardingStep = Object.freeze({
 });
 
 const ONBOARDING_STORAGE_KEY = "zencode.onboarding.v1";
-
-
-
-
 
 const FREE_MODELS = Object.freeze([
   {
@@ -47,12 +25,6 @@ const FREE_MODELS = Object.freeze([
     keyless: false,
   },
 ]);
-
-
-
-
-
-
 
 const BAN_RISK = Object.freeze({
   anthropic: {
@@ -79,10 +51,6 @@ function banRiskFor(provider) {
   const key = String(provider || "").toLowerCase();
   return BAN_RISK[key] || { level: "UNKNOWN", message: "Unknown provider - proceed with caution." };
 }
-
-
-
-
 
 class OnboardingStateMachine {
   constructor() {
@@ -117,13 +85,11 @@ class OnboardingStateMachine {
     }
   }
 
-
   begin() {
     if (this.step !== OnboardingStep.WELCOME) return false;
     this.step = OnboardingStep.MODEL_SELECT;
     return true;
   }
-
 
   selectModel(model) {
     if (this.step !== OnboardingStep.MODEL_SELECT) return false;
@@ -133,13 +99,11 @@ class OnboardingStateMachine {
     return true;
   }
 
-
   chooseByok() {
     if (this.step !== OnboardingStep.MODEL_SELECT) return false;
     this.step = OnboardingStep.BYOK_SETUP;
     return true;
   }
-
 
   setByok(provider, keyRef) {
     if (this.step !== OnboardingStep.BYOK_SETUP) return false;
@@ -149,14 +113,12 @@ class OnboardingStateMachine {
     return true;
   }
 
-
   completeDemo() {
     if (this.step !== OnboardingStep.DEMO_TASK) return false;
     this.demoCompleted = true;
     this.step = OnboardingStep.DONE;
     return true;
   }
-
 
   skip() {
     if (this.step === OnboardingStep.DONE || this.step === OnboardingStep.SKIPPED) return false;
@@ -167,7 +129,6 @@ class OnboardingStateMachine {
   isFinished() {
     return this.step === OnboardingStep.DONE || this.step === OnboardingStep.SKIPPED;
   }
-
 
   elapsedSeconds() {
     return Math.floor((Date.now() - this.startedAt) / 1000);
@@ -184,10 +145,6 @@ class OnboardingStateMachine {
     };
   }
 }
-
-
-
-
 
 function loadOnboardingRecord(storage) {
   try {
@@ -217,10 +174,6 @@ function shouldShowOnboarding(storage) {
   return loadOnboardingRecord(storage) === null;
 }
 
-
-
-
-
 async function probeModel(model, fetchFn, timeoutMs = 8000) {
   const started = Date.now();
   try {
@@ -244,12 +197,10 @@ async function probeModel(model, fetchFn, timeoutMs = 8000) {
   }
 }
 
-
 async function probeFreeModels(fetchFn, timeoutMs = 8000) {
   const results = await Promise.all(FREE_MODELS.map((m) => probeModel(m, fetchFn, timeoutMs)));
   return results.filter((r) => r.alive).sort((a, b) => a.latencyMs - b.latencyMs);
 }
-
 
 function recommendedDefaultModel(probeResults) {
   if (probeResults.length > 0) {
@@ -258,10 +209,6 @@ function recommendedDefaultModel(probeResults) {
   }
   return FREE_MODELS.find((m) => m.keyless) || FREE_MODELS[0];
 }
-
-
-
-
 
 const DEMO_PROMPT = "Explain in one sentence what ZenCode Desktop is.";
 
@@ -272,10 +219,6 @@ function buildDemoRequest(model) {
     max_tokens: 120,
   };
 }
-
-
-
-
 
 class OnboardingUI {
   constructor({ document, machine, onFinish }) {
@@ -425,7 +368,6 @@ class OnboardingUI {
       }
       case OnboardingStep.DEMO_TASK:
 
-
         this.runDemoTask();
         return;
       default:
@@ -479,10 +421,6 @@ class OnboardingUI {
   }
 }
 
-
-
-
-
 function maybeStartOnboarding({ document, storage, onFinish }) {
   if (!shouldShowOnboarding(storage)) return null;
   const machine = new OnboardingStateMachine();
@@ -501,7 +439,6 @@ function maybeStartOnboarding({ document, storage, onFinish }) {
   ui.render();
   return ui;
 }
-
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {

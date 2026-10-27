@@ -1,6 +1,4 @@
-
 use crate::width::width;
-
 
 pub fn bubble(lines: &[String], think: bool) -> String {
     let max = lines.iter().map(|l| width(l)).max().unwrap_or(0);

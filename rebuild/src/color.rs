@@ -1,12 +1,3 @@
-
-
-
-
-
-
-
-
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Paint {
 
@@ -14,10 +5,8 @@ pub enum Paint {
 
     Rainbow,
 
-
     Aurora,
 }
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Depth {
@@ -27,14 +16,12 @@ pub enum Depth {
     TrueColor,
 }
 
-
 pub fn depth(colorterm: Option<&str>) -> Depth {
     match colorterm.map(|v| v.trim().to_ascii_lowercase()) {
         Some(v) if v == "truecolor" || v == "24bit" => Depth::TrueColor,
         _ => Depth::Ansi256,
     }
 }
-
 
 fn hue_rgb(h: f32) -> (u8, u8, u8) {
     let h = h.rem_euclid(360.0) / 60.0;
@@ -51,7 +38,6 @@ fn hue_rgb(h: f32) -> (u8, u8, u8) {
     (r.round() as u8, g.round() as u8, b.round() as u8)
 }
 
-
 fn rgb_256(r: u8, g: u8, b: u8) -> u8 {
     let q = |c: u8| ((c as u16 * 5 + 127) / 255) as u8;
     16 + 36 * q(r) + 6 * q(g) + q(b)
@@ -64,14 +50,12 @@ fn sgr_rgb(out: &mut String, (r, g, b): (u8, u8, u8), d: Depth) {
     }
 }
 
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum When {
     Auto,
     Always,
     Never,
 }
-
 
 pub const NAMES: &[(&str, Paint)] = &[
     ("red", Paint::Solid(31)),
@@ -89,12 +73,10 @@ pub const NAMES: &[(&str, Paint)] = &[
 
 const RAINBOW: [u8; 6] = [31, 33, 32, 36, 34, 35];
 
-
 pub fn parse(name: &str) -> Option<Paint> {
     let n = name.trim().to_ascii_lowercase();
     NAMES.iter().find(|(k, _)| *k == n).map(|(_, p)| *p)
 }
-
 
 pub fn parse_when(s: &str) -> Option<When> {
     match s.trim().to_ascii_lowercase().as_str() {
@@ -104,7 +86,6 @@ pub fn parse_when(s: &str) -> Option<When> {
         _ => None,
     }
 }
-
 
 pub fn enabled(when: When, is_tty: bool, no_color: Option<&str>, force: Option<&str>) -> bool {
     match when {
@@ -119,12 +100,9 @@ pub fn enabled(when: When, is_tty: bool, no_color: Option<&str>, force: Option<&
     }
 }
 
-
-
 pub fn paint(s: &str, p: Paint) -> String {
     paint_depth(s, p, Depth::Ansi256)
 }
-
 
 pub fn paint_depth(s: &str, p: Paint, d: Depth) -> String {
     let mut out = String::with_capacity(s.len() + s.len() / 4);
@@ -163,7 +141,6 @@ pub fn paint_depth(s: &str, p: Paint, d: Depth) -> String {
     out
 }
 
-
 pub fn strip(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut it = s.chars().peekable();
@@ -180,8 +157,6 @@ pub fn strip(s: &str) -> String {
     }
     out
 }
-
-
 
 pub fn enable_vt() -> bool {
     imp::enable_vt()

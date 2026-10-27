@@ -1,7 +1,3 @@
-
-
-
-
 pub mod budget;
 pub mod checkpoints;
 pub mod claims;
@@ -32,7 +28,6 @@ use budget::{BudgetEnforcer, BudgetedBackend, BudgetedPermissions, TaskBudget};
 
 use crate::events::RecordingSink;
 
-
 #[derive(Clone, Debug)]
 pub struct RunOptions {
 
@@ -46,24 +41,13 @@ pub struct RunOptions {
     pub max_turns: usize,
     pub system_prompt: String,
 
-
-
     pub budget: Option<TaskBudget>,
 
     pub scope: Option<scope::ScopeDecl>,
 
-
-
-
     pub dangerous_allow_all: bool,
 
-
-
-
     pub telemetry_log: Option<Arc<telemetry::NetworkLog>>,
-
-
-
 
     pub convergence: Option<convergence::ConvergencePolicy>,
 }
@@ -91,16 +75,12 @@ impl RunOptions {
     }
 }
 
-
-
 struct AllowAll;
 impl PermissionChecker for AllowAll {
     fn check(&self, _: &str, _: &Value, _: bool, _: &ToolContext) -> PermissionDecision {
         PermissionDecision::Allow
     }
 }
-
-
 
 struct DenyAll;
 impl PermissionChecker for DenyAll {
@@ -112,7 +92,6 @@ impl PermissionChecker for DenyAll {
     }
 }
 
-
 pub fn default_tools() -> ToolRegistry {
     let mut t = ToolRegistry::new();
     t.register(Arc::new(zen_tools::ReadTool));
@@ -122,12 +101,9 @@ pub fn default_tools() -> ToolRegistry {
     t
 }
 
-
 pub async fn run_task(opts: &RunOptions, task: &str) -> anyhow::Result<RunResult> {
     run_task_with_sink(opts, task, Arc::new(NullSink)).await
 }
-
-
 
 pub async fn run_task_recorded(
     opts: &RunOptions,
@@ -138,7 +114,6 @@ pub async fn run_task_recorded(
     sink.emit_session_end(&result);
     Ok(result)
 }
-
 
 pub async fn run_task_with_sink(
     opts: &RunOptions,
@@ -162,10 +137,7 @@ pub async fn run_task_with_sink(
         anyhow::bail!("model is empty");
     }
 
-
     cost_firewall::FreeOnlyPolicy::default().validate_all(&opts.model, &opts.fallback_models)?;
-
-
 
     let telemetry_guard = telemetry::TelemetryGuard::from_base_url(&opts.base_url)
         .map_err(|e| anyhow::anyhow!(e.to_string()))?;
@@ -174,7 +146,6 @@ pub async fn run_task_with_sink(
     if !opts.cwd.is_dir() {
         anyhow::bail!("cwd is not a directory: {}", opts.cwd.display());
     }
-
 
     let base_permissions: Arc<dyn PermissionChecker> = match &opts.scope {
         Some(decl) => {
@@ -194,13 +165,9 @@ pub async fn run_task_with_sink(
             ))
         }
 
-
         None if opts.dangerous_allow_all => Arc::new(AllowAll),
         None => Arc::new(DenyAll),
     };
-
-
-
 
     let llm_inner: Arc<dyn LlmBackend> = Arc::new(telemetry::TelemetryBackend::new(
         Arc::new(OpenAiClient::new(
@@ -212,8 +179,6 @@ pub async fn run_task_with_sink(
         telemetry_log,
     ));
 
-
-
     let (llm, permissions): (Arc<dyn LlmBackend>, Arc<dyn PermissionChecker>) = match &opts.budget {
         Some(budget) => {
             let enforcer = BudgetEnforcer::new(budget.clone(), sink.clone());
@@ -224,8 +189,6 @@ pub async fn run_task_with_sink(
         }
         None => (llm_inner, base_permissions),
     };
-
-
 
     let (llm, permissions, sink): (
         Arc<dyn LlmBackend>,
@@ -267,13 +230,6 @@ pub async fn run_task_with_sink(
     );
     Ok(agent.run_turn(task).await)
 }
-
-
-
-
-
-
-
 
 pub async fn run_task_with_claims(
     opts: &RunOptions,

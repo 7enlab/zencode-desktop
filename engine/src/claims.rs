@@ -1,25 +1,8 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use serde::{Deserialize, Serialize};
 use zen_core::{AgentEvent, EventSink};
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -35,10 +18,6 @@ pub enum ClaimKind {
 
     ExternalFact,
 }
-
-
-
-
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Evidence {
@@ -58,9 +37,6 @@ impl Evidence {
         }
     }
 
-
-
-
     pub fn verify_report(passed: bool, exit_code: Option<i32>, output_preview: &str) -> Self {
         let detail = match exit_code {
             Some(code) => format!("verify exit_code={code} output: {output_preview}"),
@@ -69,12 +45,10 @@ impl Evidence {
         Self::new("verify_report", detail, passed)
     }
 
-
     pub fn tool_result(detail: impl Into<String>, is_error: bool) -> Self {
         Self::new("tool_result", detail, !is_error)
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -87,7 +61,6 @@ pub enum ClaimStatus {
     Contradicted,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Claim {
     pub id: u64,
@@ -96,7 +69,6 @@ pub struct Claim {
     pub evidence: Vec<Evidence>,
     pub status: ClaimStatus,
 }
-
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ClaimCounts {
@@ -111,9 +83,6 @@ struct RegistryInner {
     next_id: u64,
 }
 
-
-
-
 #[derive(Debug, Default)]
 pub struct ClaimRegistry {
     inner: Mutex<RegistryInner>,
@@ -123,7 +92,6 @@ impl ClaimRegistry {
     pub fn new() -> Self {
         Self::default()
     }
-
 
     pub fn register_claim(&self, kind: ClaimKind, statement: impl Into<String>) -> u64 {
         let mut g = self.inner.lock().unwrap();
@@ -139,8 +107,6 @@ impl ClaimRegistry {
         id
     }
 
-
-
     pub fn attach_evidence(&self, id: u64, evidence: Evidence) -> bool {
         let mut g = self.inner.lock().unwrap();
         let Some(claim) = g.claims.iter_mut().find(|c| c.id == id) else {
@@ -151,15 +117,12 @@ impl ClaimRegistry {
         true
     }
 
-
-
     pub fn verify(&self, id: u64) -> Option<ClaimStatus> {
         let mut g = self.inner.lock().unwrap();
         let claim = g.claims.iter_mut().find(|c| c.id == id)?;
         claim.status = evaluate(&claim.evidence);
         Some(claim.status)
     }
-
 
     pub fn attach_verify_evidence(
         &self,
@@ -202,7 +165,6 @@ impl ClaimRegistry {
     }
 }
 
-
 fn evaluate(evidence: &[Evidence]) -> ClaimStatus {
     if evidence.iter().any(|e| !e.verified) {
         ClaimStatus::Contradicted
@@ -212,12 +174,6 @@ fn evaluate(evidence: &[Evidence]) -> ClaimStatus {
         ClaimStatus::Verified
     }
 }
-
-
-
-
-
-
 
 pub fn detect_claims(text: &str) -> Vec<(ClaimKind, String)> {
     const PATTERNS: &[(ClaimKind, &[&str])] = &[
@@ -273,7 +229,6 @@ pub fn detect_claims(text: &str) -> Vec<(ClaimKind, String)> {
     out
 }
 
-
 fn sentence_around(text: &str, needle: &str) -> Option<String> {
     let pos = text.find(needle)?;
     let start = text[..pos].rfind(['.', '\n']).map_or(0, |i| i + 1);
@@ -288,7 +243,6 @@ fn sentence_around(text: &str, needle: &str) -> Option<String> {
     }
 }
 
-
 fn looks_like_test_command(arguments: &str) -> bool {
     let a = arguments.to_lowercase();
     a.contains("cargo test")
@@ -297,17 +251,10 @@ fn looks_like_test_command(arguments: &str) -> bool {
         || a.contains("go test")
 }
 
-
 fn looks_like_build_command(arguments: &str) -> bool {
     let a = arguments.to_lowercase();
     a.contains("cargo build") || a.contains("npm run build") || a.contains("go build")
 }
-
-
-
-
-
-
 
 fn outcome_from_output(content: &str) -> Option<bool> {
     let lower = content.to_lowercase();
@@ -333,7 +280,6 @@ fn outcome_from_output(content: &str) -> Option<bool> {
     None
 }
 
-
 fn failed_count(lower: &str) -> Option<u64> {
     let mut max: Option<u64> = None;
     let mut search: &str = lower;
@@ -354,13 +300,6 @@ fn failed_count(lower: &str) -> Option<u64> {
     }
     max
 }
-
-
-
-
-
-
-
 
 pub struct ClaimingSink {
     inner: Arc<dyn EventSink>,

@@ -1,38 +1,7 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::collections::HashMap;
 use std::fmt;
 
 use crate::cost_firewall::{self, CostFirewallError, FreeOnlyPolicy};
-
-
-
-
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CostMode {
@@ -42,7 +11,6 @@ pub enum CostMode {
 
     BringYourOwnKey,
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TaskKind {
@@ -66,10 +34,6 @@ impl fmt::Display for TaskKind {
         }
     }
 }
-
-
-
-
 
 pub struct TaskClassifier;
 
@@ -137,10 +101,6 @@ impl TaskClassifier {
     }
 }
 
-
-
-
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModelEntry {
 
@@ -172,27 +132,10 @@ impl ModelEntry {
         }
     }
 
-
     pub fn handles(&self, kind: TaskKind) -> bool {
         self.kinds.contains(&kind)
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #[derive(Debug, Clone, Default)]
 pub struct ModelRegistry {
@@ -270,7 +213,6 @@ impl ModelRegistry {
         registry
     }
 
-
     pub fn custom(models: Vec<ModelEntry>) -> Self {
         Self { models }
     }
@@ -281,11 +223,9 @@ impl ModelRegistry {
             .all(|m| cost_firewall::is_free_model(&m.id))
     }
 
-
     pub fn models(&self) -> &[ModelEntry] {
         &self.models
     }
-
 
     pub fn for_kind(&self, kind: TaskKind) -> Vec<&ModelEntry> {
         let mut out: Vec<&ModelEntry> = self.models.iter().filter(|m| m.handles(kind)).collect();
@@ -293,7 +233,6 @@ impl ModelRegistry {
         out
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum HealthState {
@@ -305,11 +244,6 @@ pub enum HealthState {
 
     Dead,
 }
-
-
-
-
-
 
 #[derive(Debug, Clone, Default)]
 pub struct HealthTracker {
@@ -324,19 +258,15 @@ impl HealthTracker {
         Self::default()
     }
 
-
     pub fn record_success(&mut self, model_id: &str) {
         self.failures.remove(model_id);
     }
-
-
 
     pub fn record_failure(&mut self, model_id: &str) -> HealthState {
         let n = self.failures.entry(model_id.to_string()).or_insert(0);
         *n = n.saturating_add(1);
         self.state(model_id)
     }
-
 
     pub fn state(&self, model_id: &str) -> HealthState {
         match self.failures.get(model_id).copied().unwrap_or(0) {
@@ -346,14 +276,10 @@ impl HealthTracker {
         }
     }
 
-
     pub fn reset(&mut self) {
         self.failures.clear();
     }
 }
-
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RoutePlan {
@@ -370,18 +296,15 @@ impl RoutePlan {
             .collect()
     }
 
-
     pub fn model_ids(&self) -> Vec<&str> {
         self.attempt_order().iter().map(|m| m.id.as_str()).collect()
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RouterError {
 
     NoModelAvailable { kind: TaskKind, mode: CostMode },
-
 
     PaidModelBlocked {
         model: String,
@@ -405,7 +328,6 @@ impl fmt::Display for RouterError {
 
 impl std::error::Error for RouterError {}
 
-
 #[derive(Debug)]
 pub struct SmartRouter {
     registry: ModelRegistry,
@@ -425,7 +347,6 @@ impl SmartRouter {
         }
     }
 
-
     pub fn with_registry(registry: ModelRegistry, mode: CostMode) -> Self {
         Self {
             registry,
@@ -439,32 +360,19 @@ impl SmartRouter {
         self.mode
     }
 
-
     pub fn set_mode(&mut self, mode: CostMode) {
         self.mode = mode;
     }
-
-
-
-
-
-
-
 
     pub fn route(&self, task: &str) -> Result<RoutePlan, RouterError> {
         let kind = TaskClassifier::classify(task);
         let mut candidates = self.registry.for_kind(kind);
 
-
         candidates.retain(|m| self.health.state(&m.id) != HealthState::Dead);
         candidates.sort_by_key(|m| (self.health.state(&m.id) != HealthState::Healthy, m.priority));
 
-
-
-
         let mut seen_ids = std::collections::HashSet::new();
         candidates.retain(|m| seen_ids.insert(m.id.clone()));
-
 
         if self.mode == CostMode::FreeOnly {
             for m in &candidates {
@@ -491,21 +399,17 @@ impl SmartRouter {
         }
     }
 
-
     pub fn record_success(&mut self, model_id: &str) {
         self.health.record_success(model_id);
     }
-
 
     pub fn record_failure(&mut self, model_id: &str) -> HealthState {
         self.health.record_failure(model_id)
     }
 
-
     pub fn health_of(&self, model_id: &str) -> HealthState {
         self.health.state(model_id)
     }
-
 
     pub fn reset_health(&mut self) {
         self.health.reset();

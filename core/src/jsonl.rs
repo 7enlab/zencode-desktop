@@ -1,4 +1,3 @@
-
 use crate::log::{Event, SessionLog};
 use crate::types::{Error, Message, Role, ToolCall};
 use std::collections::hash_map::DefaultHasher;
@@ -40,7 +39,6 @@ fn encode(e: &Event) -> String {
         Event::Error(m) => format!("{{\"t\":\"err\",\"msg\":{}}}", esc(m)),
     }
 }
-
 
 fn parse_flat(line: &str) -> Option<Vec<(String, String)>> {
     let mut it = line.trim().chars().peekable();
@@ -144,15 +142,12 @@ fn decode(line: &str) -> Option<Event> {
     }
 }
 
-
-
 pub struct JsonlLog {
     file: File,
     events: Vec<Event>,
 }
 
 impl JsonlLog {
-
 
     pub fn open(path: &Path) -> Result<Self, Error> {
         let text = match std::fs::read(path) {
@@ -188,7 +183,6 @@ impl JsonlLog {
             .map_err(|e| Error::Log(format!("open {}: {e}", path.display())))?;
         if bad.is_some() {
 
-
             OpenOptions::new()
                 .write(true)
                 .open(path)
@@ -214,8 +208,6 @@ impl SessionLog for JsonlLog {
         &self.events
     }
 }
-
-
 
 pub fn dedupe_instructions(files: Vec<(String, String)>) -> Vec<(String, String)> {
     let mut seen = Vec::new();

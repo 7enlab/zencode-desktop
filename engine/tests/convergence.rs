@@ -1,6 +1,3 @@
-
-
-
 use std::sync::Arc;
 
 use serde_json::{json, Value};
@@ -9,7 +6,6 @@ use tokio::net::TcpListener;
 use zencode_engine::convergence::ConvergencePolicy;
 use zencode_engine::events::RecordingSink;
 use zencode_engine::{run_task_with_sink, RunOptions};
-
 
 async fn serve(replies: Vec<Value>) -> (String, Arc<std::sync::Mutex<Vec<Value>>>) {
     let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -95,7 +91,6 @@ fn tmpdir(tag: &str) -> std::path::PathBuf {
     d
 }
 
-
 fn failing_build(id: &str) -> Value {
     tool_reply(
         id,
@@ -108,12 +103,10 @@ fn count(ndjson: &str, needle: &str) -> usize {
     ndjson.lines().filter(|l| l.contains(needle)).count()
 }
 
-
 #[cfg(unix)]
 #[tokio::test]
 async fn looping_tool_triggers_replan_then_stop() {
     let dir = tmpdir("loop");
-
 
     let replies: Vec<Value> = (1..=7).map(|i| failing_build(&format!("c{i}"))).collect();
     let (url, seen) = serve(replies).await;
@@ -140,7 +133,6 @@ async fn looping_tool_triggers_replan_then_stop() {
 
     assert_eq!(reqs.len(), 7, "model calls that reached the server");
 
-
     let fifth = serde_json::to_string(&reqs[4]["messages"]).unwrap();
     assert!(
         fifth.contains("CONVERGENCE GUARD"),
@@ -159,7 +151,6 @@ async fn looping_tool_triggers_replan_then_stop() {
 async fn guard_is_opt_in_and_quiet_on_progress() {
 
     assert!(RunOptions::new("http://x", "m", ".").convergence.is_none());
-
 
     let dir = tmpdir("progress");
     let (url, _seen) = serve(vec![
@@ -188,8 +179,6 @@ async fn guard_is_opt_in_and_quiet_on_progress() {
 #[cfg(unix)]
 #[tokio::test]
 async fn repeating_the_same_probe_is_still_stagnant() {
-
-
 
     let dir = tmpdir("probe");
     let fp = dir.join("notes.txt");

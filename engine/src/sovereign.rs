@@ -1,54 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::time::Duration;
@@ -56,16 +5,13 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-
 pub const OLLAMA_LOOPBACK_URL: &str = "http://localhost:11434/v1";
 
 pub const OLLAMA_DEFAULT_PORT: u16 = 11434;
 
 pub const POLICY_VERSION: &str = "sovereign-policy-v1";
 
-
 pub const ATTESTATION_SCHEME: &str = "hash-chain-v1";
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EgressDecision {
@@ -74,7 +20,6 @@ pub enum EgressDecision {
 
     Block { url: String, reason: String },
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SovereignError {
@@ -119,9 +64,6 @@ impl fmt::Display for SovereignError {
 
 impl std::error::Error for SovereignError {}
 
-
-
-
 fn split_host_port(url: &str) -> Option<(String, Option<u16>)> {
     let no_frag = url.split('#').next().unwrap_or(url);
     let no_query = no_frag.split('?').next().unwrap_or(no_frag);
@@ -144,13 +86,6 @@ fn split_host_port(url: &str) -> Option<(String, Option<u16>)> {
     }
 }
 
-
-
-
-
-
-
-
 pub fn is_loopback_host(host: &str) -> bool {
     let h = host.trim().trim_end_matches('.').to_lowercase();
     if h == "localhost" || h == "0.0.0.0" {
@@ -170,10 +105,6 @@ pub fn is_loopback_host(host: &str) -> bool {
     false
 }
 
-
-
-
-
 pub fn check_url_sovereign(url: &str) -> EgressDecision {
     match split_host_port(url) {
         Some((host, _)) if is_loopback_host(&host) => EgressDecision::Allow,
@@ -189,8 +120,6 @@ pub fn check_url_sovereign(url: &str) -> EgressDecision {
         },
     }
 }
-
-
 
 pub fn validate_llm_config(base_url: &str, api_key: Option<&str>) -> Result<(), SovereignError> {
     if let Some(k) = api_key {
@@ -210,8 +139,6 @@ pub fn validate_llm_config(base_url: &str, api_key: Option<&str>) -> Result<(), 
     }
 }
 
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PreflightFinding {
 
@@ -221,11 +148,6 @@ pub struct PreflightFinding {
 
     pub acknowledgable: bool,
 }
-
-
-
-
-
 
 pub fn preflight_check(
     base_url: &str,
@@ -281,22 +203,16 @@ pub fn preflight_check(
     findings
 }
 
-
-
-
-
 pub fn probe_ollama_running(port: u16) -> bool {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port);
     TcpStream::connect_timeout(&addr, Duration::from_millis(500)).is_ok()
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AttestationEntry {
     pub seq: u64,
 
     pub ts: String,
-
 
     pub kind: String,
 
@@ -357,15 +273,12 @@ fn entry_hash(seq: u64, ts: &str, kind: &str, detail: &str, prev_hash: &str) -> 
     sha256_hex(&format!("{seq}|{ts}|{kind}|{detail}|{prev_hash}"))
 }
 
-
 #[derive(Debug, Clone)]
 pub struct AttestationLog {
     entries: Vec<AttestationEntry>,
 }
 
 impl AttestationLog {
-
-
 
     pub fn new(session_id: &str) -> Self {
         let genesis_detail = format!(
@@ -392,7 +305,6 @@ impl AttestationLog {
         log.entries.push(AttestationEntry { hash, ..entry });
         log
     }
-
 
     pub fn record(&mut self, kind: &str, detail: &str) {
         let prev_hash = self
@@ -425,7 +337,6 @@ impl AttestationLog {
         self.entries.is_empty()
     }
 
-
     pub fn finalize(&self, session_id: &str) -> Attestation {
         Attestation {
             scheme: ATTESTATION_SCHEME.to_string(),
@@ -442,10 +353,6 @@ impl AttestationLog {
     }
 }
 
-
-
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Attestation {
     pub scheme: String,
@@ -455,8 +362,6 @@ pub struct Attestation {
     pub entries: Vec<AttestationEntry>,
     pub final_hash: String,
 }
-
-
 
 pub fn verify_attestation(att: &Attestation) -> bool {
     if att.scheme != ATTESTATION_SCHEME || att.policy_version != POLICY_VERSION {
@@ -482,10 +387,6 @@ pub fn verify_attestation(att: &Attestation) -> bool {
     }
 }
 
-
-
-
-
 #[derive(Debug)]
 pub struct SovereignMode {
     session_id: String,
@@ -497,16 +398,9 @@ pub struct SovereignMode {
 
 impl SovereignMode {
 
-
-
-
-
-
     pub fn enable(session_id: &str) -> Result<Self, SovereignError> {
         Self::enable_with_probe(session_id, OLLAMA_LOOPBACK_URL, true)
     }
-
-
 
     pub fn enable_with_probe(
         session_id: &str,
@@ -515,7 +409,6 @@ impl SovereignMode {
     ) -> Result<Self, SovereignError> {
 
         validate_llm_config(ollama_base_url, None)?;
-
 
         if probe && !probe_ollama_running(OLLAMA_DEFAULT_PORT) {
             return Err(SovereignError::OllamaUnreachable {
@@ -544,9 +437,6 @@ impl SovereignMode {
         &self.ollama_base_url
     }
 
-
-
-
     pub fn check_egress(&mut self, url: &str) -> Result<(), SovereignError> {
         match check_url_sovereign(url) {
             EgressDecision::Allow => {
@@ -564,7 +454,6 @@ impl SovereignMode {
             }
         }
     }
-
 
     pub fn apply_to_config(
         &mut self,
@@ -594,7 +483,6 @@ impl SovereignMode {
         self.log.entries()
     }
 
-
     pub fn disable(mut self) -> Attestation {
         self.log.record(
             "mode-disabled",
@@ -606,7 +494,6 @@ impl SovereignMode {
         self.log.finalize(&self.session_id)
     }
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SovereignStatus {
@@ -725,7 +612,6 @@ mod tests {
     fn validate_rejects_any_api_key() {
         let err = validate_llm_config("http://localhost:11434/v1", Some("sk-abc")).unwrap_err();
         assert!(matches!(err, SovereignError::NonSovereignConfig { .. }));
-
 
     }
 

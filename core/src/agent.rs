@@ -2,19 +2,11 @@ use crate::log::{see, Event, SessionLog};
 use crate::sandbox::Sandbox;
 use crate::types::{Error, Llm, Reply, Role, Tool, ToolSpec};
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TurnOutcome {
     pub text: String,
     pub steps: usize,
 }
-
-
-
-
-
-
-
 
 pub fn run_turn(
     llm: &mut dyn Llm,

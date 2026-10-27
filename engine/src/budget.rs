@@ -1,25 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 use std::fmt;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -31,10 +9,7 @@ use zen_core::{
     PermissionDecision, ToolContext,
 };
 
-
-
 pub const BUDGET_EXCEEDED_EVENT: &str = "budget_exceeded";
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -55,9 +30,6 @@ impl fmt::Display for BudgetDimension {
         }
     }
 }
-
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BudgetExceeded {
@@ -80,7 +52,6 @@ impl fmt::Display for BudgetExceeded {
 
 impl std::error::Error for BudgetExceeded {}
 
-
 fn fmt_int(mut n: u64) -> String {
     if n == 0 {
         return "0".to_string();
@@ -97,8 +68,6 @@ fn fmt_int(mut n: u64) -> String {
     }
     out.iter().rev().collect()
 }
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskBudget {
@@ -131,8 +100,6 @@ impl TaskBudget {
     }
 }
 
-
-
 #[derive(Debug)]
 pub struct BudgetTracker {
     budget: TaskBudget,
@@ -146,7 +113,6 @@ impl BudgetTracker {
     pub fn new(budget: TaskBudget) -> Self {
         Self::new_with_start(budget, Instant::now())
     }
-
 
     pub fn new_with_start(budget: TaskBudget, started: Instant) -> Self {
         Self {
@@ -178,18 +144,14 @@ impl BudgetTracker {
         self.started.elapsed().as_secs()
     }
 
-
     pub fn record_llm_usage(&mut self, input_tokens: u64, output_tokens: u64) {
         self.input_tokens = self.input_tokens.saturating_add(input_tokens);
         self.output_tokens = self.output_tokens.saturating_add(output_tokens);
     }
 
-
     pub fn record_tool_call(&mut self) {
         self.tool_calls = self.tool_calls.saturating_add(1);
     }
-
-
 
     pub fn check(&self) -> Result<(), BudgetExceeded> {
         let b = &self.budget;
@@ -226,9 +188,6 @@ impl BudgetTracker {
     }
 }
 
-
-
-
 pub struct BudgetEnforcer {
     tracker: Mutex<BudgetTracker>,
     sink: Arc<dyn EventSink>,
@@ -257,8 +216,6 @@ impl BudgetEnforcer {
         })
     }
 
-
-
     pub fn check(&self) -> Result<(), BudgetExceeded> {
         let err = self.tracker.lock().unwrap().check().err();
         match err {
@@ -284,12 +241,10 @@ impl BudgetEnforcer {
             .record_llm_usage(input_tokens, output_tokens);
     }
 
-
     pub fn record_tool_call(&self) -> Result<(), BudgetExceeded> {
         self.tracker.lock().unwrap().record_tool_call();
         self.check()
     }
-
 
     pub fn snapshot(&self) -> (u64, u64, u32, u64) {
         let t = self.tracker.lock().unwrap();
@@ -301,10 +256,6 @@ impl BudgetEnforcer {
         )
     }
 }
-
-
-
-
 
 pub struct BudgetedBackend {
     inner: Arc<dyn LlmBackend>,
@@ -332,9 +283,6 @@ impl LlmBackend for BudgetedBackend {
         Ok(resp)
     }
 }
-
-
-
 
 pub struct BudgetedPermissions {
     inner: Arc<dyn PermissionChecker>,
@@ -473,7 +421,6 @@ mod tests {
 
     #[test]
     fn duration_exceeded() {
-
 
         let Some(start) = Instant::now().checked_sub(Duration::from_secs(601)) else {
             return;

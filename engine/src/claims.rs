@@ -571,6 +571,7 @@ mod tests {
             content: "test result: ok. 12 passed; 0 failed".into(),
             is_error: false,
             parent_tool_use_id: None,
+            parallel: false,
         });
         let claims = registry.claims();
         assert_eq!(claims.len(), 1);
@@ -605,6 +606,7 @@ mod tests {
             content: "error: could not compile".into(),
             is_error: true,
             parent_tool_use_id: None,
+            parallel: false,
         });
         let claims = registry.claims();
         assert_eq!(claims[0].status, ClaimStatus::Contradicted);

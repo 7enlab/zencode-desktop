@@ -15,8 +15,8 @@
 //!    reports findings the user must acknowledge or fix first.
 //! 3. **Attestation.** [`AttestationLog`] is a hash-chained session log proving
 //!    - to an auditor - that the session ran under sovereign policy. Each
-//!    entry commits to the previous entry's hash; [`verify_attestation`]
-//!    recomputes the whole chain offline with any SHA-256 tool.
+//!      entry commits to the previous entry's hash; [`verify_attestation`]
+//!      recomputes the whole chain offline with any SHA-256 tool.
 //!
 //! ## Honest limits - read before promising anyone compliance
 //!

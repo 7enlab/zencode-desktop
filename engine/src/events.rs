@@ -103,6 +103,9 @@ impl From<AgentEvent> for DesktopEvent {
                 content,
                 is_error,
                 parent_tool_use_id,
+                // New in CLI rev 290154c: parallel-call marker, not part of
+                // the Desktop v1 contract, so intentionally not surfaced.
+                parallel: _,
             } => DesktopEvent::ToolResult {
                 tool_use_id,
                 content,

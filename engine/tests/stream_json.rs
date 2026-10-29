@@ -263,3 +263,113 @@ fn result_without_model_defaults_to_empty() {
         other => panic!("unexpected event: {other:?}"),
     }
 }
+
+#[test]
+fn empty_input_parses_to_no_lines() {
+    let lines = parse_stream_json(&fixture("13_empty_input.jsonl")).unwrap();
+    assert!(lines.is_empty());
+}
+
+#[test]
+fn blank_lines_only_parses_to_no_lines() {
+    let lines = parse_stream_json(&fixture("14_blank_lines_only.jsonl")).unwrap();
+    assert!(lines.is_empty());
+}
+
+#[test]
+fn malformed_json_line_is_rejected() {
+    let err = parse_stream_json(&fixture("15_malformed_json.jsonl")).unwrap_err();
+    assert!(err.to_string().contains("invalid JSON"), "{err}");
+}
+
+#[test]
+fn missing_schema_version_is_rejected() {
+    let err = parse_stream_json(&fixture("16_missing_version.jsonl")).unwrap_err();
+    assert!(
+        err.to_string().contains("unsupported schema version"),
+        "{err}"
+    );
+}
+
+#[test]
+fn truncated_stream_fails_fast_on_the_cut_line() {
+    // The parser fails fast: a stream cut mid-line errors instead of
+    // returning the lines parsed before the cut.
+    let err = parse_stream_json(&fixture("17_truncated_stream.jsonl")).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("line 3"), "{msg}");
+    assert!(msg.contains("invalid JSON"), "{msg}");
+}
+
+#[test]
+fn final_line_without_trailing_newline_parses() {
+    let line = parse_single("18_no_trailing_newline.jsonl");
+    assert_eq!(line.v, 1);
+    assert_eq!(line.line_type, "result");
+}
+
+#[test]
+fn parses_assistant_multiple_tool_calls() {
+    let events = project("19_multiple_tool_calls.jsonl");
+    assert_eq!(events.len(), 1);
+    match &events[0] {
+        DesktopEvent::AssistantMessage {
+            text, tool_calls, ..
+        } => {
+            assert_eq!(text, &None);
+            assert_eq!(tool_calls.len(), 2);
+            assert_eq!(tool_calls[0].id, "call_read_02");
+            assert_eq!(tool_calls[0].name, "read");
+            assert_eq!(tool_calls[1].id, "call_bash_01");
+            assert_eq!(tool_calls[1].name, "bash");
+        }
+        other => panic!("unexpected event: {other:?}"),
+    }
+}
+
+#[test]
+fn parses_result_error_with_model() {
+    let events = project("20_result_error_with_model.jsonl");
+    assert_eq!(events.len(), 1);
+    match &events[0] {
+        DesktopEvent::SessionEnd {
+            success,
+            result,
+            model,
+            ..
+        } => {
+            assert!(!success);
+            assert!(result.contains("429"), "{result}");
+            assert_eq!(model, "cohere/north-mini-code:free");
+        }
+        other => panic!("unexpected event: {other:?}"),
+    }
+}
+
+#[test]
+fn parses_user_two_tool_results_in_order() {
+    let events = project("21_user_two_tool_results.jsonl");
+    assert_eq!(events.len(), 2);
+    match &events[0] {
+        DesktopEvent::ToolResult {
+            tool_use_id,
+            is_error,
+            ..
+        } => {
+            assert_eq!(tool_use_id, "toolu_11");
+            assert!(!is_error);
+        }
+        other => panic!("unexpected event: {other:?}"),
+    }
+    match &events[1] {
+        DesktopEvent::ToolResult {
+            tool_use_id,
+            is_error,
+            ..
+        } => {
+            assert_eq!(tool_use_id, "toolu_12");
+            assert!(is_error);
+        }
+        other => panic!("unexpected event: {other:?}"),
+    }
+}

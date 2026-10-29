@@ -1,0 +1,3 @@
+{"v":1,"type":"system","subtype":"init","session_id":"ses_cut01","model":"cohere/north-mini-code:free","tools":["read"]}
+{"v":1,"type":"assistant","message":{"role":"assistant","content":"Tôi sẽ đọc file cấu hình."}}
+{"v":1,"type":"assistant","message":{"role":"assistant","content":"đang gõ dở

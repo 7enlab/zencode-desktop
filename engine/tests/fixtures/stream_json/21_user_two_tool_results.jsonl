@@ -1,0 +1,1 @@
+{"v":1,"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_11","content":"nội dung file đọc được"},{"type":"tool_result","tool_use_id":"toolu_12","content":"không tìm thấy file","is_error":true}]}}

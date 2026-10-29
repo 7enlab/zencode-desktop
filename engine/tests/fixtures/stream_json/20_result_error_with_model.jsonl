@@ -1,0 +1,1 @@
+{"v":1,"type":"result","subtype":"error","is_error":true,"result":"Lỗi 429: hết hạn mức.","session_id":"ses_err1","total_cost_usd":0.0,"duration_ms":1200,"num_turns":2,"usage":{"input_tokens":500,"output_tokens":60},"model":"cohere/north-mini-code:free"}

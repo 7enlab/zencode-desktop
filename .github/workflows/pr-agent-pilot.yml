@@ -34,7 +34,6 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_AGENT_CONFIG_BRANCH: leader/pr-agent-desktop
           github_action_config.pr_actions: '["opened", "reopened", "ready_for_review"]'
           # No config branch here on purpose: on main, repo settings are read
           # from the default branch, which is main itself. (The pilot branch

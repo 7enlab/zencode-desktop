@@ -146,7 +146,7 @@ DV-4 lên main mới rồi thêm các test sau vào `engine/tests/contract_harne
 Sau khi tầng 2 xanh, khung mới đủ điều kiện gọi là "harness phía parser"
 theo đúng nghĩa, và mới được đưa vào nghiệm thu tầng parser.
 
-## 5. Tầng 3 — ghim CLI hai phía (CHƯA LÀM, chờ DV-2 merge)
+## 5. Tầng 3 — ghim CLI hai phía (XONG lần chạy đầu tiên 30/10/2026, xem docs/dv4-tier3-runbook.md)
 
 Đây là phần "ghim" đúng nghĩa của DV-4, và là phần **chưa được làm tối
 nay** vì nó cần cả hai đầu đều có mặt trên cùng một main: CLI thật sinh
@@ -209,8 +209,9 @@ Khi một khoảng được xử lý, thêm fixture + test tương ứng, ghi r�
 - [x] Fixture 22 cho case cứng chưa có fixture.
 - [ ] **Tầng 2 (parser thật) — chặn bởi DV-2 chưa merge (PR #3).** Đặc tả sẵn
       ở §4; sau merge chỉ việc thêm test + chạy.
-- [ ] **Tầng 3 (ghim CLI hai phía) — chặn bởi DV-2 chưa merge + cần quyết
-      của Leader về nơi chạy binary CLI và mock LLM dùng chung (§5).**
+- [x] **Tầng 3 (ghim CLI hai phía) — chạy đầu tiên 30/10/2026 xong, xem
+      docs/dv4-tier3-runbook.md (binary ~/muse2/zen @ 290154c, stub localhost,
+      parser check 1 passed). Nghiệm thu tầng 3 vẫn chờ văn bản của ZC Leader (§5).**
 - [ ] Nghiệm thu bằng văn bản của ZC Leader — chỉ xin sau khi tầng 2 xanh
       (tầng 3 có thể nghiệm thu riêng sau đó nếu Leader tách mốc).
 - [ ] Quyết riêng về việc land `docs/stream-json-v1.md` (file untracked,

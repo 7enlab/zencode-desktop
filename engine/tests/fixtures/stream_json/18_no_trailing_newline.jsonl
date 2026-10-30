@@ -1,0 +1,1 @@
+{"v":1,"type":"result","subtype":"success","is_error":false,"result":"Xong, không có newline cuối.","session_id":"ses_nonl","total_cost_usd":0.0,"duration_ms":100,"num_turns":1,"usage":{"input_tokens":10,"output_tokens":5}}

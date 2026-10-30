@@ -1,0 +1,1 @@
+{"v":1,"type":"assistant","message":{"role":"assistant","tool_calls":[{"id":"call_read_02","type":"function","function":{"name":"read","arguments":"{\"path\":\"src/main.rs\"}"}},{"id":"call_bash_01","type":"function","function":{"name":"bash","arguments":"{\"command\":\"cargo test\"}"}}]}}

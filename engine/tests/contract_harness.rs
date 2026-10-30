@@ -507,3 +507,332 @@ fn fixture_inventory_report() {
     let (line, _) = first_bad_line("17_truncated_stream.jsonl").expect("17: phải có dòng đứt");
     println!("fixture=17_truncated_stream.jsonl rejected_input bad_line={line}");
 }
+
+// Tier 2 (DV-4): pin the REAL parser against the same fixtures.
+// Added after PR #3 merged (main 4b71b23): zencode_engine::stream_json
+// now exists on main. Tier-1 tests above are untouched; tier 2 only adds
+// assertions that call the parser. Invariant: never edit the parser to
+// force green; a failing tier-2 assert is reported as a finding.
+
+use zencode_engine::events::DesktopEvent;
+use zencode_engine::stream_json::{
+    interpret_exit_code, parse_stream_json, to_desktop_events, CliExit, CliLine, CliStreamEvent,
+};
+
+fn tier2_parsed(name: &str) -> Vec<CliLine> {
+    let text = fixture_text(name);
+    parse_stream_json(&text).unwrap_or_else(|e| panic!("parse fixture {name}: {e}"))
+}
+
+fn tier2_types(lines: &[CliLine]) -> Vec<&str> {
+    lines.iter().map(|l| l.line_type.as_str()).collect()
+}
+
+#[test]
+fn tier2_valid_fixtures_parse_counts_and_types() {
+    // (fixture, expected line count, expected line_type order)
+    let cases: &[(&str, usize, &[&str])] = &[
+        ("01_system_init.jsonl", 1, &["system"]),
+        ("02_assistant_text.jsonl", 1, &["assistant"]),
+        ("03_assistant_tool_use.jsonl", 1, &["assistant"]),
+        ("04_user_tool_result.jsonl", 1, &["user"]),
+        ("05_user_tool_result_error.jsonl", 1, &["user"]),
+        ("06_result_success.jsonl", 1, &["result"]),
+        ("07_result_error.jsonl", 1, &["result"]),
+        (
+            "08_full_session.jsonl",
+            5,
+            &["system", "assistant", "assistant", "user", "result"],
+        ),
+        ("11_assistant_tool_calls_no_text.jsonl", 1, &["assistant"]),
+        ("12_result_with_model.jsonl", 1, &["result"]),
+        ("18_no_trailing_newline.jsonl", 1, &["result"]),
+        ("19_multiple_tool_calls.jsonl", 1, &["assistant"]),
+        ("20_result_error_with_model.jsonl", 1, &["result"]),
+        ("21_user_two_tool_results.jsonl", 1, &["user"]),
+        (
+            "22_unknown_field_on_known_type.jsonl",
+            2,
+            &["system", "result"],
+        ),
+    ];
+    for (name, count, types) in cases {
+        let lines = tier2_parsed(name);
+        assert_eq!(lines.len(), *count, "fixture {name}: line count");
+        assert!(lines.iter().all(|l| l.v == 1), "fixture {name}: v == 1");
+        assert_eq!(tier2_types(&lines), *types, "fixture {name}: line types");
+    }
+}
+
+#[test]
+fn tier2_unknown_type_is_surfaced_not_dropped() {
+    let lines = tier2_parsed("09_unknown_type.jsonl");
+    assert_eq!(lines.len(), 1);
+    assert_eq!(lines[0].line_type, "heartbeat");
+    assert_eq!(
+        to_desktop_events(&lines[0]),
+        vec![DesktopEvent::Unknown {
+            variant: "cli_stream:heartbeat".to_string()
+        }]
+    );
+}
+
+#[test]
+fn tier2_truncated_stream_fails_fast() {
+    let err = parse_stream_json(&fixture_text("17_truncated_stream.jsonl"))
+        .expect_err("17: truncated stream must fail");
+    let msg = err.to_string();
+    assert!(msg.contains("line 3"), "17: error mentions line 3: {msg}");
+    assert!(
+        msg.contains("invalid JSON"),
+        "17: error mentions invalid JSON: {msg}"
+    );
+}
+
+#[test]
+fn tier2_malformed_json_fails_on_line_1() {
+    let err = parse_stream_json(&fixture_text("15_malformed_json.jsonl"))
+        .expect_err("15: malformed JSON must fail");
+    let msg = err.to_string();
+    assert!(msg.contains("line 1"), "15: error mentions line 1: {msg}");
+    assert!(
+        msg.contains("invalid JSON"),
+        "15: error mentions invalid JSON: {msg}"
+    );
+}
+
+#[test]
+fn tier2_bad_and_missing_version_rejected() {
+    for name in ["10_bad_version.jsonl", "16_missing_version.jsonl"] {
+        let err = parse_stream_json(&fixture_text(name)).expect_err(&format!("{name}: must fail"));
+        assert!(
+            err.to_string().contains("unsupported schema version"),
+            "{name}: error mentions unsupported schema version: {err}"
+        );
+    }
+}
+
+#[test]
+fn tier2_empty_and_blank_only_parse_to_empty() {
+    for name in ["13_empty_input.jsonl", "14_blank_lines_only.jsonl"] {
+        let lines = parse_stream_json(&fixture_text(name))
+            .unwrap_or_else(|e| panic!("{name}: must parse Ok: {e}"));
+        assert!(lines.is_empty(), "{name}: expected empty vec");
+    }
+}
+
+fn tier2_session_end(lines: &[CliLine]) -> DesktopEvent {
+    let evs = to_desktop_events(&lines[0]);
+    assert_eq!(evs.len(), 1, "result line must map to exactly 1 event");
+    evs.into_iter().next().unwrap()
+}
+
+#[test]
+fn tier2_result_maps_to_session_end() {
+    // 06: full SessionEnd values.
+    let lines = tier2_parsed("06_result_success.jsonl");
+    match tier2_session_end(&lines) {
+        DesktopEvent::SessionEnd {
+            success,
+            num_turns,
+            input_tokens,
+            output_tokens,
+            duration_ms,
+            model,
+            ..
+        } => {
+            assert!(success);
+            assert_eq!(num_turns, 3);
+            assert_eq!(input_tokens, 1200);
+            assert_eq!(output_tokens, 340);
+            assert_eq!(duration_ms, 45210);
+            assert_eq!(model, "");
+        }
+        other => panic!("06: expected SessionEnd, got {other:?}"),
+    }
+    // 07: error result, result text carries 429.
+    let lines = tier2_parsed("07_result_error.jsonl");
+    match tier2_session_end(&lines) {
+        DesktopEvent::SessionEnd {
+            success, result, ..
+        } => {
+            assert!(!success);
+            assert!(result.contains("429"), "07: result mentions 429: {result}");
+        }
+        other => panic!("07: expected SessionEnd, got {other:?}"),
+    }
+    // 12: model pinned.
+    let lines = tier2_parsed("12_result_with_model.jsonl");
+    match tier2_session_end(&lines) {
+        DesktopEvent::SessionEnd { model, .. } => {
+            assert_eq!(model, "cohere/north-mini-code:free");
+        }
+        other => panic!("12: expected SessionEnd, got {other:?}"),
+    }
+    // 20: error result with model.
+    let lines = tier2_parsed("20_result_error_with_model.jsonl");
+    match tier2_session_end(&lines) {
+        DesktopEvent::SessionEnd { success, model, .. } => {
+            assert!(!success);
+            assert_eq!(model, "cohere/north-mini-code:free");
+        }
+        other => panic!("20: expected SessionEnd, got {other:?}"),
+    }
+}
+
+#[test]
+fn tier2_system_init_maps_to_system_message() {
+    let lines = tier2_parsed("01_system_init.jsonl");
+    let evs = to_desktop_events(&lines[0]);
+    assert_eq!(evs.len(), 1);
+    match &evs[0] {
+        DesktopEvent::SystemMessage { event, text } => {
+            assert_eq!(event, "cli_system:init");
+            assert!(
+                text.contains("ses_abc123"),
+                "01: text carries session: {text}"
+            );
+            assert!(
+                text.contains("cohere/north-mini-code:free"),
+                "01: text carries model: {text}"
+            );
+        }
+        other => panic!("01: expected SystemMessage, got {other:?}"),
+    }
+}
+
+#[test]
+fn tier2_assistant_maps_to_assistant_message() {
+    // 03: text + one tool call.
+    let lines = tier2_parsed("03_assistant_tool_use.jsonl");
+    let evs = to_desktop_events(&lines[0]);
+    match &evs[0] {
+        DesktopEvent::AssistantMessage {
+            text, tool_calls, ..
+        } => {
+            assert_eq!(text.as_deref(), Some("Đọc file:"));
+            assert_eq!(tool_calls.len(), 1);
+            assert_eq!(tool_calls[0].id, "call_read_01");
+            assert_eq!(tool_calls[0].name, "read");
+        }
+        other => panic!("03: expected AssistantMessage, got {other:?}"),
+    }
+    // 19: two tool calls in order.
+    let lines = tier2_parsed("19_multiple_tool_calls.jsonl");
+    let evs = to_desktop_events(&lines[0]);
+    match &evs[0] {
+        DesktopEvent::AssistantMessage { tool_calls, .. } => {
+            assert_eq!(tool_calls.len(), 2);
+            assert_eq!(tool_calls[0].id, "call_read_02");
+            assert_eq!(tool_calls[0].name, "read");
+            assert_eq!(tool_calls[1].id, "call_bash_01");
+            assert_eq!(tool_calls[1].name, "bash");
+        }
+        other => panic!("19: expected AssistantMessage, got {other:?}"),
+    }
+    // 11: tool-only message, no text.
+    let lines = tier2_parsed("11_assistant_tool_calls_no_text.jsonl");
+    let evs = to_desktop_events(&lines[0]);
+    match &evs[0] {
+        DesktopEvent::AssistantMessage {
+            text, tool_calls, ..
+        } => {
+            assert_eq!(text, &None);
+            assert_eq!(tool_calls.len(), 1);
+            assert_eq!(tool_calls[0].id, "call_task_1");
+            assert_eq!(tool_calls[0].name, "Task");
+        }
+        other => panic!("11: expected AssistantMessage, got {other:?}"),
+    }
+}
+
+#[test]
+fn tier2_user_maps_to_tool_results() {
+    let lines = tier2_parsed("21_user_two_tool_results.jsonl");
+    let evs = to_desktop_events(&lines[0]);
+    assert_eq!(evs.len(), 2);
+    match &evs[0] {
+        DesktopEvent::ToolResult {
+            tool_use_id,
+            is_error,
+            ..
+        } => {
+            assert_eq!(tool_use_id, "toolu_11");
+            assert!(!is_error);
+        }
+        other => panic!("21 first: expected ToolResult, got {other:?}"),
+    }
+    match &evs[1] {
+        DesktopEvent::ToolResult {
+            tool_use_id,
+            is_error,
+            ..
+        } => {
+            assert_eq!(tool_use_id, "toolu_12");
+            assert!(is_error);
+        }
+        other => panic!("21 second: expected ToolResult, got {other:?}"),
+    }
+}
+
+#[test]
+fn tier2_exit_codes() {
+    assert_eq!(interpret_exit_code(0), CliExit::Success);
+    assert_eq!(interpret_exit_code(1), CliExit::Error);
+    assert_eq!(interpret_exit_code(130), CliExit::Interrupted);
+    assert_eq!(interpret_exit_code(143), CliExit::Terminated);
+    assert_eq!(interpret_exit_code(2), CliExit::Other(2));
+}
+
+#[test]
+fn tier2_additive_fields_do_not_change_result() {
+    let lines = tier2_parsed("22_unknown_field_on_known_type.jsonl");
+    assert_eq!(lines.len(), 2);
+    match &lines[0].event {
+        CliStreamEvent::System { subtype, .. } => assert_eq!(subtype, "init"),
+        other => panic!("22 first: expected System, got {other:?}"),
+    }
+    match &lines[1].event {
+        CliStreamEvent::Result {
+            subtype, is_error, ..
+        } => {
+            assert_eq!(subtype, "success");
+            assert!(!is_error);
+        }
+        other => panic!("22 last: expected Result, got {other:?}"),
+    }
+}
+
+#[test]
+fn tier2_projection_never_drops_a_line() {
+    // Every parsed line of every valid fixture maps to >= 1 DesktopEvent,
+    // including unknown types (spec: "surface, never silently change").
+    let names = [
+        "01_system_init.jsonl",
+        "02_assistant_text.jsonl",
+        "03_assistant_tool_use.jsonl",
+        "04_user_tool_result.jsonl",
+        "05_user_tool_result_error.jsonl",
+        "06_result_success.jsonl",
+        "07_result_error.jsonl",
+        "08_full_session.jsonl",
+        "11_assistant_tool_calls_no_text.jsonl",
+        "12_result_with_model.jsonl",
+        "18_no_trailing_newline.jsonl",
+        "19_multiple_tool_calls.jsonl",
+        "20_result_error_with_model.jsonl",
+        "21_user_two_tool_results.jsonl",
+        "22_unknown_field_on_known_type.jsonl",
+    ];
+    for name in names {
+        let lines = tier2_parsed(name);
+        for line in &lines {
+            let evs = to_desktop_events(line);
+            assert!(
+                !evs.is_empty(),
+                "{name} line {} maps to 0 events",
+                line.line_type
+            );
+        }
+    }
+}

@@ -66,7 +66,7 @@ pub fn needs_approval(decl: &ScopeDecl, root: &Path) -> Vec<ApprovalReason> {
         if has_escape(p) {
             reasons.push(ApprovalReason::PathEscape(s.to_string()));
         }
-        if p.is_absolute() && !p.starts_with(root) {
+        if (p.is_absolute() || p.has_root()) && !p.starts_with(root) {
             reasons.push(ApprovalReason::OutsideRoot(s.to_string()));
         }
     }

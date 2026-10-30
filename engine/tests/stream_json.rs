@@ -252,7 +252,6 @@ fn exit_codes_follow_contract_v1() {
 
 #[test]
 fn parses_assistant_tool_calls_without_text() {
-    // content is omitted when the message only calls tools (docs v1).
     let events = project("11_assistant_tool_calls_no_text.jsonl");
     assert_eq!(events.len(), 1);
     match &events[0] {
@@ -325,8 +324,6 @@ fn missing_schema_version_is_rejected() {
 
 #[test]
 fn truncated_stream_fails_fast_on_the_cut_line() {
-    // The parser fails fast: a stream cut mid-line errors instead of
-    // returning the lines parsed before the cut.
     let err = parse_stream_json(&fixture("17_truncated_stream.jsonl")).unwrap_err();
     let msg = err.to_string();
     assert!(msg.contains("line 3"), "{msg}");

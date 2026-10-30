@@ -15,7 +15,6 @@ b64="$(sed -n 's/.*"pubkey"[[:space:]]*:[[:space:]]*"\([^"]\{10,\}\)".*/\1/p' "$
 actual="$(printf '%s' "$b64" | base64 -d 2>/dev/null)" \
   || { echo "FAIL: updater pubkey is not valid base64"; exit 1; }
 
-# Reject obvious placeholders before comparing.
 case "$actual" in
   *PLACEHOLDER*|*TODO*|*CHANGEME*|*changeme*|*example*|*EXAMPLE*)
     echo "FAIL: updater pubkey is still a placeholder"; exit 1 ;;

@@ -32,7 +32,6 @@ cp "$SRC" "$DIST/$NAME"
 SIG_FILE="$DIST/$NAME.sig"
 [ -s "$SIG_FILE" ] || { echo "ERROR: signer wrote no $SIG_FILE" >&2; exit 1; }
 
-# Self-check: the signed trusted comment must name the versioned file.
 if ! base64 -d < "$SIG_FILE" | grep -q "^trusted comment: .*file:$NAME\$"; then
   echo "ERROR: signature trusted comment does not name $NAME" >&2
   base64 -d < "$SIG_FILE" | sed -n 's/^trusted comment: /  got: /p' >&2

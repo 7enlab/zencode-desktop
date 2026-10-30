@@ -38,6 +38,10 @@ cd engine && cargo fmt --check
 CI (`.gitlab-ci.yml`): fmt, clippy `-D warnings`, `cargo test --locked`, `cargo deny`,
 release-key check - runs on push/MR.
 
+GitHub CI (`.github/workflows/`): PR Agent free-model review (Route A, same config
+as CLI: `openrouter/cohere/north-mini-code:free` with free fallbacks, auto-approval
+off) runs on PR opened, reopened, and ready for review only.
+
 ## Roadmap
 
 The authoritative roadmap is **ZenCode Desktop - Roadmap FINAL** (Notion, ZenCode-Hub,

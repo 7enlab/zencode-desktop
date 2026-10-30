@@ -18,7 +18,8 @@ fn fixture(name: &str) -> String {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/stream_json")
         .join(name);
-    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read fixture {}: {e}", path.display()))
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read fixture {}: {e}", path.display()))
 }
 
 fn parse_fixture(name: &str) -> Vec<CliLine> {
@@ -27,7 +28,11 @@ fn parse_fixture(name: &str) -> Vec<CliLine> {
 
 fn parse_single(name: &str) -> CliLine {
     let lines = parse_fixture(name);
-    assert_eq!(lines.len(), 1, "fixture {name} should hold exactly one line");
+    assert_eq!(
+        lines.len(),
+        1,
+        "fixture {name} should hold exactly one line"
+    );
     lines.into_iter().next().unwrap()
 }
 
@@ -78,12 +83,18 @@ fn parses_assistant_tool_use() {
     let events = project("03_assistant_tool_use.jsonl");
     assert_eq!(events.len(), 1);
     match &events[0] {
-        DesktopEvent::AssistantMessage { text, tool_calls, .. } => {
+        DesktopEvent::AssistantMessage {
+            text, tool_calls, ..
+        } => {
             assert_eq!(text.as_deref(), Some("Đọc file:"));
             assert_eq!(tool_calls.len(), 1);
             assert_eq!(tool_calls[0].id, "call_read_01");
             assert_eq!(tool_calls[0].name, "read");
-            assert!(tool_calls[0].arguments.contains("tauri.conf.json"), "{}", tool_calls[0].arguments);
+            assert!(
+                tool_calls[0].arguments.contains("tauri.conf.json"),
+                "{}",
+                tool_calls[0].arguments
+            );
         }
         other => panic!("unexpected event: {other:?}"),
     }
@@ -114,7 +125,9 @@ fn parses_user_tool_result_error() {
     assert_eq!(events.len(), 1);
     match &events[0] {
         DesktopEvent::ToolResult {
-            tool_use_id, is_error, ..
+            tool_use_id,
+            is_error,
+            ..
         } => {
             assert_eq!(tool_use_id, "toolu_02");
             assert!(is_error);
@@ -155,7 +168,9 @@ fn parses_result_error() {
     let events = project("07_result_error.jsonl");
     assert_eq!(events.len(), 1);
     match &events[0] {
-        DesktopEvent::SessionEnd { success, result, .. } => {
+        DesktopEvent::SessionEnd {
+            success, result, ..
+        } => {
             assert!(!success);
             assert!(result.contains("429"), "{result}");
         }
@@ -176,9 +191,20 @@ fn parses_full_session_in_order() {
             other => panic!("unexpected event in full session: {other:?}"),
         })
         .collect();
-    assert_eq!(kinds, ["system", "assistant", "assistant", "tool_result", "session_end"]);
+    assert_eq!(
+        kinds,
+        [
+            "system",
+            "assistant",
+            "assistant",
+            "tool_result",
+            "session_end"
+        ]
+    );
     match events.last().unwrap() {
-        DesktopEvent::SessionEnd { success, num_turns, .. } => {
+        DesktopEvent::SessionEnd {
+            success, num_turns, ..
+        } => {
             assert!(success);
             assert_eq!(*num_turns, 2);
         }
@@ -201,12 +227,16 @@ fn unknown_line_type_is_surfaced_not_dropped() {
 #[test]
 fn rejects_unsupported_schema_version() {
     let err = parse_stream_json(&fixture("10_bad_version.jsonl")).unwrap_err();
-    assert!(err.to_string().contains("unsupported schema version"), "{err}");
+    assert!(
+        err.to_string().contains("unsupported schema version"),
+        "{err}"
+    );
 }
 
 #[test]
 fn blank_lines_are_ignored() {
-    let lines = parse_stream_json("\n\n  \n{\"v\":1,\"type\":\"system\",\"subtype\":\"init\"}\n\n").unwrap();
+    let lines = parse_stream_json("\n\n  \n{\"v\":1,\"type\":\"system\",\"subtype\":\"init\"}\n\n")
+        .unwrap();
     assert_eq!(lines.len(), 1);
 }
 
@@ -226,7 +256,9 @@ fn parses_assistant_tool_calls_without_text() {
     let events = project("11_assistant_tool_calls_no_text.jsonl");
     assert_eq!(events.len(), 1);
     match &events[0] {
-        DesktopEvent::AssistantMessage { text, tool_calls, .. } => {
+        DesktopEvent::AssistantMessage {
+            text, tool_calls, ..
+        } => {
             assert_eq!(text, &None);
             assert_eq!(tool_calls.len(), 1);
             assert_eq!(tool_calls[0].id, "call_task_1");

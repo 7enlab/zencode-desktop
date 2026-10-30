@@ -218,17 +218,20 @@ impl<'de> Deserialize<'de> for CliLine {
         D: Deserializer<'de>,
     {
         let raw = Value::deserialize(d)?;
-        let v = raw
-            .get("v")
-            .and_then(Value::as_u64)
-            .ok_or_else(|| serde::de::Error::custom("stream-json line is missing a numeric \"v\""))?;
+        let v = raw.get("v").and_then(Value::as_u64).ok_or_else(|| {
+            serde::de::Error::custom("stream-json line is missing a numeric \"v\"")
+        })?;
         let line_type = raw
             .get("type")
             .and_then(Value::as_str)
             .unwrap_or("")
             .to_owned();
         let event = serde_json::from_value(raw).map_err(serde::de::Error::custom)?;
-        Ok(CliLine { v, line_type, event })
+        Ok(CliLine {
+            v,
+            line_type,
+            event,
+        })
     }
 }
 
@@ -421,8 +424,12 @@ mod tests {
 
     #[test]
     fn rejects_wrong_schema_version() {
-        let err = parse_stream_json("{\"v\":2,\"type\":\"system\",\"subtype\":\"init\"}").unwrap_err();
-        assert!(err.to_string().contains("unsupported schema version"), "{err}");
+        let err =
+            parse_stream_json("{\"v\":2,\"type\":\"system\",\"subtype\":\"init\"}").unwrap_err();
+        assert!(
+            err.to_string().contains("unsupported schema version"),
+            "{err}"
+        );
     }
 
     #[test]

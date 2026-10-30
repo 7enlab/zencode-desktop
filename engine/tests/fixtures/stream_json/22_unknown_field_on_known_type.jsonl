@@ -1,0 +1,2 @@
+{"v":1,"type":"system","subtype":"init","session_id":"ses_add01","model":"cohere/north-mini-code:free","tools":["read"],"future_field":{"note":"additive, must be ignored"},"another_unknown":123}
+{"v":1,"type":"result","subtype":"success","is_error":false,"result":"Xong.","session_id":"ses_add01","total_cost_usd":0.0,"duration_ms":10,"num_turns":1,"usage":{"input_tokens":10,"output_tokens":2},"model":"cohere/north-mini-code:free","future_result_field":"ignore-me"}

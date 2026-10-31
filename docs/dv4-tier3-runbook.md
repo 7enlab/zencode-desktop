@@ -1,60 +1,68 @@
-# DV-4 tầng 3 — Runbook chạy binary thật với mock LLM (30/10/2026)
+# DV-4 tier 3 — Runbook: running the real binary with a mock LLM (30/10/2026)
 
-Tầng 3 ghim CLI hai phía theo quyết tin 1242/1269: binary CLI thật chạy
-dạng subprocess như Desktop thật, LLM giả lập bằng stub HTTP cục bộ,
-output stream-json được parser Desktop kiểm chứng. Tài liệu này ghi đủ để
-chạy lại từ đầu trên box ZD Developer; số liệu chạy đầu tiên ở §5.
+**CI NOTE — the tier-3 live capture is NOT reproducible by CI.** The live
+test is marked `#[ignore]`; CI does not run it. Reproducing the capture
+requires the local mock LLM stub at `127.0.0.1:18123` and a locally built
+CLI binary (see §§1–4). CI only runs `contract_harness` (33 tests) and
+`stream_json` (24 tests); it does not run the live capture.
 
-## 1. Vị trí (quyết 1242: binary chạy trên box ZD Developer trong `~/muse2`)
+Tier 3 pins the CLI on both sides per decisions in messages 1242/1269:
+the real CLI binary runs as a subprocess just like the real Desktop, the
+LLM is simulated by a local HTTP stub, and the stream-json output is
+verified by the Desktop parser. This doc records enough to rerun from
+scratch on the ZD Developer box; first-run figures are in §5.
 
-| Thành phần | Đường dẫn trên box | Ghi chú |
+## 1. Locations (decision 1242: binary runs on the ZD Developer box in `~/muse2`)
+
+| Component | Path on the box | Note |
 |---|---|---|
-| Source CLI | `~/muse2/zencode` | Clone `github.com/7enlabs/zencode` @ rev ghim `290154c` |
-| Binary | `~/muse2/zen` | Copy từ `~/muse2/zencode/target/debug/zen`, profile debug |
-| Mock stub | `~/muse2/mock_llm_stub.py` | Python http.server, chỉ bind `127.0.0.1:18123` |
-| Output bắt được | `~/muse2/tier3-output.jsonl` | Stdout của lần chạy §4 |
-| Test tầng 3 | `engine/tests/tier3_live_cli.rs` | Trên nhánh DV-4, `#[ignore]`, đọc `DV4_TIER3_CAPTURE` |
+| CLI source | `~/muse2/zencode` | Clone `github.com/7enlabs/zencode` @ pinned rev `290154c` |
+| Binary | `~/muse2/zen` | Copied from `~/muse2/zencode/target/debug/zen`, debug profile |
+| Mock stub | `~/muse2/mock_llm_stub.py` | Python http.server, binds only `127.0.0.1:18123` |
+| Captured output | `~/muse2/tier3-output.jsonl` | Stdout of the §4 run |
+| Tier-3 test | `engine/tests/tier3_live_cli.rs` | On the DV-4 branch, `#[ignore]`, reads `DV4_TIER3_CAPTURE` |
 
-Lựa chọn đường dẫn: design doc §5 không nói rõ đường dẫn nên chọn theo
-quyết 1242 (`~/muse2`): source tại `~/muse2/zencode`, binary tại `~/muse2/`.
+Path choice: design doc §5 does not pin paths, so they follow decision
+1242 (`~/muse2`): source at `~/muse2/zencode`, binary at `~/muse2/`.
 
-## 2. Build binary (profile debug — design doc im lặng về profile nên chọn debug cho nhanh)
+## 2. Build the binary (debug profile — the design doc is silent on profile, so debug was chosen for speed)
 
 ```sh
 cd ~/muse2
 git clone --depth 100 https://github.com/7enlabs/zencode.git zencode
 cd zencode && git checkout -q 290154c && git rev-parse HEAD
-# kỳ vọng: 290154c1da24e482cd888f7099a01b036597c15f
-cargo build -p zen-cli   # lần đầu cần mạng để lấy crate thiếu trong cache (webpki-roots 1.0.10); build lại sau đó offline được
+# expected: 290154c1da24e482cd888f7099a01b036597c15f
+cargo build -p zen-cli   # first build needs network to fetch a crate missing from the cache (webpki-roots 1.0.10); later builds work offline
 cp target/debug/zen ~/muse2/zen
-~/muse2/zen --version   # kỳ vọng: zen 0.1.0
+~/muse2/zen --version   # expected: zen 0.1.0
 ```
 
-Chú ý: `cargo build --offline` fail lúc đầu vì cache box chỉ có
-webpki-roots 1.0.9/1.0.5 trong khi lock cần 1.0.10 — build online lần đầu
-để lấy crate đó. Mạng này chỉ phục vụ build (crates.io), không liên quan
-đường LLM: stub không bao giờ gọi mạng ngoài.
+Note: `cargo build --offline` failed at first because the box cache only
+had webpki-roots 1.0.9/1.0.5 while the lockfile needed 1.0.10 — build
+online once to fetch that crate. That network use serves the build only
+(crates.io); it has nothing to do with the LLM path: the stub never calls
+the outside network.
 
-## 3. Mock LLM stub (đọc code client trước khi viết)
+## 3. Mock LLM stub (read the client code before writing it)
 
-Client LLM của CLI 290154c (`crates/zen-agent/src/client.rs:264`) POST tới
-`{base_url}/chat/completions` theo schema OpenAI chat.completion. Stub bắt
-chước đúng mock test của chính repo CLI
-(`crates/zen-cli/tests/common/mod.rs`, `Reply::text` + `MockServer`):
-một canned response duy nhất cho mọi request, không random, không clock,
-không nội dung phụ thuộc request — cùng request luôn cho cùng response
-byte-identical (đã chứng minh bằng 2 lần curl giống hệt, xem §5).
+The 290154c CLI's LLM client (`crates/zen-agent/src/client.rs:264`) POSTs
+to `{base_url}/chat/completions` following the OpenAI chat.completion
+schema. The stub mimics exactly the CLI repo's own mock test
+(`crates/zen-cli/tests/common/mod.rs`, `Reply::text` + `MockServer`): a
+single canned response for every request, no randomness, no clock, no
+request-dependent content — the same request always yields the same
+byte-identical response (proven by 2 identical curls, see §5).
 
 ```sh
 nohup python3 ~/muse2/mock_llm_stub.py > /tmp/mock-stub.out 2>&1 &
-# stub log request tại /tmp/mock-stub.log (chỉ method + path + số thứ tự)
+# the stub logs requests at /tmp/mock-stub.log (method + path + sequence number only)
 ```
 
-Cấu hình binary trỏ tới stub bằng flag chính thức của CLI (không patch
-source CLI): `--model mock-model --base-url http://127.0.0.1:18123/v1`,
-kèm `ZEN_API_KEY=dummy` (key giả, stub không kiểm tra).
+Point the binary at the stub with the CLI's official flags (no CLI
+source patch): `--model mock-model --base-url http://127.0.0.1:18123/v1`,
+plus `ZEN_API_KEY=dummy` (a dummy key; the stub does not check it).
 
-## 4. Chạy harness tầng 3 (đúng cách Desktop gọi CLI, qua subprocess)
+## 4. Run the tier-3 harness (the way the real Desktop calls the CLI, via subprocess)
 
 ```sh
 rm -rf /tmp/dv4-tier3-home /tmp/dv4-tier3-cwd && mkdir -p /tmp/dv4-tier3-home /tmp/dv4-tier3-cwd
@@ -67,12 +75,13 @@ env -u ZEN_MODEL -u ZEN_BASE_URL -u OPENAI_API_KEY -u ZEN_SETTINGS \
 echo "exit=$?"
 ```
 
-Isolated HOME + `ZEN_TRUST_FOLDER=1` bắt chước cách test của chính repo CLI
-(`ZenRun`) để lần chạy không dính setting người dùng; các flag `--model` /
-`--base-url` là đường trỏ provider chính thức của CLI, không phải patch.
+Isolated HOME + `ZEN_TRUST_FOLDER=1` mimic the CLI repo's own test
+approach (`ZenRun`) so the run does not pick up user settings; the
+`--model` / `--base-url` flags are the CLI's official provider-pointing
+path, not a patch.
 
-Kiểm chứng bằng parser thật (test `#[ignore]`, không chạy trong `cargo test`
-thường để CI không cần file capture):
+Verify with the real parser (test `#[ignore]`, not run by plain `cargo
+test` so CI does not need the capture file):
 
 ```sh
 cd ~/zencode-desktop/engine
@@ -80,43 +89,48 @@ DV4_TIER3_CAPTURE=~/muse2/tier3-output.jsonl \
   cargo test --offline --locked --test tier3_live_cli -- --ignored
 ```
 
-## 5. Bằng chứng chạy đầu tiên (30/10/2026, box ZD Developer)
+## 5. First-run evidence (30/10/2026, ZD Developer box)
 
-- Build: `cargo build -p zen-cli` — xong, binary `~/muse2/zen`, `zen 0.1.0`.
-  Rev đã build: `290154c1da24e482cd888f7099a01b036597c15f`.
-- Stub: `127.0.0.1:18123`, 2 lần curl request giống hệt cho response
-  byte-identical (`DETERMINISTIC-IDENTICAL`); log stub ghi 3 request
-  (2 curl kiểm chứng + 1 lần binary gọi) — binary chỉ gọi đúng 1 lần LLM,
-  toàn bộ qua localhost, không có gọi mạng ngoài.
-- Lần chạy subprocess: exit code 0, stderr rỗng, stdout 3 dòng, đều `v = 1`:
+- Build: `cargo build -p zen-cli` — done, binary `~/muse2/zen`,
+  `zen 0.1.0`. Built rev: `290154c1da24e482cd888f7099a01b036597c15f`.
+- Stub: `127.0.0.1:18123`, 2 identical curl requests gave a
+  byte-identical response (`DETERMINISTIC-IDENTICAL`); the stub log
+  recorded 3 requests (2 verification curls + 1 call from the binary) —
+  the binary called the LLM exactly once, all over localhost, no outside
+  network calls.
+- Subprocess run: exit code 0, empty stderr, 3 stdout lines, all `v = 1`:
   `system/init` (tools, model `mock-model`) → `assistant`
   (content `Hello from the mock LLM.`) → `result` (subtype `success`,
-  `is_error false`, `num_turns 1`, usage 7/3 khớp đúng usage của stub).
-- Parser check (`tier3_live_cli`, 1 passed, 0 failed): 3 dòng parse `Ok`,
-  thứ tự `system → assistant → result`, mỗi dòng chiếu ≥ 1 event,
-  system → `SystemMessage cli_system:init`, assistant → `AssistantMessage`
-  đúng text mock, result → `SessionEnd` success, `num_turns 1`,
-  model `mock-model`, input 7 / output 3, `interpret_exit_code(0) = Success`.
+  `is_error false`, `num_turns 1`, usage 7/3 matching the stub's usage
+  exactly).
+- Parser check (`tier3_live_cli`, 1 passed, 0 failed): 3 lines parse `Ok`,
+  order `system → assistant → result`, each line projects to ≥ 1 event,
+  system → `SystemMessage cli_system:init`, assistant →
+  `AssistantMessage` with the exact mock text, result → `SessionEnd`
+  success, `num_turns 1`, model `mock-model`, input 7 / output 3,
+  `interpret_exit_code(0) = Success`.
 
-Phần thay đổi theo từng lần chạy (bình thường, không phải finding):
-`session_id`, `uuid`, `duration_ms` khác nhau mỗi lần — chính repo CLI cũng
-normalise các trường này thành placeholder trong contract test của nó.
-Nội dung (text mock, usage, thứ tự, subtype) là deterministic.
+Varies from run to run (normal, not a finding): `session_id`, `uuid`,
+`duration_ms` differ each time — the CLI repo itself normalises these
+fields to placeholders in its own contract test. Content (mock text,
+usage, order, subtype) is deterministic.
 
-## 6. Lệch giữa design doc §5 và quyết 1242/1269 (ưu tiên quyết)
+## 6. Divergences between design doc §5 and decisions 1242/1269 (decisions win)
 
-- §5 để ngỏ "cần quyết của Leader về nơi chạy binary CLI và mock LLM dùng
-  chung" — nay đã chốt: box `~/muse2` + stub HTTP cục bộ (quyết 1242/1269).
-- §5 nhắc cơ chế phía CLI "regenerate fixture + cập nhật
-  `docs/stream-json-v1.md` trong cùng PR" khi thay đổi có chủ đích — tầng 3
-  này KHÔNG regenerate fixture, KHÔNG commit `docs/stream-json-v1.md`:
-  fixture là chuẩn, binary phải khớp fixture; việc land doc vẫn chờ quyết
-  riêng của Leader (quy tắc bất biến của khung).
-- §5 yêu cầu "cả hai đầu đều có mặt trên cùng một main" — nay đúng:
-  main `4b71b23` đã có parser + fixtures sau khi PR #3 merge.
+- §5 left open "needs a Leader decision on where to run the CLI binary
+  and which shared mock LLM" — now settled: box `~/muse2` + local HTTP
+  stub (decisions 1242/1269).
+- §5 mentions the CLI-side mechanism "regenerate fixture + update
+  `docs/stream-json-v1.md` in the same PR" for deliberate changes — this
+  tier 3 does NOT regenerate fixtures, does NOT commit
+  `docs/stream-json-v1.md`: the fixture is the standard, the binary must
+  match the fixture; landing the doc still awaits a separate Leader
+  decision (the harness's immutable rule).
+- §5 requires "both ends present on the same main" — now true: main
+  `4b71b23` already had the parser + fixtures after PR #3 merged.
 
-## 7. Finding: không có
+## 7. Finding: none
 
-Mọi check tầng 3 đều pass trong lần chạy đầu tiên; không có check nào fail
-để giữ lại làm finding, không có điểm chặn nào (đường LLM stub được sạch
-bằng flag chính thức, không cần patch source CLI).
+All tier-3 checks passed on the first run; no check failed to keep as a
+finding, no blocker (the stub LLM path is clean via official flags, no
+CLI source patch needed).

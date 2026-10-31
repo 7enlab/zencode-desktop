@@ -1,24 +1,24 @@
-//! Khung harness contract-test DV-4 — tầng 1 (chạy được tối nay, 30/10/2026).
+//! DV-4 contract-test harness — tier 1 (runnable on the night of 30/10/2026).
 //!
-//! Tầng 1 kiểm tra các yêu cầu hợp đồng CỨNG ở mức fixture (JSON thô) bằng
-//! `serde_json` — không phụ thuộc parser, vì parser `engine/src/stream_json.rs`
-//! chưa có trên main `aeaf42d` (nó nằm ở tuyến DV-2, xem design doc).
+//! Tier 1 checks the HARD contract requirements at fixture level (raw JSON) using
+//! `serde_json` — independent of the parser, because the parser `engine/src/stream_json.rs`
+//! was not yet on main `aeaf42d` (it lived on the DV-2 line, see the design doc).
 //!
-//! Tầng 2 (gắn parser thật) được đặc tả đầy đủ trong
-//! `docs/dv4-contract-harness-design.md` và chỉ kích hoạt được sau khi PR #3
-//! (DV-2) merge: khi đó `zencode_engine::stream_json::{parse_stream_json,
-//! to_desktop_events, interpret_exit_code}` tồn tại và các assert tầng 2 sau
-//! đây được thêm nguyên vẹn, không sửa assert tầng 1:
-//!   - unknown type -> `DesktopEvent::Unknown`, không drop (fixture 09);
-//!   - stream đứt -> `parse_stream_json` trả `Err`, tức 0 event (fixture 17);
-//!   - lỗi đánh số dòng vật lý, kể cả dòng trống (fixture 15: dòng 1, 17: dòng 3);
-//!   - result -> `SessionEnd` với `success = !is_error && subtype == "success"`,
+//! Tier 2 (pinning the real parser) is fully specified in
+//! `docs/dv4-contract-harness-design.md` and could only be activated after PR #3
+//! (DV-2) merged: at that point `zencode_engine::stream_json::{parse_stream_json,
+//! to_desktop_events, interpret_exit_code}` would exist and the following tier-2 asserts
+//! would be added verbatim, without changing tier-1 asserts:
+//!   - unknown type -> `DesktopEvent::Unknown`, not dropped (fixture 09);
+//!   - truncated stream -> `parse_stream_json` returns `Err`, i.e. 0 events (fixture 17);
+//!   - physical-line numbering of errors, including blank lines (fixture 15: line 1, 17: line 3);
+//!   - result -> `SessionEnd` with `success = !is_error && subtype == "success"`,
 //!     model, usage, duration (fixture 06/07/12/20);
 //!   - exit codes 0/1/130/143 -> Success/Error/Interrupted/Terminated.
 //!
-//! Chạy: `cargo test --offline --locked --test contract_harness`
-//! Báo cáo từng fixture: `cargo test --offline --locked --test contract_harness
-//! -- --nocapture` (test `fixture_inventory_report` in một dòng mỗi fixture).
+//! Run: `cargo test --offline --locked --test contract_harness`
+//! Per-fixture report: `cargo test --offline --locked --test contract_harness
+//! -- --nocapture` (test `fixture_inventory_report` prints one line per fixture).
 
 use std::path::PathBuf;
 
@@ -35,8 +35,8 @@ fn fixture_text(name: &str) -> String {
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("đọc fixture {}: {e}", path.display()))
 }
 
-/// Các record JSON của một fixture: bỏ qua dòng trống, giữ nguyên thứ tự.
-/// Panic kèm số dòng vật lý (bắt đầu từ 1) nếu một dòng không phải JSON object.
+/// The JSON records of a fixture: blank lines skipped, order preserved.
+/// Panics with the physical line number (starting at 1) if a line is not a JSON object.
 fn records(name: &str) -> Vec<Value> {
     let text = fixture_text(name);
     let mut out = Vec::new();
@@ -56,8 +56,8 @@ fn records(name: &str) -> Vec<Value> {
     out
 }
 
-/// Dòng vật lý đầu tiên parse JSON lỗi trong một fixture, kèm số dòng (từ 1).
-/// Trả `None` nếu mọi dòng (kể cả dòng trống) đều parse được hoặc rỗng.
+/// The first physical line that fails JSON parsing in a fixture, with its line number (from 1).
+/// Returns `None` if every line (including blank lines) parses or is empty.
 fn first_bad_line(name: &str) -> Option<(usize, String)> {
     for (i, line) in fixture_text(name).lines().enumerate() {
         if line.trim().is_empty() {
@@ -76,7 +76,7 @@ fn record_type(v: &Value) -> &str {
         .unwrap_or_else(|| panic!("record thiếu trường type: {v}"))
 }
 
-/// Các fixture hợp lệ (mọi dòng đều là JSON object, v = 1).
+/// The valid fixtures (every line is a JSON object, v = 1).
 const VALID_FIXTURES: &[&str] = &[
     "01_system_init.jsonl",
     "02_assistant_text.jsonl",
@@ -120,7 +120,7 @@ fn every_valid_record_has_a_type() {
 
 #[test]
 fn no_valid_fixture_requires_seq() {
-    // Hợp đồng v1: không có trường seq; consumer tự đánh số dòng nếu cần.
+    // Contract v1: no `seq` field; the consumer numbers lines itself if needed.
     for name in VALID_FIXTURES {
         for rec in records(name) {
             assert!(
@@ -181,8 +181,8 @@ fn assistant_text_shape() {
 
 #[test]
 fn assistant_tool_calls_are_openai_shape() {
-    // Shape CỨNG: message.tool_calls, mỗi call {id, type: "function",
-    // function: {name, arguments}} với arguments là chuỗi JSON-encoded.
+    // HARD shape: message.tool_calls, each call {id, type: "function",
+    // function: {name, arguments}} with arguments a JSON-encoded string.
     let recs = records("03_assistant_tool_use.jsonl");
     let msg = recs[0].get("message").expect("03: thiếu message");
     assert_eq!(
@@ -217,7 +217,7 @@ fn assistant_tool_calls_are_openai_shape() {
 
 #[test]
 fn assistant_tool_calls_without_text_omit_content() {
-    // Khi message chỉ gọi tool thì content bị lược (không gửi null).
+    // When a message only calls tools, content is omitted (no null sent).
     let recs = records("11_assistant_tool_calls_no_text.jsonl");
     let msg = recs[0].get("message").expect("11: thiếu message");
     assert!(
@@ -285,7 +285,7 @@ fn user_tool_results_shape_and_order() {
         blocks[0].get("tool_use_id").and_then(Value::as_str),
         Some("toolu_01")
     );
-    // is_error vắng mặt nghĩa là không lỗi (mặc định false ở tầng parser).
+    // Absent is_error means no error (default false at the parser layer).
     assert!(blocks[0].get("is_error").is_none());
 
     let err = records("05_user_tool_result_error.jsonl");
@@ -324,8 +324,8 @@ fn user_tool_results_shape_and_order() {
     );
 }
 
-/// Đầu vào mà tầng parser (tầng 2) phải chiếu thành SessionEnd:
-/// success suy ra từ `!is_error && subtype == "success"`.
+/// Inputs that the parser layer (tier 2) must project into SessionEnd:
+/// success is derived from `!is_error && subtype == "success"`.
 fn session_end_inputs(rec: &Value) -> (bool, &str, &str) {
     let subtype = rec.get("subtype").and_then(Value::as_str).unwrap();
     let is_error = rec.get("is_error").and_then(Value::as_bool).unwrap();
@@ -359,7 +359,7 @@ fn result_lines_carry_session_end_inputs() {
         ok[0].get("duration_ms").and_then(Value::as_u64),
         Some(45210)
     );
-    // Fixture 06 không mang model: tầng parser mặc định model rỗng (Level B).
+    // Fixture 06 carries no model: the parser layer defaults to an empty model (Level B).
     assert_eq!(model, "");
 
     let err = records("07_result_error.jsonl");
@@ -389,8 +389,8 @@ fn result_lines_carry_session_end_inputs() {
 
 #[test]
 fn unknown_type_record_is_preserved_in_stream() {
-    // Yêu cầu CỨNG ở mức stream: record lạ không bị drop khỏi chuỗi.
-    // (Chiếu thành DesktopEvent::Unknown là assert tầng 2, sau merge DV-2.)
+    // HARD requirement at stream level: an unknown record is not dropped from the stream.
+    // (Projecting to DesktopEvent::Unknown is a tier-2 assert, after the DV-2 merge.)
     let recs = records("09_unknown_type.jsonl");
     assert_eq!(recs.len(), 1);
     assert_eq!(record_type(&recs[0]), "heartbeat");
@@ -399,8 +399,8 @@ fn unknown_type_record_is_preserved_in_stream() {
 
 #[test]
 fn unknown_fields_on_known_types_are_tolerated() {
-    // Thay đổi additive: trường chưa biết trên record đã biết không được
-    // làm hỏng stream. Fixture 22 là fixture mới duy nhất của khung tối nay.
+    // Additive change: an unknown field on a known record must not
+    // break the stream. Fixture 22 is the only new fixture of tonight's harness.
     let recs = records("22_unknown_field_on_known_type.jsonl");
     assert_eq!(recs.len(), 2);
     assert_eq!(record_type(&recs[0]), "system");
@@ -421,7 +421,7 @@ fn bad_version_is_rejected_input() {
     let recs_text = fixture_text("10_bad_version.jsonl");
     let v: Value = serde_json::from_str(recs_text.trim()).expect("10: phải là JSON");
     assert_eq!(v.get("v").and_then(Value::as_u64), Some(2));
-    // v != 1 nên consumer v1 phải từ chối toàn bộ stream (assert tầng 2).
+    // v != 1, so a v1 consumer must reject the whole stream (tier-2 assert).
 }
 
 #[test]
@@ -439,8 +439,8 @@ fn malformed_json_fails_on_physical_line_1() {
 
 #[test]
 fn truncated_stream_fails_on_physical_line_3() {
-    // Điều kiện đầu vào của fail-fast: 2 dòng đầu hợp lệ, dòng 3 đứt.
-    // Hành vi fail-fast (trả Err, 0 event) là assert tầng 2, sau merge DV-2.
+    // Fail-fast input condition: first 2 lines valid, line 3 truncated.
+    // Fail-fast behaviour (return Err, 0 events) is a tier-2 assert, after the DV-2 merge.
     let text = fixture_text("17_truncated_stream.jsonl");
     let mut good = 0;
     for (i, line) in text.lines().enumerate() {
@@ -487,9 +487,9 @@ fn full_session_order_is_preserved() {
 
 #[test]
 fn fixture_inventory_report() {
-    // Báo cáo từng fixture: chạy kèm `-- --nocapture` để thấy bảng này.
-    // Mỗi dòng: tên fixture, số record (bỏ dòng trống), các type theo thứ tự.
-    // Fixture lỗi (10/15/16/17) được báo riêng, không tính vào bảng record.
+    // Per-fixture report: run with `-- --nocapture` to see this table.
+    // Each line: fixture name, record count (blank lines excluded), types in order.
+    // Rejected fixtures (10/15/16/17) are reported separately, not counted in the record table.
     let mut names: Vec<&str> = VALID_FIXTURES.to_vec();
     names.push("13_empty_input.jsonl");
     names.push("14_blank_lines_only.jsonl");
@@ -498,8 +498,8 @@ fn fixture_inventory_report() {
         let types: Vec<&str> = recs.iter().map(record_type).collect();
         println!("fixture={name} records={} types={:?}", recs.len(), types);
     }
-    // 10 và 16 là JSON hợp lệ nhưng bị từ chối ở tầng version (v=2 / thiếu v),
-    // không phải ở tầng parse JSON — báo rõ lý do thay vì số dòng lỗi.
+    // 10 and 16 are valid JSON but rejected at the version layer (v=2 / missing v),
+    // not at the JSON parse layer — report the reason clearly instead of an error line number.
     println!("fixture=10_bad_version.jsonl rejected_input reason=unsupported_version v=2");
     let (line15, _) = first_bad_line("15_malformed_json.jsonl").expect("15: phải có dòng JSON lỗi");
     println!("fixture=15_malformed_json.jsonl rejected_input bad_line={line15}");
